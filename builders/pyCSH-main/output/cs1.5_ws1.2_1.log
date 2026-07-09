@@ -1,0 +1,107 @@
+Ca/Si ratio:    1.521429 
+SiOH/Si ratio:  0.150000 
+CaOH/Ca ratio:  0.408451 
+MCL:            3.500000 
+ 
+Shape:   3   5   2 
+ 
+Supecell Brick Code: 
+ Na  Nb  Nc  :   Brick Code 
+
+brick_code = { 
+(  0,   0,   0)  :   ['<L', '<Ro', 'CII', 'CIU', 'oDL', 'oDR', '>L', '>R'], 
+(  0,   0,   1)  :   ['<L', 'SU', '<R', 'CII', 'XU', 'CID', 'oDL', 'oUR', 'oXU', '>L', 'CD', 'oMDL', 'oMDR', '>Ro'], 
+(  0,   1,   0)  :   ['<L', '<R', 'CII', 'XU', 'CID', 'oUR', '>L', 'SD', '>R'], 
+(  0,   1,   1)  :   ['<L', 'CU', 'oMUR', '<R', 'XU', 'XD', 'CIU', 'oUR', 'oXD', '>L', 'SDo', 'oMDL', '>R'], 
+(  0,   2,   0)  :   ['<Lo', '<R', 'XD', 'CID', 'oDL', '>L', '>R'], 
+(  0,   2,   1)  :   ['<L', '<Ro', 'CID', 'CIU', 'oDL', 'oDR', '>L', '>R'], 
+(  0,   3,   0)  :   ['<L', 'CU', 'oMUL', 'oMUR', '<R', 'CII', 'XU', 'CIU', 'oUL', 'oUR', 'oXU', '>L', 'SDo', 'oMDL', '>R'], 
+(  0,   3,   1)  :   ['<L', 'CU', '<R', 'CII', 'oDL', '>L', '>R'], 
+(  0,   4,   0)  :   ['<L', 'SU', 'oMUL', '<R', 'XU', 'CID', 'CIU', 'oDR', 'oUR', '>L', 'CD', 'oMDR', '>R'], 
+(  0,   4,   1)  :   ['<Lo', '<R', 'CII', 'XU', 'XD', 'CID', 'oDL', 'oUR', 'oXD', '>L', 'SD', 'oMDL', '>R'], 
+(  1,   0,   0)  :   ['<L', 'CU', 'oMUL', 'oMUR', '<Ro', 'XU', '>L', '>R'], 
+(  1,   0,   1)  :   ['<L', 'SU', 'oMUL', '<R', 'XU', 'XD', 'CID', 'oDL', 'oDR', 'oUR', 'oXU', '>Lo', 'CD', '>R'], 
+(  1,   1,   0)  :   ['<L', 'CU', '<R', 'XU', 'oUL', 'oXU', '>L', '>R'], 
+(  1,   1,   1)  :   ['<L', 'SU', 'oMUL', '<R', 'XU', 'XD', 'CID', 'oDL', 'oDR', 'oXU', '>L', 'CD', 'oMDL', '>R'], 
+(  1,   2,   0)  :   ['<Lo', '<R', 'CID', 'oDR', 'oUL', '>L', 'CD', '>R'], 
+(  1,   2,   1)  :   ['<L', 'SU', 'oMUL', '<R', 'CII', 'XU', 'XD', 'CID', 'CIU', 'oDL', 'oUR', 'oXU', '>L', 'SD', 'oMDL', '>R'], 
+(  1,   3,   0)  :   ['<L', 'SUo', 'oMUL', '<R', 'CII', 'XU', 'XD', 'CID', 'CIU', 'oDL', 'oUR', 'oXD', '>L', 'SD', 'oMDL', '>R'], 
+(  1,   3,   1)  :   ['<Lo', 'CU', 'oMUL', '<R', 'XU', 'XD', 'CIU', 'oUL', 'oXU', '>L', 'SD', 'oMDL', '>R'], 
+(  1,   4,   0)  :   ['<L', 'SUo', 'oMUL', '<R', 'XD', 'CIU', 'oDL', 'oUR', '>L', 'CD', '>R'], 
+(  1,   4,   1)  :   ['<L', '<Ro', 'CII', 'XD', 'CID', 'oUR', '>L', 'SD', '>R'], 
+(  2,   0,   0)  :   ['<Lo', 'CU', 'oMUL', 'oMUR', '<R', 'CII', 'XU', 'CIU', 'oUL', 'oUR', 'oXU', '>L', 'SDo', '>R'], 
+(  2,   0,   1)  :   ['<L', 'CU', '<R', 'XU', 'XD', 'CIU', 'oUR', 'oXU', '>L', 'SD', 'oMDL', '>R'], 
+(  2,   1,   0)  :   ['<L', '<R', 'XU', 'XD', 'oDR', '>Lo', '>R'], 
+(  2,   1,   1)  :   ['<L', '<R', 'CII', 'CIU', 'oDL', '>Lo', '>R'], 
+(  2,   2,   0)  :   ['<L', 'SU', 'oMUL', '<R', 'CII', 'XU', 'XD', 'CID', 'CIU', 'oDL', 'oUR', 'oXD', '>L', 'SD', 'oMDL', '>R'], 
+(  2,   2,   1)  :   ['<L', 'SU', 'oMUL', '<R', 'CII', 'XD', 'oDL', '>Lo', 'CD', 'oMDL', '>R'], 
+(  2,   3,   0)  :   ['<Lo', '<R', 'CII', 'CIU', 'oUL', '>L', '>R'], 
+(  2,   3,   1)  :   ['<L', 'CU', '<R', 'CII', 'oDR', '>L', '>R'], 
+(  2,   4,   0)  :   ['<L', 'CU', '<R', 'XU', 'oDL', 'oXU', '>L', '>Ro'], 
+(  2,   4,   1)  :   ['<L', '<R', 'CID', 'CIU', 'oDR', '>L', '>R'], 
+}
+
+water_code = { 
+(  0,   0,  0)  :   [np.str_('wIR'), np.str_('wIL'), np.str_('wMDL'), np.str_('wUL'), np.str_('w15'), np.str_('w14')], 
+(  0,   0,  1)  :   [np.str_('wDR'), np.str_('wIL'), np.str_('w15'), np.str_('wXD'), np.str_('wMUL'), np.str_('wIR2')], 
+(  0,   1,  0)  :   [np.str_('wUL'), np.str_('wIL'), np.str_('w15'), np.str_('wMUR'), np.str_('wMUL'), np.str_('wXU')], 
+(  0,   1,  1)  :   [np.str_('w15'), np.str_('wMUL'), np.str_('wIL'), np.str_('w16'), np.str_('wIR2'), np.str_('w14')], 
+(  0,   2,  0)  :   [np.str_('wMDR'), np.str_('wXU'), np.str_('wDR'), np.str_('wIR2'), np.str_('w16'), np.str_('w15')], 
+(  0,   2,  1)  :   [np.str_('wMUR'), np.str_('wUL'), np.str_('wXD'), np.str_('wMUL'), np.str_('w14'), np.str_('wIR')], 
+(  0,   3,  0)  :   [np.str_('wXD'), np.str_('w15'), np.str_('w16'), np.str_('w14'), np.str_('wIR2'), np.str_('wIL')], 
+(  0,   3,  1)  :   [np.str_('wMUR'), np.str_('w14'), np.str_('wMUL'), np.str_('w15'), np.str_('wDR'), np.str_('wUL')], 
+(  0,   4,  0)  :   [np.str_('wXD'), np.str_('w16'), np.str_('wIL'), np.str_('w15'), np.str_('w14'), np.str_('wIR2')], 
+(  0,   4,  1)  :   [np.str_('wMUR'), np.str_('w14'), np.str_('w16'), np.str_('w15'), np.str_('wXU'), np.str_('wMUL')], 
+(  1,   0,  0)  :   [np.str_('w15'), np.str_('w14'), np.str_('wUL'), np.str_('wIR2'), np.str_('wIL'), np.str_('wXD')], 
+(  1,   0,  1)  :   [np.str_('wMDL'), np.str_('w15'), np.str_('wMDR'), np.str_('wXD'), np.str_('w16'), np.str_('wIR2')], 
+(  1,   1,  0)  :   [np.str_('w15'), np.str_('wIL'), np.str_('wMUL'), np.str_('w14'), np.str_('wMDR'), np.str_('w16')], 
+(  1,   1,  1)  :   [np.str_('wIR'), np.str_('wIR2'), np.str_('wXD'), np.str_('w14'), np.str_('wMDR'), np.str_('wIL')], 
+(  1,   2,  0)  :   [np.str_('wXU'), np.str_('w16'), np.str_('wMUL'), np.str_('wMDL'), np.str_('wIL'), np.str_('wMUR')], 
+(  1,   2,  1)  :   [np.str_('wIL'), np.str_('w14'), np.str_('w15'), np.str_('w16'), np.str_('wXD'), np.str_('wIR2')], 
+(  1,   3,  0)  :   [np.str_('wIL'), np.str_('wXU'), np.str_('wIR2'), np.str_('w15'), np.str_('w14')], 
+(  1,   3,  1)  :   [np.str_('w15'), np.str_('w16'), np.str_('w14'), np.str_('wMUR'), np.str_('wIR'), np.str_('wIL')], 
+(  1,   4,  0)  :   [np.str_('wDR'), np.str_('wXU'), np.str_('wXD'), np.str_('wIL'), np.str_('wMDR'), np.str_('w14')], 
+(  1,   4,  1)  :   [np.str_('wIL'), np.str_('wXD'), np.str_('wIR2'), np.str_('w14'), np.str_('wUL')], 
+(  2,   0,  0)  :   [np.str_('w15'), np.str_('wIL'), np.str_('wXD'), np.str_('wMDL'), np.str_('wIR2')], 
+(  2,   0,  1)  :   [np.str_('wMUL'), np.str_('w14'), np.str_('w15'), np.str_('wMUR'), np.str_('wXD')], 
+(  2,   1,  0)  :   [np.str_('wMUR'), np.str_('wMDR'), np.str_('w14'), np.str_('wMUL'), np.str_('wMDL')], 
+(  2,   1,  1)  :   [np.str_('wMDR'), np.str_('wMUL'), np.str_('w15'), np.str_('w16'), np.str_('wUL')], 
+(  2,   2,  0)  :   [np.str_('wIR2'), np.str_('w16'), np.str_('wIL'), np.str_('w15'), np.str_('w14')], 
+(  2,   2,  1)  :   [np.str_('wIR'), np.str_('wMDR'), np.str_('wIR2'), np.str_('wXD'), np.str_('w15')], 
+(  2,   3,  0)  :   [np.str_('w14'), np.str_('wXD'), np.str_('w16'), np.str_('w15'), np.str_('wMUL')], 
+(  2,   3,  1)  :   [np.str_('w16'), np.str_('wXU'), np.str_('w14'), np.str_('wIL'), np.str_('wMDR')], 
+(  2,   4,  0)  :   [np.str_('wUL'), np.str_('wDR'), np.str_('wXD'), np.str_('wMUL'), np.str_('wMUR')], 
+(  2,   4,  1)  :   [np.str_('wIR'), np.str_('wIR2'), np.str_('w16'), np.str_('w15'), np.str_('wMDR')], 
+}
+ 
+Charge Distribution: 
+  0   0   0  :   -1 
+  0   0   1  :   0 
+  0   1   0  :   1 
+  0   1   1  :   1 
+  0   2   0  :   0 
+  0   2   1  :   -1 
+  0   3   0  :   -1 
+  0   3   1  :   -1 
+  0   4   0  :   0 
+  0   4   1  :   1 
+  1   0   0  :   -1 
+  1   0   1  :   0 
+  1   1   0  :   -2 
+  1   1   1  :   -1 
+  1   2   0  :   -1 
+  1   2   1  :   1 
+  1   3   0  :   2 
+  1   3   1  :   1 
+  1   4   0  :   0 
+  1   4   1  :   2 
+  2   0   0  :   1 
+  2   0   1  :   1 
+  2   1   0  :   0 
+  2   1   1  :   0 
+  2   2   0  :   1 
+  2   2   1  :   0 
+  2   3   0  :   0 
+  2   3   1  :   -1 
+  2   4   0  :   -1 
+  2   4   1  :   -1 

@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="0 0 16 16"
+   version="1.1"
+   id="svg6"
+   sodipodi:docname="silicate.svg"
+   width="16"
+   height="16"
+   inkscape:version="1.4.3 (fcd0343856, 2026-01-01)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs6" />
+  <sodipodi:namedview
+     id="namedview6"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="24.9375"
+     inkscape:cx="15.558897"
+     inkscape:cy="14.235589"
+     inkscape:window-width="1920"
+     inkscape:window-height="959"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg6" />
+  <g
+     id="g6">
+    <ellipse
+       cx="8"
+       cy="8.6244125"
+       fill="none"
+       stroke="#000000"
+       stroke-linecap="round"
+       stroke-linejoin="round"
+       stroke-width="1.23149"
+       id="circle1"
+       style="stroke-width:1.01407;stroke-dasharray:none"
+       rx="3.1220677"
+       ry="3.1220675" />
+    <ellipse
+       cx="8"
+       cy="2.3802772"
+       fill="none"
+       stroke="#000000"
+       stroke-linecap="round"
+       stroke-linejoin="round"
+       stroke-width="1.23149"
+       id="circle2"
+       style="stroke-width:1.01407;stroke-dasharray:none"
+       rx="1.8732406"
+       ry="1.8732404" />
+    <ellipse
+       cx="2.3802793"
+       cy="13.61972"
+       fill="none"
+       stroke="#000000"
+       stroke-linecap="round"
+       stroke-linejoin="round"
+       stroke-width="1.23149"
+       id="circle3"
+       style="stroke-width:1.01407;stroke-dasharray:none"
+       rx="1.8732406"
+       ry="1.8732404" />
+    <ellipse
+       cx="13.619722"
+       cy="13.61972"
+       fill="none"
+       stroke="#000000"
+       stroke-linecap="round"
+       stroke-linejoin="round"
+       stroke-width="1.23149"
+       id="circle4"
+       style="stroke-width:1.01407;stroke-dasharray:none"
+       rx="1.8732406"
+       ry="1.8732404" />
+    <line
+       x1="8"
+       y1="4.2535167"
+       x2="8"
+       y2="5.5023437"
+       fill="none"
+       stroke="#000000"
+       stroke-linecap="round"
+       stroke-linejoin="round"
+       stroke-width="1.23149"
+       id="line4"
+       style="stroke-width:1.01407;stroke-dasharray:none" />
+    <line
+       x1="4.066195"
+       y1="11.933802"
+       x2="5.3150225"
+       y2="10.684977"
+       fill="none"
+       stroke="#000000"
+       stroke-linecap="round"
+       stroke-linejoin="round"
+       stroke-width="1.23149"
+       id="line5"
+       style="stroke-width:1.01407;stroke-dasharray:none" />
+    <line
+       x1="11.933806"
+       y1="11.933802"
+       x2="10.68498"
+       y2="10.684977"
+       fill="none"
+       stroke="#000000"
+       stroke-linecap="round"
+       stroke-linejoin="round"
+       stroke-width="1.23149"
+       id="line6"
+       style="stroke-width:1.01407;stroke-dasharray:none" />
+  </g>
+</svg>

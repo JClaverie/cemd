@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="16"
+   height="16"
+   viewBox="0 0 16 16"
+   fill="none"
+   stroke="currentColor"
+   stroke-width="2"
+   stroke-linecap="round"
+   stroke-linejoin="round"
+   class="lucide lucide-between-horizontal-end-icon lucide-between-horizontal-end"
+   version="1.1"
+   id="svg2"
+   sodipodi:docname="channel.svg"
+   inkscape:version="1.4.3 (fcd0343856, 2026-01-01)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs2" />
+  <sodipodi:namedview
+     id="namedview2"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     showgrid="true"
+     inkscape:zoom="23.5113"
+     inkscape:cx="10.803316"
+     inkscape:cy="4.9337978"
+     inkscape:window-width="1920"
+     inkscape:window-height="959"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg2">
+    <inkscape:grid
+       id="grid2"
+       units="px"
+       originx="0"
+       originy="0"
+       spacingx="1"
+       spacingy="1"
+       empcolor="#0099e5"
+       empopacity="0.30196078"
+       color="#0099e5"
+       opacity="0.14901961"
+       empspacing="5"
+       enabled="true"
+       visible="true" />
+  </sodipodi:namedview>
+  <rect
+     width="15.000051"
+     height="6.000298"
+     x="0.49997237"
+     y="4.9998512"
+     rx="1"
+     id="rect1"
+     style="fill:none;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-dasharray:1, 1;stroke-dashoffset:0;stroke-opacity:1"
+     ry="1" />
+  <rect
+     width="15.000051"
+     height="3.3333452"
+     x="0.49997237"
+     y="12.166683"
+     rx="1"
+     id="rect2"
+     style="fill:#ffcb47;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-dasharray:none;stroke-opacity:1"
+     ry="1" />
+  <rect
+     width="15.000051"
+     height="3.3333452"
+     x="0.49997237"
+     y="0.49997237"
+     rx="1"
+     id="rect2-6"
+     style="fill:#ffcb47;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-dasharray:none;stroke-opacity:1"
+     ry="1" />
+  <path
+     d="M 8.0000002,6 V 9.9999995 M 6,7.9999999 h 4"
+     stroke="#E67E22"
+     stroke-width="2"
+     stroke-linecap="round"
+     id="path2"
+     style="stroke:#f4442e;stroke-width:1;stroke-dasharray:none;stroke-opacity:1" />
+</svg>

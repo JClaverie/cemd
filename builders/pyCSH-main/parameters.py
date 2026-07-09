@@ -1,0 +1,11 @@
+seed = 44481929
+shape = [3, 5, 2]
+Ca_Si_ratio = 1.5
+W_Si_ratio = 1.2
+N_samples = 3
+create = True
+write_lammps = True
+write_lammps_erica = False
+write_vasp = False
+write_siesta = False
+prefix = "cs1.5_ws1.2"

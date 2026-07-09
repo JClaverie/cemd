@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   version="1.0"
+   width="16"
+   height="16"
+   id="svg2"
+   sodipodi:docname="mol.svg"
+   inkscape:version="1.4.3 (fcd0343856, 2026-01-01)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="44.55414"
+     inkscape:cx="4.9602574"
+     inkscape:cy="8.1922803"
+     inkscape:window-width="1920"
+     inkscape:window-height="959"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1"
+     showgrid="true">
+    <inkscape:grid
+       id="grid1"
+       units="px"
+       originx="0"
+       originy="0"
+       spacingx="1"
+       spacingy="1"
+       empcolor="#0099e5"
+       empopacity="0.30196078"
+       color="#0099e5"
+       opacity="0.14901961"
+       empspacing="5"
+       enabled="true"
+       visible="true" />
+  </sodipodi:namedview>
+  <defs
+     id="defs4" />
+  <g
+     transform="matrix(0.02442981,0,0,0.02442981,7.701359,-1.9124925)"
+     id="layer1">
+    <path
+       d="M 165.16835,494.16166 V 317.56056 M 12.06563,229.26 165.16835,317.56056 M 12.22445,282.2558 120.9066,345.69426 M 12.06563,582.4622 165.16835,494.16166 M 12.22445,528.55477 119.69942,465.72384 M -141.03708,317.56056 12.06563,229.26 M -141.03708,494.16166 12.06563,582.4622 m -153.10271,-88.30054 v -176.6011 m 47.726586,148.67548 1.226055,-120.74987 M 276.34252,253.39972 165.16835,317.56056 M 276.34252,558.32248 165.16835,494.16166 M 12.06563,97.762081 V 229.26 m 0,484.70013 V 582.4622 m -263.95925,-329.06248 110.85654,64.16084 m -110.85654,240.76192 110.85654,-64.16082"
+       style="fill:none;stroke:#000000;stroke-width:38.5252;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
+       id="path2295"
+       sodipodi:nodetypes="cccccccccccccccccccccccccccccc" />
+  </g>
+</svg>
