@@ -118,19 +118,19 @@ def get_structure(cid: int, smiles: str = None) -> dict | None:
     Tries to fetch 3D SDF, then 2D SDF. 
     If both fail (404), generates structure from SMILES using read_smiles.
     """
-    from cemd.core._io import read_sdf_content, read_smiles
+    from cemd.core._io import IOMixin
     
     url = f"https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/{cid}/SDF?record_type=3d"
 
     response = requests.get(url, timeout=10)
     if response.status_code == 200:
         print(f"Loaded 3D SDF for CID {cid}")
-        return read_sdf_content(response.text)
+        return IOMixin.read_sdf_content(response.text)
 
     if smiles:
         print(f"SDF not found for {cid}. Generating structure from SMILES...")
         try:
-            return read_smiles(smiles)
+            return IOMixin.read_smiles(smiles)
         except Exception as e:
             print(f"SMILES conversion error: {e}")
 

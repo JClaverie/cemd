@@ -48,8 +48,8 @@ class AtomicPlotter(QtInteractor):
         self.update_background_style()
         # self.render_window.SetMultiSamples(4)
         # self.enable_anti_aliasing('msaa')
-        # self.enable_lightkit()
-        # self.enable_eye_dome_lighting()
+        self.enable_lightkit()
+        self.enable_eye_dome_lighting()
 
         self.add_axes()
 

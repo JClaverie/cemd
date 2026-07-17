@@ -21,16 +21,28 @@ import subprocess
 import shutil
 
 from .. import AtomicSystem
-from ..structures import path2structs
+from .._config import STRUCTURES_DIR
 from .._constants import MASSES_DICT
 
-def _get_structure_path(name: str, temp_dir: str) -> str:
+def _make_packmol_input(input_name, output_file, structures) -> None:
+    '''Create an input file for Packmol'''
+    output = "tolerance 1.5\n"
+    output += f"output {output_file}\n"
+    output += "filetype pdb\n\n"
+
+    for i in structures:
+        output += i
+
+    with open(input_name, 'w', encoding='utf-8') as f:
+        f.write(output)
+
+def get_structure_path(name: str, temp_dir: str) -> str:
     """
     Returns the path to a PDB file for the given species.
     If it's a known single atom and no PDB exists, generates one in temp_dir.
     """
     # Check if a standard PDB exists (H2O, complex molecules)
-    standard_path = os.path.join(path2structs, f"{name.lower()}.pdb")
+    standard_path = os.path.join(STRUCTURES_DIR, f"{name.lower()}.pdb")
     if os.path.exists(standard_path):
         return standard_path
 
@@ -50,28 +62,7 @@ def _get_structure_path(name: str, temp_dir: str) -> str:
 
     raise FileNotFoundError(f"Structure for '{name}' not found and cannot be generated.")
 
-def _run_packmol(structures: list, 
-                 output_path: str = None) -> AtomicSystem | str:
-    """Helper to run packmol and return a PDB file or an AtomicSystem."""
-    with tempfile.TemporaryDirectory(dir='.') as tmp:
-        
-        pdb_output_file = os.path.join(tmp, 'tmp_out.pdb')
-        packmol_input_file = os.path.join(tmp, 'tmp.inp')
-
-        _make_packmol_input(packmol_input_file, pdb_output_file, structures)
-        subprocess.run(f"packmol < {packmol_input_file}", shell=True, 
-                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        # subprocess.run(f"packmol < {packmol_input_file}", shell=True)
-
-        if not os.path.exists(pdb_output_file):
-            raise RuntimeError("Packmol failed to generate output.")
-
-        if output_path is not None:
-            shutil.copy(pdb_output_file, output_path)
-            return output_path
-        return AtomicSystem.from_file(tempfile_opdb)
-
-def _add_packmol_structure(structure: str, 
+def add_packmol_structure(structure: str, 
                           number: int, 
                           *instructions: str) -> str:
     '''Return a 'structure' section for Packmol'''
@@ -83,14 +74,27 @@ def _add_packmol_structure(structure: str,
 
     return output
 
-def _make_packmol_input(input_name, output_file, structures) -> None:
-    '''Create an input file for Packmol'''
-    output = "tolerance 1.5\n"
-    output += f"output {output_file}\n"
-    output += "filetype pdb\n\n"
+def run_packmol(structures: list, 
+                 output_path: str = None) -> AtomicSystem | str:
+    """Helper to run packmol and return a PDB file or an AtomicSystem."""
+    with tempfile.TemporaryDirectory(dir='.') as tmp:
+        
+        pdb_output_file = os.path.join(tmp, 'tmp_out.pdb')
+        packmol_input_file = os.path.join(tmp, 'tmp.inp')
 
-    for i in structures:
-        output += i
+        _make_packmol_input(packmol_input_file, pdb_output_file, structures)
+        subprocess.run(f"packmol < {packmol_input_file}", 
+                       shell=True, 
+                       stdout=subprocess.DEVNULL, 
+                       stderr=subprocess.DEVNULL)
+        # subprocess.run(f"packmol < {packmol_input_file}", shell=True)
 
-    with open(input_name, 'w', encoding='utf-8') as f:
-        f.write(output)
+        if not os.path.exists(pdb_output_file):
+            raise RuntimeError("Packmol failed to generate output.")
+
+        if output_path is not None:
+            shutil.copy(pdb_output_file, output_path)
+            return output_path
+        return AtomicSystem.from_file(pdb_output_file)
+
+

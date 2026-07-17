@@ -276,3 +276,53 @@ def grouped_average(array: np.ndarray, expected_size: int) -> tuple[np.ndarray, 
     return np.array(averaged_values), indices_list, counts
 
 
+# def grouped_average(array: np.ndarray, tolerance: float = 1.0) -> tuple[np.ndarray, list[np.ndarray], list[int]]:
+#     """
+#     Groups coordinates that are close to each other along a 1D axis and returns their averages.
+#     No longer requires an expected number of groups, relying instead on a physical tolerance.
+
+#     Parameters
+#     ----------
+#     array : np.ndarray
+#         1D array of coordinates (e.g., z-positions of Si atoms).
+#     tolerance : float, default 1.2
+#         The maximum distance (in Angstroms) to consider two coordinates 
+#         as part of the same plane.
+
+#     Returns
+#     -------
+#     tuple[np.ndarray, list[np.ndarray], list[int]]
+#         - averaged_values: Mean coordinate of each group.
+#         - indices_list: Indices in the ORIGINAL array belonging to each group.
+#         - counts: Number of atoms in each group.
+#     """
+#     if array.size == 0:
+#         return np.array([]), [], []
+
+#     # Sort the array to make grouping fast (O(N log N))
+#     sorted_arr = np.sort(array)
+    
+#     # Find gaps between consecutive sorted points larger than the tolerance
+#     gaps = np.diff(sorted_arr) > tolerance
+    
+#     # Create group IDs (e.g., [0, 0, 1, 1, 1, 2...])
+#     group_ids = np.concatenate(([0], np.cumsum(gaps)))
+#     num_groups = group_ids[-1] + 1
+
+#     # Calculate averages and collect indices
+#     averaged_values = []
+#     indices_list = []
+#     counts = []
+    
+#     for g_id in range(num_groups):
+#         mask = (group_ids == g_id)
+#         group_data = sorted_arr[mask]
+        
+#         averaged_values.append(np.mean(group_data))
+#         counts.append(len(group_data))
+        
+#         # Find where original values match the values in this group
+#         original_indices = np.where(np.isin(array, group_data))[0]
+#         indices_list.append(original_indices)
+
+#     return np.array(averaged_values), indices_list, counts

@@ -693,7 +693,8 @@ class ConnectivityDialog(BaseBuilderDialog):
                 self.system_obj.remove_connection_types(bond_types=[type_id])
             elif category == "Angles":
                 self.system_obj.remove_connection_types(angle_types=[type_id])
-        self.refresh_ui_and_plotter()
+        main_win = self.parent()
+        main_win.sync_ui()
 
     def delete_by_id(self, category: str, index: int) -> None:
         if category == "Bonds":
@@ -701,8 +702,7 @@ class ConnectivityDialog(BaseBuilderDialog):
         elif category == "Angles":
             self.system_obj.remove_angle(index)
         main_win = self.parent()
-        if hasattr(main_win, 'sync_ui'):
-            main_win.sync_ui()
+        main_win.sync_ui()
 
     def open_rule_builder(self):
         if not self.system_obj:
@@ -712,7 +712,8 @@ class ConnectivityDialog(BaseBuilderDialog):
             new_rule = dialog.get_rule()
             try:
                 QtWidgets.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
-                self.system_obj.set_topo_rule(new_rule)
+                self.system_obj.set_topology(new_rule)
+                print(new_rule)
                 self.setup_ui() 
                 main_win = self.parent()
                 if hasattr(main_win, 'sync_ui'):
@@ -914,6 +915,7 @@ class RuleBuilderDialog(QtWidgets.QDialog):
                 "sel": f"type {r['type_cb'].currentText()}",
                 "n": r['n_spin'].value(),
                 "cutoff": r['dist_spin'].value(),
+                "exact": False,
                 "new_type": r['new_type'].text() if r['new_type'].text() else None
             })
 

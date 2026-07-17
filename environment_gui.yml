@@ -20,3 +20,4 @@ dependencies:
       - rdkit
       - dask
       - pydantic==2.12.5
+      - xlrd

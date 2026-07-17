@@ -26,7 +26,7 @@ import numpy as np
 
 from .. import AtomicSystem
 from .._config import STRUCTURES_DIR, PYCSH_DIR
-from ._packmol import _add_packmol_structure, _get_structure_path, _run_packmol
+from ._packmol import add_packmol_structure, get_structure_path, run_packmol
 
 from ._silicate_helpers import (
     remove_bridging_silicates, 
@@ -163,7 +163,7 @@ f"Critical error: pyCSH did not generate file {reax_name}."
 def make_csh(cs_ratio: float, 
              ws_ratio: float,
              supercell: Sequence[int]=None, 
-             model: str='tob11a_hamid.cif', 
+             model: str='tob11a_merlino.cif', 
              min_mcl=3,
              symmetry: bool=True,
              progress_callback: Callable[[int, str], None]=None
@@ -225,9 +225,11 @@ def make_csh(cs_ratio: float,
     nca = len(univ.select_atoms("type Ca"))
     nsi_to_remove, nca_to_add, vacancy_fraction = calculate_csh_modifiers(nsi, nca, cs_ratio, min_mcl)
 
+    print(nsi, nca, nsi_to_remove, nca_to_add)
+
     if progress_callback: progress_callback(10, "Randomly removing brindging silicates...")
 
-    univ = remove_bridging_silicates(univ, nsi_to_remove, supercell[2], symmetry)
+    univ = remove_bridging_silicates(univ, nsi_to_remove, symmetry)
 
     # Read the new pdb file and calculate the number of water molecules to add
     # univ = mda.Universe("temp.pdb")
@@ -259,8 +261,7 @@ def make_csh(cs_ratio: float,
 
     # 4. Finalisation
     final_system.set_box(box)
-    final_system.set_topo(style='cshff')
-    # Final system.wrap()
+    # final_system.set_topo('cshff')
 
     nsi = final_system.get_count("Si")
     nca = final_system.get_count("Ca") + final_system.get_count("Cw")
@@ -399,10 +400,10 @@ def make_af(ws_ratio: float, supercell: Sequence[int]=None) -> AtomicSystem:
         sel.write(tempfile_ipdb)
 
         # Utilisation des helpers de _packmol
-        h2o_pdb = _get_structure_path('h2o', tmp)
+        h2o_pdb = get_structure_path('h2o', tmp)
 
         structures = [
-            _add_packmol_structure(
+            add_packmol_structure(
                 tempfile_ipdb, 
                 1,
                 f"inside box 0 0 0 {box[0]:.4f} {box[1]:.4f} {box[2]:.4f}",
@@ -410,14 +411,14 @@ def make_af(ws_ratio: float, supercell: Sequence[int]=None) -> AtomicSystem:
                 "fixed 0 0 0 0 0 0",
                 "end atoms"
             ),
-            _add_packmol_structure(
+            add_packmol_structure(
                 h2o_pdb, 
                 num_water,
                 f"inside box 0 0 0 {box[0]:.4f} {box[1]:.4f} {box[2]:.4f}"
             )
         ]
 
-        output_atomic_system = _run_packmol(structures)
+        output_atomic_system = run_packmol(structures)
 
     # Set the box parameters and write topologic features
     output_atomic_system.set_box(box)

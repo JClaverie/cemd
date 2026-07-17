@@ -19,13 +19,14 @@ from __future__ import annotations
 
 import os
 import re
-# import warnings
+import warnings
 import tempfile
-from typing import Sequence, TYPE_CHECKING
+from typing import Sequence
 
 import numpy as np
 import pandas as pd
 import scipy.constants as cst
+import MDAnalysis as mda
 from pymatgen.core import Composition
 from pymatgen.core.surface import SlabGenerator
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
@@ -39,15 +40,12 @@ from .._utils import (
     vectors2lattice
 )
 from ._packmol import (
-    _add_packmol_structure, 
-    _get_structure_path,
-    _run_packmol
+    add_packmol_structure, 
+    get_structure_path,
+    run_packmol
 )
 
-if TYPE_CHECKING:
-    from cemd.core.atomic_system import AtomicSystem
-
-# warnings.filterwarnings("ignore")
+warnings.filterwarnings("ignore")
 
 def _sanitize_path(full_path: str) -> str:
     """
@@ -65,8 +63,135 @@ def _sanitize_path(full_path: str) -> str:
     safe_filename = f"{name}{ext}"
     return os.path.abspath(os.path.join(directory, safe_filename))
 
+import numpy as np
+from scipy.spatial import cKDTree
 
-def make_surface(data: AtomicSystem, 
+import numpy as np
+import MDAnalysis as mda
+
+def rebuild_silicates(u, si_o_cutoff=1.9, oh_dist=0.96, si_o_dist=1.6):
+    """
+    Reconstruit la coordination des Si < 4 en ajoutant des groupes silanol (OH).
+    Utilise les outils de sélection et de calcul de distance de MDAnalysis.
+    """
+    new_atoms_data = []
+    
+    # 1. Sélectionner tous les siliciums
+    silicons = u.select_atoms("type Si")
+    
+    for si in silicons:
+        # 2. Compter les oxygènes voisins dans le rayon cutoff (en utilisant PBC)
+        # 'around' est l'outil natif de MDAnalysis pour le voisinage
+        neighbors = u.select_atoms(f"type O and around {si_o_cutoff} index {si.index}")
+        
+        n_bonds = len(neighbors)
+        
+        if n_bonds < 4:
+            missing = 4 - n_bonds
+            print(f"Si ID {si.id} a {n_bonds} voisins. Ajout de {missing} groupe(s) OH.")
+            
+            for i in range(missing):
+                # Calcul d'une direction simple (vers l'extérieur du tétraèdre)
+                # Note: Dans un vrai cas, on calculerait le vecteur opposé au barycentre
+                direction = np.random.normal(size=3)
+                direction /= np.linalg.norm(direction)
+                
+                # Position du nouvel Oxygène
+                o_pos = si.position + (direction * si_o_dist)
+                # Position du nouvel Hydrogène
+                h_pos = o_pos + (direction * oh_dist)
+                
+                new_atoms_data.append({'type': 'O', 'pos': o_pos})
+                new_atoms_data.append({'type': 'H', 'pos': h_pos})
+                
+    return new_atoms_data
+
+def _build_atomic_system_from_coords(positions: np.ndarray, 
+                                      types: list[str], 
+                                      box: np.ndarray = None) -> AtomicSystem:
+    """
+    Builds a basic AtomicSystem object directly from atomic coordinates and atom types.
+
+    Parameters
+    ----------
+    positions : np.ndarray
+        Array of shape (N, 3) containing atomic coordinates (x, y, z).
+    types : list[str]
+        List of strings specifying the type/name of each atom.
+    box : np.ndarray, optional
+        Simulation box parameters [a, b, c, alpha, beta, gamma].
+
+    Returns
+    -------
+    AtomicSystem
+        The constructed AtomicSystem instance.
+    """
+    import pandas as pd
+    
+    df = pd.DataFrame({
+        'type': types,
+        'x': positions[:, 0],
+        'y': positions[:, 1],
+        'z': positions[:, 2]
+    })
+    
+    system = AtomicSystem(df)
+    if box is not None:
+        system.set_box(box)
+    return system
+
+def _cap_broken_framework_bonds(u: mda.Universe,
+                                 framework_bonds: list[tuple[int, int]],
+                                 si_al_types=("Si", "Al"),
+                                 o_bond_length: float = 1.75,
+                                 oh_bond_length: float = 1.0) -> tuple[np.ndarray, list[str]]:
+    """
+    For each broken Si/Al-O bond (si_idx, o_idx), on the ALREADY MOVED
+    universe u:
+      - add one H on the O side (-> existing O becomes a silanol)
+      - add one O+H on the Si/Al side (-> new silanol replacing the lost O)
+    Returns arrays of new positions and new (generic) type labels, ready
+    to be merged into the final system.
+    """
+    new_pos = []
+    new_types = []
+
+    for a, b in framework_bonds:
+        atom_a, atom_b = u.atoms[a], u.atoms[b]
+        if atom_a.type in si_al_types:
+            si_atom, o_atom = atom_a, atom_b
+        else:
+            si_atom, o_atom = atom_b, atom_a
+
+        # --- Cap the surviving bridging O with an H ---
+        # place the H roughly along the (now vacant) Si->O direction,
+        # extended past O
+        direction = o_atom.position - si_atom.position
+        direction /= np.linalg.norm(direction)
+        h_on_o = o_atom.position + direction * oh_bond_length
+        new_pos.append(h_on_o)
+        new_types.append("H")  # bonded to the existing O -> becomes Osih
+
+        # --- Cap the under-coordinated Si with a new O-H ---
+        si_neighbors = u.select_atoms(f"around 2.0 index {si_atom.index}")
+        si_neighbors = si_neighbors.select_atoms("type O*")  # remaining O's
+        if len(si_neighbors) > 0:
+            to_neighbors = si_neighbors.positions - si_atom.position
+            to_neighbors /= np.linalg.norm(to_neighbors, axis=1, keepdims=True)
+            new_o_dir = -np.sum(to_neighbors, axis=0)
+            new_o_dir /= np.linalg.norm(new_o_dir)
+        else:
+            new_o_dir = -direction  # fallback: opposite of the broken bond
+
+        new_o_pos = si_atom.position + new_o_dir * o_bond_length
+        new_h_pos = new_o_pos + new_o_dir * oh_bond_length
+        new_pos.extend([new_o_pos, new_h_pos])
+        new_types.extend(["Osih", "Hsi"])
+
+    return np.array(new_pos), new_types
+
+
+def build_surface(data: AtomicSystem, 
                  miller_indices: Sequence[int], 
                  min_slab_size: float=25.0, 
                  min_vacuum_size: float=15.0
@@ -120,7 +245,7 @@ def make_surface(data: AtomicSystem,
     
     return slabs_list_as, shift_list, dipole_list, actual_broken
 
-def make_solution(box: Sequence[float] | np.ndarray = [30,30,30], 
+def build_solution(box: Sequence[float] | np.ndarray = [30,30,30], 
                   density: float=1.0, 
                   solutes_dict: dict[str: int]=None,
                   structures_dict: dict[str: AtomicSystem]=None
@@ -196,8 +321,8 @@ def make_solution(box: Sequence[float] | np.ndarray = [30,30,30],
         # write packmol input
         structures = []
 
-        h2o_path = _get_structure_path('H2O', tmp)
-        structures.append(_add_packmol_structure(
+        h2o_path = get_structure_path('H2O', tmp)
+        structures.append(add_packmol_structure(
             h2o_path, num_water, 
              (f"inside box 0 0 0 {boxa * 0.95:.4f} {boxb * 0.95:.4f} "
             f"{boxc * 0.95:.4f}")))
@@ -210,16 +335,16 @@ def make_solution(box: Sequence[float] | np.ndarray = [30,30,30],
                     structures_dict[key].write(struct_path)
 
                 else:
-                    struct_path = _get_structure_path(key, tmp)
+                    struct_path = get_structure_path(key, tmp)
 
                 struct_path = _sanitize_path(struct_path)
-                structures.append(_add_packmol_structure(
+                structures.append(add_packmol_structure(
                     struct_path, num,
                         "center",
                         (f"inside box 0 0 0 {boxa*0.95:.4f} {boxb*0.95:.4f} "
                         f"{boxc*0.95:.4f}")))
 
-        data = _run_packmol(structures)
+        data = run_packmol(structures)
 
     # Print box parameters and number of atoms
     print("\nSolution created")
@@ -237,7 +362,7 @@ def make_solution(box: Sequence[float] | np.ndarray = [30,30,30],
 
     return data
 
-def make_glass(box: Sequence[float] | np.ndarray, 
+def build_glass(box: Sequence[float] | np.ndarray, 
                density: float, 
                stoichiometry_dic: dict[str, float]) -> AtomicSystem:
     """
@@ -299,15 +424,15 @@ def make_glass(box: Sequence[float] | np.ndarray,
             
             print(f" -> {comp:6s}: {count} unités")
             
-            path2structure = _get_structure_path(comp, tmp)
+            path2structure = get_structure_path(comp, tmp)
             
-            structures.append(_add_packmol_structure(
+            structures.append(add_packmol_structure(
                 path2structure, count,
                 "center",
                 f"inside box 1 1 1 {boxa-1:.4f} {boxb-1:.4f} {boxc-1:.4f}\n"
             ))
 
-        data = _run_packmol(structures)
+        data = run_packmol(structures)
         
     # Finalization
     data.set_box(box + [90, 90, 90])
@@ -356,9 +481,9 @@ def add_droplet(solid_system: AtomicSystem,
 
     with tempfile.TemporaryDirectory(dir='.') as tmp:
         structures = []
-        h2o_path = _get_structure_path("H2O", tmp)
+        h2o_path = get_structure_path("H2O", tmp)
         
-        structures.append(_add_packmol_structure(h2o_path, num_water, 
+        structures.append(add_packmol_structure(h2o_path, num_water, 
             f"inside sphere 0. 0. 0. {radius:.4f}",
             "over plane 0. 0. 1. 0."
         ))
@@ -369,15 +494,15 @@ def add_droplet(solid_system: AtomicSystem,
                     struct_path = os.path.join(tmp, f"custom_{id(structures_dict[key])}.pdb")
                     structures_dict[key].write(struct_path)
                 else:
-                    struct_path = _get_structure_path(key, tmp)
+                    struct_path = get_structure_path(key, tmp)
 
                 struct_path = _sanitize_path(struct_path)
-                structures.append(_add_packmol_structure(struct_path, num, 
+                structures.append(add_packmol_structure(struct_path, num, 
                         f"inside sphere 0. 0. 0. {radius:.4f}",
                         "over plane 0. 0. 1. 0."
                     ))
 
-        liquid_data = _run_packmol(structures)
+        liquid_data = run_packmol(structures)
 
     data = add_structure(
         solid_system=solid_system, 
@@ -468,7 +593,7 @@ def add_liquid(solid_system: AtomicSystem,
     liquid_dims[transverse_indices[1]] = dim_transverse_2
     liquid_dims[idx] = thickness
     
-    liquid_data = make_solution(
+    liquid_data = build_solution(
         box=[liquid_dims[0], liquid_dims[1], liquid_dims[2]], 
         density=density, 
         solutes_dict=solutes_dict, 
@@ -483,88 +608,722 @@ def add_liquid(solid_system: AtomicSystem,
         vacuum=vacuum
     )
 
-def split(solid_system: AtomicSystem, 
-          axis=2,
-          coordinate: float=None,
-          gap_size: float=20.0,
-          tolerance: float=2.0,
-          add_solution: bool=True, 
-          density: float=1.0,
-          solutes_dict: dict[str, int]=None,
-          structures_dict: dict[str, AtomicSystem]=None) -> AtomicSystem:
-    """
-    Splits the atomic system along the specified axis at a given coordinate and optionally inserts a liquid solution in the created gap.
-    """
-    if isinstance(solid_system, str):
-        solid_system = AtomicSystem.from_file(solid_system)
+# def split(solid_system: AtomicSystem, 
+#           axis=2,
+#           coordinate: float=None,
+#           gap_size: float=20.0,
+#           tolerance: float=2.0,
+#           add_solution: bool=True, 
+#           density: float=1.0,
+#           solutes_dict: dict[str, int]=None,
+#           structures_dict: dict[str, AtomicSystem]=None) -> AtomicSystem:
+#     """
+#     Splits the atomic system along the specified axis at a given coordinate and optionally inserts a liquid solution in the created gap.
+#     """
+#     if isinstance(solid_system, str):
+#         solid_system = AtomicSystem.from_file(solid_system)
 
-    # GEOMETRY PREPARATION
-    vec_list = list(lattice2vectors(solid_system.box))
-    target_vec = vec_list[axis]
-    unit_norm = target_vec / np.linalg.norm(target_vec)
-    L_original = np.linalg.norm(target_vec)
+#     # GEOMETRY PREPARATION
+#     vec_list = list(lattice2vectors(solid_system.box))
+#     target_vec = vec_list[axis]
+#     unit_norm = target_vec / np.linalg.norm(target_vec)
+#     L_original = np.linalg.norm(target_vec)
     
-    if coordinate is None:
-        coordinate = L_original / 2.0
+#     if coordinate is None:
+#         coordinate = L_original / 2.0
     
-    # SPLIT SOLID (Using MDAnalysis fragments to keep molecules intact)
-    u = solid_system.to_mda()
-    shift_vector = unit_norm * gap_size
+#     # SPLIT SOLID (Using MDAnalysis fragments to keep molecules intact)
+#     u = solid_system.to_mda()
+#     shift_vector = unit_norm * gap_size
     
-    # Verification: Are there any connections in the system?
-    has_bonds = hasattr(u.atoms, 'bonds') and len(u.atoms.bonds) > 0
+#     # Verification: Are there any connections in the system?
+#     has_bonds = hasattr(u.atoms, 'bonds') and len(u.atoms.bonds) > 0
 
-    if has_bonds:
-        # CASE 1: move by fragments (molecules)
-        print("Bonds detected: movement by molecular fragments.")
-        for frag in u.atoms.fragments:
-            if np.dot(frag.centroid(), unit_norm) >= coordinate:
-                frag.positions += shift_vector
-    else:
-        # CASE 2: No bonds -> move the atoms individually
-        print("No bonds detected: atom by atom movement.")
-        # Selection of atoms whose projected position is beyond the split
-        mask = np.dot(u.atoms.positions, unit_norm) >= coordinate
-        u.atoms.positions[mask] += shift_vector
+#     if has_bonds:
+#         # CASE 1: move by fragments (molecules)
+#         print("Bonds detected: movement by molecular fragments.")
+#         for frag in u.atoms.fragments:
+#             if np.dot(frag.centroid(), unit_norm) >= coordinate:
+#                 frag.positions += shift_vector
+#     else:
+#         # CASE 2: No bonds -> move the atoms individually
+#         print("No bonds detected: atom by atom movement.")
+#         # Selection of atoms whose projected position is beyond the split
+#         mask = np.dot(u.atoms.positions, unit_norm) >= coordinate
+#         u.atoms.positions[mask] += shift_vector
             
-    # Update box dimensions
-    vec_list[axis] = target_vec + shift_vector
-    extended_box = vectors2lattice(tuple(vec_list))
+#     # Update box dimensions
+#     vec_list[axis] = target_vec + shift_vector
+#     extended_box = vectors2lattice(tuple(vec_list))
     
-    # Create the expanded solid system
-    final_system = AtomicSystem.from_mda(u)
-    final_system.set_box(extended_box)
+#     # Create the expanded solid system
+#     final_system = AtomicSystem.from_mda(u)
+#     final_system.set_box(extended_box)
 
-    # ADD SOLUTION (Only if requested)
+#     # ADD SOLUTION (Only if requested)
+#     if add_solution:
+#         dims = [np.linalg.norm(v) for v in vec_list]
+#         liquid_thickness = gap_size - (2 * tolerance)
+        
+#         if liquid_thickness <= 0:
+#             raise ValueError(f"Gap size ({gap_size} Å) is too small for the requested tolerance ({tolerance} Å x 2).")
+        
+#         # Determine transverse dimensions for the liquid box
+#         other_axes = [i for i in range(3) if i != axis]
+#         liquid_box_dims = [dims[other_axes[0]], dims[other_axes[1]], liquid_thickness]
+        
+#         # Generate the solution (ensure make_solution is imported)
+#         liquid_data = make_solution(liquid_box_dims, density, solutes_dict, structures_dict)
+
+#         # Positioning: Center the liquid in the middle of the new gap
+#         gap_center = coordinate + (gap_size / 2.0)
+        
+#         # Project liquid positions on the separation axis
+#         axis_name = ['x', 'y', 'z'][axis]
+#         liquid_pos = liquid_data.atoms[axis_name].values
+#         liquid_center = (np.max(liquid_pos) + np.min(liquid_pos)) / 2.0
+        
+#         # Apply shift to center the liquid block
+#         liquid_data.atoms[axis_name] += (gap_center - liquid_center)
+
+#         # Merge solid and liquid (ensure merge is imported)
+#         final_system = merge(final_system, liquid_data, extended_box)
+        
+#     return final_system
+
+
+
+# def split(solid_system: AtomicSystem, 
+#           axis=2,
+#           coordinate: float=None,
+#           gap_size: float=20.0,
+#           tolerance: float=2.0,
+#           add_solution: bool=True, 
+#           density: float=1.0,
+#           solutes_dict: dict[str, int]=None,
+#           structures_dict: dict[str, AtomicSystem]=None) -> AtomicSystem:
+#     """
+#     Splits the atomic system along the specified axis at a given coordinate 
+#     and optionally inserts a liquid solution in the created gap.
+#     """
+#     if isinstance(solid_system, str):
+#         solid_system = AtomicSystem.from_file(solid_system)
+
+#     # GEOMETRY PREPARATION
+#     vec_list = list(lattice2vectors(solid_system.box))
+#     target_vec = vec_list[axis]
+#     unit_norm = target_vec / np.linalg.norm(target_vec)
+#     L_original = np.linalg.norm(target_vec)
+    
+#     if coordinate is None:
+#         coordinate = L_original / 2.0
+    
+#     u = solid_system.to_mda()
+#     shift_vector = unit_norm * gap_size
+    
+#     has_bonds = hasattr(u.atoms, 'bonds') and len(u.atoms.bonds) > 0
+#     broken_framework_bonds = []
+
+#     if has_bonds:
+#         print("Bonds detected: filtering boundary-crossing bonds...")
+        
+#         # 1. Sélectionner les liaisons qui traversent le plan de coupe
+#         pos1 = u.atoms.bonds.atom1.positions
+#         pos2 = u.atoms.bonds.atom2.positions
+        
+#         proj1 = np.dot(pos1, unit_norm)
+#         proj2 = np.dot(pos2, unit_norm)
+        
+#         # Une liaison traverse le plan si un atome est < coordinate et l'autre >= coordinate
+#         crosses_plane = ((proj1 < coordinate) & (proj2 >= coordinate)) | \
+#                         ((proj1 >= coordinate) & (proj2 < coordinate))
+        
+#         # 2. Conserver uniquement les liaisons qui NE traversent PAS la coupure
+#         valid_bonds = u.atoms.bonds[~crosses_plane]
+        
+#         # Reconstruire la topologie temporaire sans les liaisons traversantes
+#         u.delete_bonds(u.atoms.bonds)
+#         u.add_bonds(valid_bonds.to_indices())
+
+#         # 3. Déplacer par fragments (désormais séparés au niveau du plan)
+#         print("Moving fragments...")
+#         for frag in u.atoms.fragments:
+#             if np.dot(frag.centroid(), unit_norm) >= coordinate:
+#                 frag.positions += shift_vector
+#     else:
+#         # CASE 2: Pas de liaisons -> Déplacement atome par atome
+#         print("No bonds detected: atom by atom movement.")
+#         mask = np.dot(u.atoms.positions, unit_norm) >= coordinate
+#         u.atoms.positions[mask] += shift_vector
+            
+#     # Mise à jour de la boîte
+#     vec_list[axis] = target_vec + shift_vector
+#     extended_box = vectors2lattice(tuple(vec_list))
+    
+#     final_system = AtomicSystem.from_mda(u)
+#     final_system.set_box(extended_box)
+
+#     # ADD SOLUTION
+#     if add_solution:
+#         dims = [np.linalg.norm(v) for v in vec_list]
+#         liquid_thickness = gap_size - (2 * tolerance)
+        
+#         if liquid_thickness <= 0:
+#             raise ValueError(f"Gap size ({gap_size} Å) is too small for requested tolerance.")
+        
+#         other_axes = [i for i in range(3) if i != axis]
+#         liquid_box_dims = [dims[other_axes[0]], dims[other_axes[1]], liquid_thickness]
+        
+#         liquid_data = make_solution(liquid_box_dims, density, solutes_dict, structures_dict)
+
+#         gap_center = coordinate + (gap_size / 2.0)
+        
+#         axis_name = ['x', 'y', 'z'][axis]
+#         liquid_pos = liquid_data.atoms[axis_name].values
+#         liquid_center = (np.max(liquid_pos) + np.min(liquid_pos)) / 2.0
+        
+#         liquid_data.atoms[axis_name] += (gap_center - liquid_center)
+
+#         final_system = merge(final_system, liquid_data, extended_box)
+        
+#     return final_system
+
+# def split(solid_system: AtomicSystem,
+#           axis: int = 2,
+#           coordinate: float = None,
+#           gap_size: float = 20.0,
+#           tolerance: float = 2.0,
+#           add_solution: bool = False,
+#           density: float = 1.0,
+#           solutes_dict: dict[str, int] = None,
+#           structures_dict: dict[str, AtomicSystem] = None,
+#           topo_style: str = 'cshff') -> AtomicSystem:
+#     """
+#     Splits a solid system along a specified axis at a given coordinate,
+#     caps severed framework bonds (Si/Al - O) with silanol groups, and optionally
+#     inserts a liquid solution into the created gap.
+
+#     Parameters
+#     ----------
+#     solid_system : AtomicSystem or str
+#         The original solid system object or file path.
+#     axis : int, optional
+#         Cutting axis (0 for X, 1 for Y, 2 for Z). Default is 2.
+#     coordinate : float, optional
+#         Coordinate position along the axis where the cut is made.
+#         Defaults to the midpoint of the simulation box.
+#     gap_size : float, optional
+#         Width of the created gap in Angstroms (Å). Default is 20.0.
+#     tolerance : float, optional
+#         Safety distance buffer between liquid and solid surfaces in Å. Default is 2.0.
+#     add_solution : bool, optional
+#         If True, fills the generated gap with a liquid solution. Default is False.
+#     density : float, optional
+#         Target liquid density in g/cm³. Default is 1.0.
+#     solutes_dict : dict, optional
+#         Dictionary mapping solute names to their requested counts.
+#     structures_dict : dict, optional
+#         Dictionary containing solute AtomicSystem structures.
+#     topo_style : str, optional
+#         Topology style used to rebuild bonds ('cshff', etc.). Default is 'cshff'.
+
+#     Returns
+#     -------
+#     AtomicSystem
+#         The final split, capped, and optionally solvated atomic system.
+#     """
+#     if isinstance(solid_system, str):
+#         solid_system = AtomicSystem.from_file(solid_system)
+
+#     # --- 1. GEOMETRY PREPARATION ---
+#     vec_list   = list(lattice2vectors(solid_system.box))
+#     target_vec = vec_list[axis]
+#     unit_norm  = target_vec / np.linalg.norm(target_vec)
+#     L_original = np.linalg.norm(target_vec)
+
+#     if coordinate is None:
+#         coordinate = L_original / 2.0
+
+#     shift_vector = unit_norm * gap_size
+
+#     # --- 2. EXTEND BOX AND MOVE UPPER FRAGMENT ---
+#     u = solid_system.to_mda()
+
+#     # Extend the box first so positions stay meaningful
+#     vec_list[axis] = target_vec + shift_vector
+#     extended_box   = vectors2lattice(tuple(vec_list))
+#     u.dimensions   = np.array([*[np.linalg.norm(v) for v in vec_list],
+#                                 *solid_system.box[3:]], dtype=float)
+
+#     has_bonds = hasattr(u.atoms, 'bonds') and len(u.atoms.bonds) > 0
+
+#     if has_bonds:
+#         print("Bonds detected: moving fragments...")
+#         for frag in u.atoms.fragments:
+#             if np.dot(frag.centroid(), unit_norm) >= coordinate:
+#                 frag.positions += shift_vector
+#     else:
+#         print("No bonds detected: moving atom by atom.")
+#         mask = np.dot(u.atoms.positions, unit_norm) >= coordinate
+#         u.atoms.positions[mask] += shift_vector
+
+#     # --- 3. DETECT BROKEN FRAMEWORK BONDS BY STRETCHED LENGTH ---
+#     broken_framework_bonds = []
+
+#     if has_bonds:
+#         pos1 = u.atoms.bonds.atom1.positions
+#         pos2 = u.atoms.bonds.atom2.positions
+
+#         # Real Euclidean distances after displacement — no PBC correction needed
+#         # because the box is already extended and atoms are at absolute positions
+#         lengths = np.linalg.norm(pos2 - pos1, axis=1)
+
+#         # Framework bond types: Si/Al bonded to any oxygen
+#         types1 = u.atoms.bonds.atom1.types.astype(str)
+#         types2 = u.atoms.bonds.atom2.types.astype(str)
+
+#         framework_types = {"Si", "Al"}
+#         atom1_is_fw = np.isin(types1, list(framework_types))
+#         atom2_is_fw = np.isin(types2, list(framework_types))
+#         atom1_is_o  = np.char.startswith(types1, "O")
+#         atom2_is_o  = np.char.startswith(types2, "O")
+
+#         is_framework_bond = (atom1_is_fw & atom2_is_o) | (atom2_is_fw & atom1_is_o)
+
+#         # A normal Si-O / Al-O bond is 1.6–1.85 Å.
+#         # After moving one fragment by gap_size, a severed bond will be ~gap_size Å long.
+#         # A threshold of 2.5 Å safely separates intact from broken bonds.
+#         STRETCH_THRESHOLD = 2.5
+#         is_stretched = lengths > STRETCH_THRESHOLD
+
+#         broken_mask = is_framework_bond & is_stretched
+
+#         if broken_mask.any():
+#             broken_framework_bonds = u.atoms.bonds[broken_mask].to_indices()
+#             print(f"Found {len(broken_framework_bonds)} broken framework bonds.")
+
+#             # Remove broken bonds from the topology
+#             valid_bonds = u.atoms.bonds[~broken_mask]
+#             u.delete_bonds(u.atoms.bonds)
+#             u.add_bonds(valid_bonds.to_indices())
+
+#     # --- 4. CAP BROKEN FRAMEWORK BONDS ---
+#     if len(broken_framework_bonds) > 0:
+#         print(f"CAPPING: Adding silanol groups to {len(broken_framework_bonds)} broken bonds...")
+
+#         new_pos, new_types = _cap_broken_framework_bonds(u, broken_framework_bonds)
+
+#         n_capping  = len(new_types)
+#         capping_u  = mda.Universe.empty(n_capping, trajectory=True)
+#         capping_u.add_TopologyAttr('id',   np.arange(1, n_capping + 1))
+#         capping_u.add_TopologyAttr('type', new_types)
+#         capping_u.add_TopologyAttr('name', new_types)
+#         capping_u.atoms.positions = new_pos
+#         capping_u.add_TopologyAttr(
+#             'mass', [MASSES_DICT.get(t, 1.0) for t in new_types]
+#         )
+
+#         u = mda.Merge(u.atoms, capping_u.atoms)
+#         u.atoms.ids = np.arange(1, len(u.atoms) + 1)
+
+#     # --- 5. CONVERT BACK TO AtomicSystem ---
+#     final_system = AtomicSystem.from_mda(u)
+#     final_system.set_box(extended_box)
+
+#     # --- 6. INSERT LIQUID PHASE (OPTIONAL) ---
+#     if add_solution:
+#         print("Generating and inserting liquid solution...")
+#         dims = [np.linalg.norm(v) for v in vec_list]
+#         liquid_thickness = gap_size - 2 * tolerance
+
+#         if liquid_thickness <= 0:
+#             raise ValueError(
+#                 f"Gap size ({gap_size} Å) is too small for the requested "
+#                 f"tolerance ({tolerance} Å)."
+#             )
+
+#         other_axes     = [i for i in range(3) if i != axis]
+#         liquid_box_dims = [dims[other_axes[0]], dims[other_axes[1]], liquid_thickness]
+#         liquid_data    = build_solution(liquid_box_dims, density, solutes_dict, structures_dict)
+
+#         gap_center  = coordinate + gap_size / 2.0
+#         axis_name   = ['x', 'y', 'z'][axis]
+#         liquid_pos  = liquid_data.atoms[axis_name].values
+#         liquid_center = (np.max(liquid_pos) + np.min(liquid_pos)) / 2.0
+#         liquid_data.atoms[axis_name] += gap_center - liquid_center
+
+#         final_system = merge(final_system, liquid_data, extended_box)
+
+#     return final_system
+
+# def split(solid_system: AtomicSystem, 
+#           axis: int = 2,
+#           coordinate: float = None,
+#           gap_size: float = 20.0,
+#           tolerance: float = 2.0,
+#           add_solution: bool = False, 
+#           density: float = 1.0,
+#           solutes_dict: dict[str, int] = None,
+#           structures_dict: dict[str, AtomicSystem] = None) -> AtomicSystem:
+#     """
+#     Splits a solid system along a specified axis at a given coordinate,
+#     caps severed framework bonds (Si/Al - O) with silanol groups, and optionally
+#     inserts a liquid solution into the created gap.
+
+#     Parameters
+#     ----------
+#     solid_system : AtomicSystem or str
+#         The original solid system object or file path.
+#     axis : int, optional
+#         Cutting axis (0 for X, 1 for Y, 2 for Z). Default is 2.
+#     coordinate : float, optional
+#         Coordinate position along the axis where the cut is made. 
+#         Defaults to the midpoint of the simulation box.
+#     gap_size : float, optional
+#         Width of the created gap in Angstroms (Å). Default is 20.0.
+#     tolerance : float, optional
+#         Safety distance buffer between liquid and solid surfaces in Å. Default is 2.0.
+#     add_solution : bool, optional
+#         If True, fills the generated gap with a liquid solution. Default is True.
+#     density : float, optional
+#         Target liquid density in g/cm³. Default is 1.0.
+#     solutes_dict : dict, optional
+#         Dictionary mapping solute names to their requested counts.
+#     structures_dict : dict, optional
+#         Dictionary containing solute AtomicSystem structures.
+#     topo_style : str, optional
+#         Topology style used to rebuild bonds ('cshff', etc.). Default is 'cshff'.
+
+#     Returns
+#     -------
+#     AtomicSystem
+#         The final split, capped, and optionally solvated atomic system.
+#     """
+#     if isinstance(solid_system, str):
+#         solid_system = AtomicSystem.from_file(solid_system)
+
+#     # 1. GEOMETRY AND BOX PREPARATION
+#     vec_list = list(lattice2vectors(solid_system.box))
+#     target_vec = vec_list[axis]
+#     unit_norm = target_vec / np.linalg.norm(target_vec)
+#     L_original = np.linalg.norm(target_vec)
+    
+#     if coordinate is None:
+#         coordinate = L_original / 2.0
+    
+#     u = solid_system.to_mda()
+#     shift_vector = unit_norm * gap_size
+    
+#     has_bonds = hasattr(u.atoms, 'bonds') and len(u.atoms.bonds) > 0
+#     broken_framework_bonds = []
+
+#     # 2. BOND DETECTION AND FRAGMENT MOVEMENT
+#     if has_bonds:
+#         print("Bonds detected: analyzing boundary-crossing bonds...")
+        
+#         pos1 = u.atoms.bonds.atom1.positions
+#         pos2 = u.atoms.bonds.atom2.positions
+        
+#         proj1 = np.dot(pos1, unit_norm)
+#         proj2 = np.dot(pos2, unit_norm)
+        
+#         # Check which bonds cross the cutting plane
+#         crosses_plane = ((proj1 < coordinate) & (proj2 >= coordinate)) | \
+#                         ((proj1 >= coordinate) & (proj2 < coordinate))
+        
+#         # Identify Si/Al - O framework bonds crossing the plane
+#         framework_types = {"Si", "Al"}
+#         types1 = u.atoms.bonds.atom1.types.astype(str)
+#         types2 = u.atoms.bonds.atom2.types.astype(str)
+
+#         atom1_is_fw = np.isin(types1, list(framework_types))
+#         atom2_is_fw = np.isin(types2, list(framework_types))
+#         atom1_is_o = np.char.startswith(types1, "O")
+#         atom2_is_o = np.char.startswith(types2, "O")
+
+#         is_framework_bond = (atom1_is_fw & atom2_is_o) | (atom2_is_fw & atom1_is_o)
+#         crosses_framework = crosses_plane & is_framework_bond
+
+#         if crosses_framework.any():
+#             # Store index pairs (i, j) of broken framework bonds
+#             broken_framework_bonds = u.atoms.bonds[crosses_framework].to_indices()
+
+#         # Remove all crossing bonds to cleanly separate fragments
+#         valid_bonds = u.atoms.bonds[~crosses_plane]
+#         u.delete_bonds(u.atoms.bonds)
+#         u.add_bonds(valid_bonds.to_indices())
+
+#         # Shift upper fragments
+#         print("Moving solid fragments...")
+#         for frag in u.atoms.fragments:
+#             if np.dot(frag.centroid(), unit_norm) >= coordinate:
+#                 frag.positions += shift_vector
+#     else:
+#         print("No bonds detected: moving atom by atom.")
+#         mask = np.dot(u.atoms.positions, unit_norm) >= coordinate
+#         u.atoms.positions[mask] += shift_vector
+
+#     # Update simulation box dimensions
+#     vec_list[axis] = target_vec + shift_vector
+#     extended_box = vectors2lattice(tuple(vec_list))
+
+#     # 3. CAPPING SEVERED FRAMEWORK BONDS
+#     if len(broken_framework_bonds) > 0:
+#         print(f"CAPPING: Adding silanol groups to {len(broken_framework_bonds)} broken bonds...")
+#         # Calculate positions and types for capping atoms
+#         new_pos, new_types = _cap_broken_framework_bonds(u, broken_framework_bonds)
+        
+#         # Append capping atoms directly to the MDAnalysis Universe
+#         n_capping = len(new_types)
+#         capping_u = mda.Universe.empty(n_capping, trajectory=True)
+#         capping_u.add_TopologyAttr('id', np.arange(1, n_capping + 1))
+#         capping_u.add_TopologyAttr('type', new_types)
+#         capping_u.add_TopologyAttr('name', new_types)
+#         capping_u.atoms.positions = new_pos
+
+#         capping_masses = [MASSES_DICT.get(t, 1.0) for t in new_types]
+#         capping_u.add_TopologyAttr('mass', capping_masses)
+        
+#         # Merge the original universe u with the new capping atoms
+#         u = mda.Merge(u.atoms, capping_u.atoms)
+
+#         u.atoms.ids = np.arange(1, len(u.atoms) + 1)
+
+#     # Convert updated MDAnalysis structure back to AtomicSystem
+#     final_system = AtomicSystem.from_mda(u)
+#     final_system.set_box(extended_box)
+
+    # 4. INSERTING LIQUID PHASE (OPTIONAL)
     if add_solution:
+        print("Generating and inserting liquid solution...")
         dims = [np.linalg.norm(v) for v in vec_list]
         liquid_thickness = gap_size - (2 * tolerance)
         
         if liquid_thickness <= 0:
-            raise ValueError(f"Gap size ({gap_size} Å) is too small for the requested tolerance ({tolerance} Å x 2).")
+            raise ValueError(f"Gap size ({gap_size} Å) is too small for requested tolerance ({tolerance} Å).")
         
-        # Determine transverse dimensions for the liquid box
         other_axes = [i for i in range(3) if i != axis]
         liquid_box_dims = [dims[other_axes[0]], dims[other_axes[1]], liquid_thickness]
         
-        # Generate the solution (ensure make_solution is imported)
-        liquid_data = make_solution(liquid_box_dims, density, solutes_dict, structures_dict)
+        liquid_data = build_solution(liquid_box_dims, density, solutes_dict, structures_dict)
 
-        # Positioning: Center the liquid in the middle of the new gap
         gap_center = coordinate + (gap_size / 2.0)
         
-        # Project liquid positions on the separation axis
         axis_name = ['x', 'y', 'z'][axis]
         liquid_pos = liquid_data.atoms[axis_name].values
         liquid_center = (np.max(liquid_pos) + np.min(liquid_pos)) / 2.0
         
-        # Apply shift to center the liquid block
         liquid_data.atoms[axis_name] += (gap_center - liquid_center)
 
-        # Merge solid and liquid (ensure merge is imported)
         final_system = merge(final_system, liquid_data, extended_box)
-        
+
     return final_system
+
+
+def split(solid_system: AtomicSystem, 
+                 axis: int = 2,
+                 coordinate: float = None,
+                 gap_size: float = 20.0,
+                 add_solution: bool = False, 
+                 density: float = 1.0,
+                 solutes_dict: dict[str, int] = None,
+                 structures_dict: dict[str, AtomicSystem] = None) -> AtomicSystem:
+    """
+    Sépare un système solide en deux fragments le long d'un axe sans gérer les liaisons.
+    """
+    # 1. PRÉPARATION
+    vec_list = list(lattice2vectors(solid_system.box))
+    target_vec = vec_list[axis]
+    unit_norm = target_vec / np.linalg.norm(target_vec)
+    
+    if coordinate is None:
+        coordinate = np.linalg.norm(target_vec) / 2.0
+    
+    # On travaille sur les positions directement via le système
+    # (en supposant que solid_system permet l'accès aux positions)
+    universe = solid_system.to_mda()
+    pos = universe.atoms.positions
+    
+    # 2. DÉPLACEMENT DES FRAGMENTS
+    # On identifie les atomes situés après la coordonnée de coupe
+    mask = np.dot(pos, unit_norm) >= coordinate
+    shift_vector = unit_norm * gap_size
+    pos[mask] += shift_vector
+    
+    # Mise à jour des positions dans le système
+    universe.atoms.positions = pos
+    
+    # 3. MISE À JOUR DE LA BOÎTE
+    vec_list[axis] = target_vec + shift_vector
+    solid_system.set_box(vectors2lattice(tuple(vec_list)))
+    
+    # 4. INSERTION DE LIQUIDE (OPTIONNEL)
+    if add_solution:
+        # Logique simplifiée pour insérer le liquide au centre du gap
+        liquid_data = build_solution([vec_list[0][0], vec_list[1][1], gap_size], density, solutes_dict, structures_dict)
+        # (Ajoute ici ta logique de centrage spécifique à ton outil)
+        solid_system = merge(solid_system, liquid_data)
+        
+    return solid_system
+
+# def split(solid_system: AtomicSystem, 
+#           axis: int = 2,
+#           coordinate: float = None,
+#           gap_size: float = 20.0,
+#           tolerance: float = 2.0,
+#           add_solution: bool = False, 
+#           density: float = 1.0,
+#           solutes_dict: dict[str, int] = None,
+#           structures_dict: dict[str, AtomicSystem] = None,
+#           topo_style: str = 'cshff') -> AtomicSystem:
+#     """
+#     Splits a solid system along a specified axis at a given coordinate,
+#     caps severed framework bonds (Si/Al - O) with silanol groups, and optionally
+#     inserts a liquid solution into the created gap.
+
+#     Parameters
+#     ----------
+#     solid_system : AtomicSystem or str
+#         The original solid system object or file path.
+#     axis : int, optional
+#         Cutting axis (0 for X, 1 for Y, 2 for Z). Default is 2.
+#     coordinate : float, optional
+#         Coordinate position along the axis where the cut is made. 
+#         Defaults to the midpoint of the simulation box.
+#     gap_size : float, optional
+#         Width of the created gap in Angstroms (Å). Default is 20.0.
+#     tolerance : float, optional
+#         Safety distance buffer between liquid and solid surfaces in Å. Default is 2.0.
+#     add_solution : bool, optional
+#         If True, fills the generated gap with a liquid solution. Default is True.
+#     density : float, optional
+#         Target liquid density in g/cm³. Default is 1.0.
+#     solutes_dict : dict, optional
+#         Dictionary mapping solute names to their requested counts.
+#     structures_dict : dict, optional
+#         Dictionary containing solute AtomicSystem structures.
+#     topo_style : str, optional
+#         Topology style used to rebuild bonds ('cshff', etc.). Default is 'cshff'.
+
+#     Returns
+#     -------
+#     AtomicSystem
+#         The final split, capped, and optionally solvated atomic system.
+#     """
+#     if isinstance(solid_system, str):
+#         solid_system = AtomicSystem.from_file(solid_system)
+
+#     # 1. GEOMETRY AND BOX PREPARATION
+#     vec_list = list(lattice2vectors(solid_system.box))
+#     target_vec = vec_list[axis]
+#     unit_norm = target_vec / np.linalg.norm(target_vec)
+#     L_original = np.linalg.norm(target_vec)
+    
+#     if coordinate is None:
+#         coordinate = L_original / 2.0
+    
+#     u = solid_system.to_mda()
+#     shift_vector = unit_norm * gap_size
+    
+#     has_bonds = hasattr(u.atoms, 'bonds') and len(u.atoms.bonds) > 0
+#     broken_framework_bonds = []
+
+#     # 2. BOND DETECTION AND FRAGMENT MOVEMENT
+#     if has_bonds:
+#         print("Bonds detected: analyzing boundary-crossing bonds...")
+        
+#         pos1 = u.atoms.bonds.atom1.positions
+#         pos2 = u.atoms.bonds.atom2.positions
+        
+#         proj1 = np.dot(pos1, unit_norm)
+#         proj2 = np.dot(pos2, unit_norm)
+        
+#         # Check which bonds cross the cutting plane
+#         crosses_plane = ((proj1 < coordinate) & (proj2 >= coordinate)) | \
+#                         ((proj1 >= coordinate) & (proj2 < coordinate))
+        
+#         # Identify Si/Al - O framework bonds crossing the plane
+#         framework_types = {"Si", "Al"}
+#         types1 = u.atoms.bonds.atom1.types.astype(str)
+#         types2 = u.atoms.bonds.atom2.types.astype(str)
+
+#         atom1_is_fw = np.isin(types1, list(framework_types))
+#         atom2_is_fw = np.isin(types2, list(framework_types))
+#         atom1_is_o = np.char.startswith(types1, "O")
+#         atom2_is_o = np.char.startswith(types2, "O")
+
+#         is_framework_bond = (atom1_is_fw & atom2_is_o) | (atom2_is_fw & atom1_is_o)
+#         crosses_framework = crosses_plane & is_framework_bond
+
+#         if crosses_framework.any():
+#             # Store index pairs (i, j) of broken framework bonds
+#             broken_framework_bonds = u.atoms.bonds[crosses_framework].to_indices()
+
+#         # Remove all crossing bonds to cleanly separate fragments
+#         valid_bonds = u.atoms.bonds[~crosses_plane]
+#         u.delete_bonds(u.atoms.bonds)
+#         u.add_bonds(valid_bonds.to_indices())
+
+#         # Shift upper fragments
+#         print("Moving solid fragments...")
+#         for frag in u.atoms.fragments:
+#             if np.dot(frag.centroid(), unit_norm) >= coordinate:
+#                 frag.positions += shift_vector
+#     else:
+#         print("No bonds detected: moving atom by atom.")
+#         mask = np.dot(u.atoms.positions, unit_norm) >= coordinate
+#         u.atoms.positions[mask] += shift_vector
+
+#     # Update simulation box dimensions
+#     vec_list[axis] = target_vec + shift_vector
+#     extended_box = vectors2lattice(tuple(vec_list))
+
+#     # 3. CAPPING SEVERED FRAMEWORK BONDS
+#     if len(broken_framework_bonds) > 0:
+#         print(f"CAPPING: Adding silanol groups to {len(broken_framework_bonds)} broken bonds...")
+#         # Run capping function on the ALREADY MOVED MDAnalysis universe
+#         new_pos, new_types = _cap_broken_framework_bonds(u, broken_framework_bonds)
+        
+#         # Convert generated capping atoms to an AtomicSystem
+#         cap_system = _build_atomic_system_from_coords(new_pos, new_types)
+        
+#         # Merge moved solid structure with capping atoms
+#         final_system = merge(AtomicSystem.from_mda(u), cap_system, extended_box)
+#     else:
+#         final_system = AtomicSystem.from_mda(u)
+
+#     final_system.set_box(extended_box)
+
+#     # 4. INSERTING LIQUID PHASE (OPTIONAL)
+#     if add_solution:
+#         print("Generating and inserting liquid solution...")
+#         dims = [np.linalg.norm(v) for v in vec_list]
+#         liquid_thickness = gap_size - (2 * tolerance)
+        
+#         if liquid_thickness <= 0:
+#             raise ValueError(f"Gap size ({gap_size} Å) is too small for requested tolerance ({tolerance} Å).")
+        
+#         other_axes = [i for i in range(3) if i != axis]
+#         liquid_box_dims = [dims[other_axes[0]], dims[other_axes[1]], liquid_thickness]
+        
+#         liquid_data = make_solution(liquid_box_dims, density, solutes_dict, structures_dict)
+
+#         gap_center = coordinate + (gap_size / 2.0)
+        
+#         axis_name = ['x', 'y', 'z'][axis]
+#         liquid_pos = liquid_data.atoms[axis_name].values
+#         liquid_center = (np.max(liquid_pos) + np.min(liquid_pos)) / 2.0
+        
+#         liquid_data.atoms[axis_name] += (gap_center - liquid_center)
+
+#         final_system = merge(final_system, liquid_data, extended_box)
+
+#     # 5. GLOBAL TOPOLOGY REGENERATION
+#     if topo_style is not None:
+#         print(f"Regenerating global topology ({topo_style})...")
+#         final_system.set_topo(style=topo_style)
+
+#     return final_system
 
 def merge(lmp_data_a: AtomicSystem, 
           lmp_data_b: AtomicSystem, 
@@ -751,7 +1510,5 @@ def protonate(data: AtomicSystem,
         charge=+1,   # Or any default charge you prefer
         mass=p_mass
     )
-
-    print(f"DEBUG: Proton added with ID {new_id} via add_atom")
 
     return data

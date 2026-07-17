@@ -37,10 +37,10 @@ from cemd.gui.ui.builders import (
 )
 
 from cemd.builders.base import (
-    make_solution, 
+    build_solution, 
     add_liquid, 
     split,
-    make_glass,
+    build_glass,
     add_droplet,
     add_structure
 )
@@ -60,7 +60,7 @@ def open_make_solution(parent: AtomViewerGUI) -> None:
         try:
             QtWidgets.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
             box, density, solutes, structures = dialog.get_values()
-            new_data = make_solution(box, density, solutes, structures)
+            new_data = build_solution(box, density, solutes, structures)
             parent.add_structure_tab(new_data, title="Aqueous Solution")
         except Exception as e:
             handle_error(parent, "Solution Error", e)
@@ -76,7 +76,7 @@ def open_make_glass(parent: AtomViewerGUI) -> None:
             QtWidgets.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
             parent.statusBar().showMessage("Generating glass structure with Packmol...")
             
-            new_system = make_glass(box, density, stoich)
+            new_system = build_glass(box, density, stoich)
             
             if new_system:
                 parent.add_structure_tab(new_system, f"Glass_{density}gcm3")
@@ -98,7 +98,7 @@ def open_make_cash(parent: AtomViewerGUI) -> None:
                 nsi = system.get_count('Si')
                 nca = system.get_count('Ca')
                 
-                system.set_topo('cshff')
+                system.set_topology('cshff')
                 
                 ratio_name = f"{nca/nsi:.2f}" if nsi > 0 else "Custom"
                 

@@ -32,7 +32,6 @@
         "Oi": "#FF4500"
     },
     "radius_map": {
-        "O": 2.16,
         "Ca": 2.68,
         "Fe": 2.0,
         "Cs": 1.0,
@@ -78,5 +77,5 @@
     },
     "global_scale": 1.0,
     "global_bond_radius": 0.1,
-    "bg_color": "white"
+    "bg_color": "black"
 }

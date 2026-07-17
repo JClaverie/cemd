@@ -20,7 +20,7 @@ import os
 import numpy as np
 import MDAnalysis as mda
 
-from ._packmol import _get_structure_path, _add_packmol_structure, _run_packmol
+from ._packmol import get_structure_path, add_packmol_structure, run_packmol
 from .._utils import grouped_average, lattice2vectors
 
 def _plane(vecp: np.ndarray, vecq: np.ndarray, vecr: np.ndarray) -> str:
@@ -98,8 +98,8 @@ def fill_csh_interlayers(univ: mda.Universe,
     """Runs Packmol iteratively to fill each CSH interlayer with water and Ca."""
 
     left, right, bottom, top = _get_packmol_bounding_planes(box)
-    h2o_pdb = _get_structure_path('h2o', tmp)
-    ca_pdb = _get_structure_path('ca', tmp) if nca_to_add != 0 else None
+    h2o_pdb = get_structure_path('h2o', tmp)
+    ca_pdb = get_structure_path('ca', tmp) if nca_to_add != 0 else None
 
     current_pdb = os.path.join(tmp, 'tmp0.pdb')
     univ.write(current_pdb)
@@ -118,17 +118,17 @@ def fill_csh_interlayers(univ: mda.Universe,
         ]
 
         structures = [
-            _add_packmol_structure(current_pdb, 1,
+            add_packmol_structure(current_pdb, 1,
                 f"inside box 0 0 0 {box[0]:.4f} {box[1]:.4f} {box[2]:.4f}",
                 f"atoms {idmin}", "fixed 0 0 0 0 0 0"
             ),
-            _add_packmol_structure(h2o_pdb, nw_layers[i], *layer_instructions),
+            add_packmol_structure(h2o_pdb, int(nw_layers[i]), *layer_instructions),
         ]
         if nca_to_add != 0:
-            structures.append(_add_packmol_structure(ca_pdb, nca_layers[i], *layer_instructions))
+            structures.append(add_packmol_structure(ca_pdb, int(nca_layers[i]), *layer_instructions))
 
         next_pdb = os.path.join(tmp, f'tmp{i+1}.pdb')
-        _run_packmol(structures, next_pdb)
+        run_packmol(structures, next_pdb)
         current_pdb = next_pdb
 
         msg = f"Adding {nw_layers[i]} H2O" + (f" and {nca_layers[i]} Ca2+" if nca_to_add != 0 else "")

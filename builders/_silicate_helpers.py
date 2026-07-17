@@ -21,66 +21,210 @@ import MDAnalysis as mda
 
 from .._utils import grouped_average
 
-def _get_bridging_silicates(si_sel: mda.AtomGroup, 
-                            supercell_factor: int) -> np.ndarray:
-    """Returns indices of bridging silicates (groups with the minimum atom count)."""
-    si_indices = si_sel.indices
-    si_posz = si_sel.positions[:, 2]
 
-    _, list_indices, list_num = grouped_average(si_posz, 8 * supercell_factor)
-    min_len = min(list_num)
-    bridging_groups = [group for group in list_indices if len(group) == min_len]
+def _detect_z_factor(universe: mda.Universe) -> int:
+    """
+    Detects the supercell multiplication factor along the z-axis.
+    Assumes a unit cell height of ~22 Å (Tobermorite 11) or ~28 Å (Tobermorite 14).
+    """
+    # Get the z-dimension of the simulation box
+    box_z = universe.dimensions[2]
     
+    # Determine the reference unit cell height based on the total box size
+    # If the box is a multiple of ~28 Å, we use 28, otherwise we default to 22.
+    if abs(box_z % 28.0) < abs(box_z % 22.0):
+        unit_cell_z = 28.0
+    else:
+        unit_cell_z = 22.0
+        
+    # Calculate the multiplier factor (minimum of 1)
+    multiplier = max(1, int(round(box_z / unit_cell_z)))
+    return multiplier
+
+def _get_bridging_silicates_indices(universe: mda.Universe) -> np.ndarray:
+    """Returns indices of bridging silicates using _get_bridging_zplanes."""
+    si_sel = universe.select_atoms("type Si")
+    si_indices = si_sel.indices
+    
+    (_, 
+     si_indices_per_plane, 
+     si_count_per_plane) = _get_silicate_planes(universe)
+    
+    max_num = max(si_count_per_plane)
+    bridging_groups = [g for g, n in zip(si_indices_per_plane, si_count_per_plane) if n != max_num]
     return si_indices[np.concatenate(bridging_groups).flatten()]
 
-def _find_symmetric_bridging_pairs(si_sel: mda.AtomGroup, 
-                                   supercell_factor: int
-                                   ) -> list[tuple[int, int | None]]:
-    """
-    Identifies bridging silicates and associates them in symmetrical pairs 
-    on either side of the pores/sheets.
-    """
+def _get_silicate_planes(universe: mda.Universe) -> tuple[np.ndarray, list[np.ndarray], list[int]]:
+    """Groups the Si by plane z and sorts them, keeping the indices
+    origin of each plane (used by _find_symmetric_bridging_pairs)."""
+    # Perform the selection internally to simplify the function call
+    si_sel = universe.select_atoms("type Si")
+    si_pos_z = si_sel.positions[:, 2]
+    
+    supercell_factor = _detect_z_factor(universe)
 
-    bridging_atoms = _get_bridging_silicates(si_sel, supercell_factor)
-    coords = bridging_atoms.positions
+    (si_plane_positions, 
+     si_indices_per_plane, 
+     si_count_per_plane) = grouped_average(si_pos_z, 8 * supercell_factor)
+    
+    order = np.argsort(si_plane_positions)
+    si_plane_positions = si_plane_positions[order]
+    si_indices_per_plane = [si_indices_per_plane[i] for i in order]
+    si_count_per_plane = [si_count_per_plane[i] for i in order]
+    return si_plane_positions, si_indices_per_plane, si_count_per_plane
 
-    pairs = []
+
+# def _find_symmetric_bridging_pairs(universe: mda.Universe) -> list[tuple[int, int | None]]:
+#     """
+#     Identifies bridging silicates and associates them in symmetrical pairs
+#     across each interlayer pore.
+#     """
+#     box = universe.dimensions
+#     box_x, box_y, box_z = box[0], box[1], box[2]
+
+#     si_sel = universe.select_atoms("type Si")
+#     si_indices = si_sel.indices
+#     si_pos = si_sel.positions
+ 
+#     (si_plane_positions,
+#      si_indices_per_plane, 
+#      si_count_per_plane) = _get_silicate_planes(universe)
+    
+#     max_num = max(si_count_per_plane)
+#     nplanes = len(si_plane_positions)
+ 
+#     def _pbc_dist_xy(p, q) -> float:
+#         dx = p[0] - q[0]
+#         dy = p[1] - q[1]
+#         dx -= box_x * round(dx / box_x)
+#         dy -= box_y * round(dy / box_y)
+#         return (dx * dx + dy * dy) ** 0.5
+ 
+#     bridging_plane_indices = [i for i in range(nplanes) if si_count_per_plane[i] != max_num]
+#     pore_groups = [bridging_plane_indices[i:i+2] for i in range(0, len(bridging_plane_indices), 2)]
+#     n_bridging_planes = len(bridging_plane_indices)
+ 
+#     bridging_pairs_per_pore = []
+#     used = set()
+ 
+#     # loop only on successive bridging plans
+#     for idx_b in range(n_bridging_planes):
+#         i = bridging_plane_indices[idx_b]
+#         j = bridging_plane_indices[(idx_b + 1) % n_bridging_planes] # Next bridging plan
+
+#         gap = (si_plane_positions[j] - si_plane_positions[i]) % box_z
+
+#         if gap > 5.0:
+#             continue
+ 
+#         atoms_i = si_indices[np.array(si_indices_per_plane[i])]
+#         atoms_j = si_indices[np.array(si_indices_per_plane[j])]
+#         xy_i = si_pos[np.array(si_indices_per_plane[i])][:, :2]
+#         xy_j = si_pos[np.array(si_indices_per_plane[j])][:, :2]
+
+#         current_pore_pairs = []
+ 
+#         for k, idx1 in enumerate(atoms_i):
+#             if idx1 in used:
+#                 continue
+#             best_l, min_dist = None, float('inf')
+#             for l, idx2 in enumerate(atoms_j):
+#                 if idx2 in used:
+#                     continue
+#                 dist = _pbc_dist_xy(xy_i[k], xy_j[l])
+#                 if dist < min_dist:
+#                     min_dist, best_l = dist, l
+ 
+#             # If a partner is found nearby in XY, we form the symmetrical pair
+#             if best_l is not None and min_dist < 5.0:
+#                 idx2 = atoms_j[best_l]
+#                 bridging_pairs_per_pore.append((idx1, idx2))
+#                 used.add(idx1)
+#                 used.add(idx2)
+
+#         if current_pore_pairs:
+#             bridging_pairs_per_pore.append(current_pore_pairs)
+ 
+#     return bridging_pairs_per_pore
+
+
+def _find_symmetric_bridging_pairs(universe: mda.Universe) -> list[list[tuple[int, int]]]:
+    """
+    Identifies bridging silicates and associates them in symmetrical pairs
+    across each interlayer pore, grouped by pore.
+    """
+    box = universe.dimensions
+    box_x, box_y, box_z = box[0], box[1], box[2]
+
+    si_sel = universe.select_atoms("type Si")
+    si_indices = si_sel.indices
+    si_pos = si_sel.positions
+ 
+    (si_plane_positions,
+     si_indices_per_plane, 
+     si_count_per_plane) = _get_silicate_planes(universe)
+    
+    max_num = max(si_count_per_plane)
+    nplanes = len(si_plane_positions)
+ 
+    def _pbc_dist_xy(p, q) -> float:
+        dx = p[0] - q[0]
+        dy = p[1] - q[1]
+        dx -= box_x * round(dx / box_x)
+        dy -= box_y * round(dy / box_y)
+        return (dx * dx + dy * dy) ** 0.5
+ 
+    bridging_plane_indices = [i for i in range(nplanes) if si_count_per_plane[i] != max_num]
+
+    n_bridging_planes = len(bridging_plane_indices)
+ 
+    bridging_pairs_per_pore = []
     used = set()
+ 
+    # Boucle sur les plans de pontage
+    for idx_b in range(n_bridging_planes):
+        i = bridging_plane_indices[idx_b]
+        j = bridging_plane_indices[(idx_b + 1) % n_bridging_planes] 
 
-    # Global Center for Symmetry
-    center = np.mean(si_sel.positions, axis=0)
+        gap = (si_plane_positions[j] - si_plane_positions[i]) % box_z
 
-    for i, idx1 in enumerate(bridging_atoms.indices):
-        if idx1 in used:
+        if gap > 5.0:
             continue
-        
-        pos1 = coords[i]
-        # Inversion relative to the center (or XY mirror relative to Z)
-        target_pos = 2 * center - pos1 
+ 
+        atoms_i = si_indices[np.array(si_indices_per_plane[i])]
+        atoms_j = si_indices[np.array(si_indices_per_plane[j])]
+        xy_i = si_pos[np.array(si_indices_per_plane[i])][:, :2]
+        xy_j = si_pos[np.array(si_indices_per_plane[j])][:, :2]
 
-        # Find the atom closest to the theoretical symmetrical position
-        best_match = None
-        min_dist = float('inf')
+        current_pore_pairs = []
 
-        for j, idx2 in enumerate(bridging_atoms.indices):
-            if idx2 in used or idx1 == idx2:
+        for k, idx1 in enumerate(atoms_i):
+            if idx1 in used:
                 continue
-            dist = np.linalg.norm(coords[j] - target_pos)
-            if dist < min_dist:
-                min_dist = dist
-                best_match = idx2
+            
+            best_l, min_dist = None, float('inf')
+            
+            for l, idx2 in enumerate(atoms_j):
+                if idx2 in used:
+                    continue
+                
+                dist = _pbc_dist_xy(xy_i[k], xy_j[l])
+                
+                if dist < min_dist:
+                    min_dist, best_l = dist, l
+ 
+            if best_l is not None and min_dist < 5.0:
+                idx2 = atoms_j[best_l]
+                current_pore_pairs.append((idx1, idx2))
+                used.add(idx1)
+                used.add(idx2)
+        
+        # On ajoute les paires trouvées pour ce pore à la liste globale
+        if current_pore_pairs:
+            bridging_pairs_per_pore.append(current_pore_pairs)
+ 
+    return bridging_pairs_per_pore
 
-        # If the symmetrical partner is found within a reasonable tolerance (e.g.: < 3.0 Å)
-        if best_match is not None and min_dist < 3.0:
-            pairs.append((idx1, best_match))
-            used.add(idx1)
-            used.add(best_match)
-        else:
-            # Symmetry orphan atom
-            pairs.append((idx1, None))
-            used.add(idx1)
-
-    return pairs
 
 def calculate_csh_modifiers(
         nsi: int, nca: int, target_cs_ratio: float, min_mcl: float
@@ -100,46 +244,205 @@ def calculate_csh_modifiers(
 
     return nsi_to_remove, nca_to_add, vacancy_fraction
 
+# def remove_bridging_silicates(univ: mda.Universe, 
+#                                nsi_to_remove: int, 
+#                                symmetry: bool = True) -> mda.Universe:
+#     """
+#     Identifies bridging silicates and removes them (symmetrically or randomly).
+#     """
+#     if nsi_to_remove <= 0:
+#         return univ
+
+#     if symmetry:
+#         pairs = _find_symmetric_bridging_pairs(univ)
+#         random.shuffle(pairs)
+
+#         to_remove = []
+#         count = 0
+#         for idx1, idx2 in pairs:
+#             if count >= nsi_to_remove:
+#                 break
+#             to_remove.append(idx1)
+#             count += 1
+
+#             if idx2 is not None and count < nsi_to_remove:
+#                 to_remove.append(idx2)
+#                 count += 1
+#     else:
+#         bridging_indices = _get_bridging_silicates_indices(univ)
+#         to_remove = np.random.choice(bridging_indices, nsi_to_remove, replace=False)
+
+#     # Universe update
+#     univ = univ.select_atoms(f"not index {' '.join(map(str, to_remove))}")
+#     univ = univ.select_atoms("not (name O and not around 2.1 type Si)")
+    
+#     return univ
+
+
+# def remove_bridging_silicates(univ: mda.Universe, 
+#                                nsi_to_remove: int, 
+#                                symmetry: bool = True) -> mda.Universe:
+#     if nsi_to_remove <= 0:
+#         return univ
+
+#     if symmetry:
+#         pores = _find_symmetric_bridging_pairs(univ)
+#         # On s'assure que chaque pore est une liste modifiable
+#         mutable_pores = [list(pore) for pore in pores]
+#         n_pores = len(mutable_pores)
+        
+#         to_remove = []
+#         count = 0
+#         pore_idx = 0  # Index pour suivre le pore courant
+        
+#         # On continue tant qu'il reste des suppressions à effectuer
+#         while count < nsi_to_remove:
+#             # Vérifier si on a épuisé tous les pores
+#             active_pores = [p for p in mutable_pores if p]
+#             if not active_pores:
+#                 break
+                
+#             # Sélectionner le pore courant de manière cyclique
+#             current_pore = mutable_pores[pore_idx % n_pores]
+            
+#             if current_pore:
+#                 item = current_pore.pop(0)
+                
+#                 # Gestion paire vs index unique
+#                 if isinstance(item, (list, tuple)) and len(item) == 2:
+#                     idx1, idx2 = item
+#                     # Choisir l'un des deux pour rompre le pont
+#                     options = [idx1, idx2] if idx2 is not None else [idx1]
+#                     to_remove.append(np.random.choice(options))
+#                 else:
+#                     to_remove.append(item)
+                    
+#                 count += 1
+            
+#             # Passer au pore suivant pour la prochaine itération
+#             pore_idx += 1
+            
+#     else:
+#         bridging_indices = _get_bridging_silicates_indices(univ)
+#         to_remove = np.random.choice(bridging_indices, nsi_to_remove, replace=False)
+
+#     # Mise à jour de l'univers
+#     idx_str = ' '.join(map(str, to_remove))
+#     univ = univ.select_atoms(f"not index {idx_str}")
+#     univ = univ.select_atoms("not (name O and not around 2.1 type Si)")
+    
+#     return univ
+
 def remove_bridging_silicates(univ: mda.Universe, 
                                nsi_to_remove: int, 
-                               supercell_factor: int, 
                                symmetry: bool = True) -> mda.Universe:
-    """
-    Identifies bridging silicates and removes them (symmetrically or randomly).
-    """
     if nsi_to_remove <= 0:
         return univ
 
-    si_sel = univ.select_atoms("type Si")
-
     if symmetry:
-        pairs = _find_symmetric_bridging_pairs(si_sel, supercell_factor)
-        random.shuffle(pairs)
-
+        pores = _find_symmetric_bridging_pairs(univ)
+        for pore in pores:
+            np.random.shuffle(pore)
+        n_pores = len(pores)
         to_remove = []
         count = 0
-        for idx1, idx2 in pairs:
-            if count >= nsi_to_remove:
-                break
-            to_remove.append(idx1)
-            count += 1
+        pore_idx = 0
 
-            if idx2 is not None and count < nsi_to_remove:
-                to_remove.append(idx2)
+        seconds_to_process = [[] for _ in range(n_pores)]
+        
+        # On continue tant qu'il reste des suppressions à effectuer
+        while count < nsi_to_remove:
+            if not any(pores):
+                break
+                
+            # Sélectionner le pore courant de manière cyclique
+            current_pore = pores[pore_idx % n_pores]
+            
+            if current_pore:
+                item = current_pore.pop(0)
+                
+                # Gestion paire vs index unique
+                if isinstance(item, (list, tuple)) and len(item) == 2:
+                    idx1, idx2 = item
+                    options = [idx1, idx2] if idx2 is not None else [idx1]
+                    idx2remove = np.random.choice(options)
+                    options.remove(idx2remove)
+                    to_remove.append(idx2remove)
+                    seconds_to_process[pore_idx % n_pores].append(options[0]) 
+                else:
+                    to_remove.append(item)
+                    
+                count += 1       
+            pore_idx += 1
+
+        pore_idx = 0
+        while count < nsi_to_remove:
+            if not any(seconds_to_process):
+                break
+                
+            current_seconds = seconds_to_process[pore_idx % n_pores]
+            if current_seconds:
+                to_remove.append(current_seconds.pop(0))
                 count += 1
+            pore_idx += 1
+            
     else:
-        bridging_indices = _get_bridging_silicates(si_sel, supercell_factor)
+        bridging_indices = _get_bridging_silicates_indices(univ)
         to_remove = np.random.choice(bridging_indices, nsi_to_remove, replace=False)
 
-    # Universe update
-    univ = univ.select_atoms(f"not index {' '.join(map(str, to_remove))}")
+    # Mise à jour de l'univers
+    idx_str = ' '.join(map(str, to_remove))
+    univ = univ.select_atoms(f"not index {idx_str}")
     univ = univ.select_atoms("not (name O and not around 2.1 type Si)")
     
     return univ
 
+# def remove_bridging_silicates(univ: mda.Universe, 
+#                                nsi_to_remove: int, 
+#                                symmetry: bool = True) -> mda.Universe:
+#     if nsi_to_remove <= 0:
+#         return univ
+
+#     if symmetry:
+#         pores = _find_symmetric_bridging_pairs(univ)
+#         n_pores = len(pores)
+#         to_remove = []
+        
+#         # --- PASSE 1 : Retirer UN élément par paire disponible ---
+#         # On itère sur tous les pores pour casser un pont dans chaque paire
+#         remaining_pairs = [] # Stocke les deuxièmes éléments des paires pour la passe 2
+        
+#         for pore in pores:
+#             for item in pore:
+#                 if isinstance(item, (list, tuple)) and len(item) == 2:
+#                     idx1, idx2 = item
+#                     to_remove.append(idx1)
+#                     remaining_pairs.append(idx2) # On garde l'autre pour plus tard
+#                 else:
+#                     to_remove.append(item)
+        
+#         # --- PASSE 2 : Compléter jusqu'à nsi_to_remove ---
+#         # Si on a besoin de plus d'atomes, on pioche dans les "seconds" de paires
+#         # ou dans les atomes non-appariés restants.
+#         while len(to_remove) < nsi_to_remove and remaining_pairs:
+#             # On distribue équitablement : on prend un par un dans la liste
+#             to_remove.append(remaining_pairs.pop(0))
+
+#     else:
+#         # Logique non-symétrique inchangée
+#         bridging_indices = _get_bridging_silicates_indices(univ)
+#         to_remove = np.random.choice(bridging_indices, nsi_to_remove, replace=False)
+
+#     # Mise à jour de l'univers
+#     idx_str = ' '.join(map(str, to_remove))
+#     univ = univ.select_atoms(f"not index {idx_str}")
+#     univ = univ.select_atoms("not (name O and not around 2.1 type Si)")
+    
+#     return univ
+
+
 def substitute_si_by_al(univ: mda.Universe, 
                          nal: int, 
-                         supercell_factor: int, 
                          symmetry: bool = True
                          ) -> tuple[mda.Universe, list[int]]:
     """
@@ -160,11 +463,9 @@ def substitute_si_by_al(univ: mda.Universe,
     if nal <= 0:
         return univ, []
 
-    si_sel = univ.select_atoms("type Si")
-    
     if symmetry:
         # Symmetric pairwise selection
-        pairs = _find_symmetric_bridging_pairs(si_sel, supercell_factor)
+        pairs = _find_symmetric_bridging_pairs(univ)
         random.shuffle(pairs)
 
         to_sub = []
@@ -179,7 +480,7 @@ def substitute_si_by_al(univ: mda.Universe,
                 to_sub.append(idx2)
                 count += 1
     else:
-        bridging_indices = _get_bridging_silicates(si_sel, supercell_factor)
+        bridging_indices = _get_bridging_silicates_indices(univ)
         to_sub = list(np.random.choice(bridging_indices, nal, replace=False))
 
     # Changing atom types
@@ -192,7 +493,7 @@ def substitute_si_by_al(univ: mda.Universe,
             
     return univ, substituted_ids
 
-def neutralize_csh_charge(pdb_path:str) -> float:
+def neutralize_csh_charge(pdb_path: str) -> float:
     """Remove hydrogens to neutralize the C-S-H system"""
 
     univ = mda.Universe(pdb_path)
@@ -212,3 +513,40 @@ def neutralize_csh_charge(pdb_path:str) -> float:
     univ.atoms[remaining_indices].write(pdb_path)
     
     return total_charge / 2
+
+def get_interlayer_ca_indices(universe: mda.Universe) -> np.ndarray:
+    """Get IDs of interlayer calcium in a C-S-H structure."""
+    box = universe.dimensions
+    
+    si_plane_positions, _, si_count_per_plane = _get_silicate_planes(universe)
+    max_num = max(si_count_per_plane)
+    n_planes = len(si_plane_positions)
+
+    si_pairing_plane_indices = [i for i in range(n_planes) if si_count_per_plane[i] == max_num]
+    si_pairing_plane_positions = si_plane_positions[si_pairing_plane_indices]
+
+    interlayer_ca_indices = []
+
+    # Internal layers
+    for i in range(len(si_pairing_plane_positions) - 1):
+        gap = si_pairing_plane_positions[i+1] - si_pairing_plane_positions[i]
+        if gap > 5:
+            sel = universe.select_atoms(
+                f"(type Ca) and "
+                f"(prop z > {si_pairing_plane_positions[i]}) and "
+                f"(prop z < {si_pairing_plane_positions[i+1]})"
+            )
+            interlayer_ca_indices.append(sel.ids)
+
+    # Periodic layer (box edge)
+    gap_pbc = abs(si_pairing_plane_positions[-1] - si_pairing_plane_positions[0] - box[2])
+    if gap_pbc > 5:
+        sel = universe.select_atoms(
+            f"(type Ca) and "
+            f"((prop z > {si_pairing_plane_positions[-1]}) or "
+            f"(prop z < {si_pairing_plane_positions[0]}))"
+        )
+        interlayer_ca_indices.append(sel.ids)
+
+    return np.concatenate(interlayer_ca_indices) if interlayer_ca_indices else np.array([])
+

@@ -91,10 +91,20 @@ def density_profile(universe: mda.Universe,
 
         sel = universe.select_atoms("type {}".format(t))
 
-        nframes = len(universe.trajectory[start:end])
+        # nframes = len(universe.trajectory[start:end])
+
+        # job_list = []
+        # for frame_index in tqdm( range(nframes) ):
+        #     job_list.append(dask.delayed(count_pframe)(frame_index, sel))
+
+        frames = range(len(universe.trajectory))[start:end] if end != -1 else range(len(universe.trajectory))[start:]
+        nframes = len(frames)
+        
+        if nframes == 0:
+            raise ValueError("Le slice de la trajectoire [start:end] ne contient aucune frame.")
 
         job_list = []
-        for frame_index in tqdm( range(nframes) ):
+        for frame_index in tqdm(frames):
             job_list.append(dask.delayed(count_pframe)(frame_index, sel))
 
         result = dask.compute(job_list)

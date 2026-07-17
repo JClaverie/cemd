@@ -28,12 +28,12 @@ from rdkit import Chem, RDLogger
 from rdkit.Chem import Draw, rdMolDescriptors
 
 from cemd.core.atomic_system import AtomicSystem
-from cemd.builders.base import make_surface
+from cemd.builders.base import build_surface
 from cemd.builders.hydrates import pycsh, make_csh, csh_to_cash
-from cemd.builders import PYCSH_DIR
 from ui.base_dialog import BaseBuilderDialog
 from ui.gui_utils import get_icon
 from ..._utils import concentration2count
+from ..._config import PYCSH_DIR
 
 if TYPE_CHECKING:
     from cemd.core.atomic_system import AtomicSystem
@@ -996,7 +996,7 @@ class SurfaceDialog(BaseBuilderDialog):
             QtWidgets.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
             miller = [self.h.value(), self.k.value(), self.l.value()]
             
-            self.all_slabs, shifts, dipoles, broken = make_surface(
+            self.all_slabs, shifts, dipoles, broken = build_surface(
                 self.data_in, miller, self.slab_size.value(), self.vac_size.value()
             )
             

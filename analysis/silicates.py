@@ -1,74 +1,18 @@
-#
-# This file is part of the CEMD distribution
-# Copyright (c) 2024-2026 Jérôme Claverie.
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, version 3.
-#
-# This program is distributed in the hope that it will be useful, but
-# WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-# General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program. If not, see <http://www.gnu.org/licenses/>.
-#
-
 import numpy as np
 from functools import singledispatch
 import MDAnalysis as mda
 from ..core.atomic_system import AtomicSystem
 
-@singledispatch
-def analyze_silicates(source: AtomicSystem | mda.Universe, 
-                      si_types: str, 
-                      o_types: str, 
-                      al_types: str = "", 
-                      ca_types: str = "", 
-                      cutoff: float = 1.85) -> dict[str: float, np.ndarray]:
-    """Analyze structural properties, chemical ratios, and Q^n units of a silicate.
+# Centralized Defaults
+TYPES_PRESET = {
+    "si_types": "Si",
+    "o_types":  "O Ob Osi Osih Oa Oah Oh Ow Oc Os Obs",
+    "al_types": "Al",
+    "ca_types": "Ca Cw",
+}
 
-    Processes an atomic configuration to calculate key metrics used in cement chemistry,
-    including calcium-to-silica ratios, water content, and the polymerization state 
-    of silicon tetrahedra (Q^n distribution) based on bridging oxygens.
-
-    Parameters
-    ----------
-    source
-        The input system container, accepting either an AtomicSystem or an mda.Universe.
-    si_types
-        Selection string for Silicon atom types (e.g., "Si").
-    o_types
-        Selection string for Oxygen atom types (e.g., "O").
-    al_types
-        Optional selection string for Aluminum atom types (e.g., "Al").
-    ca_types
-        Optional selection string for Calcium atom types (e.g., "Ca").
-    cutoff
-        Maximum distance threshold in Angstroms to consider a stable chemical bond.
-    """
-    
-    raise TypeError(f"Type {type(source)} is not supported by analyze_silicates.")
-
-@analyze_silicates.register(AtomicSystem)
-def _(source: AtomicSystem, 
-      si_types: str, 
-      o_types: str, 
-      al_types: str = "", 
-      ca_types: str = "", 
-      cutoff: float = 1.85) -> dict[str: float, np.ndarray]:
-    u = source.to_mda()
-    return analyze_silicates(u, si_types, o_types, al_types, ca_types, cutoff)
-
-@analyze_silicates.register(mda.Universe)
-def _(source: mda.Universe, 
-      si_types: str, 
-      o_types: str, 
-      al_types: str = "", 
-      ca_types: str = "", 
-      cutoff: float = 1.85) -> dict[str: float, np.ndarray]:
-    # Secure MDAnalysis selections
+def _process_analyze(source, si_types, o_types, al_types, ca_types, cutoff):
+    """Heart of calculation: identical to your old mda.Universe logic."""
     def safe_select(types_str):
         if not types_str.strip(): return None
         try: return source.select_atoms(f"type {types_str}")
@@ -106,11 +50,11 @@ def _(source: mda.Universe,
     o_indices = set(sel_o.indices)
 
     for s_idx in sel_si.indices:
-        neighbors_o = source.select_atoms(f"around {cutoff} Index {s_idx}")
+        neighbors_o = source.select_atoms(f"around {cutoff} index {s_idx}")
         n_bridging = 0
         for o_idx in neighbors_o.indices:
             if o_idx in o_indices:
-                potential_bridges = source.select_atoms(f"around {cutoff} Index {o_idx}")
+                potential_bridges = source.select_atoms(f"around {cutoff} index {o_idx}")
                 # If oxygen touches ANOTHER network trainer, it's an oxygen bridge
                 bridges = [idx for idx in potential_bridges.indices if idx in nf_indices and idx != s_idx]
                 if len(bridges) > 0:
@@ -127,6 +71,44 @@ def _(source: mda.Universe,
         "Ca/(Si+Al)": ca_ratio,
         "Al/Si": al_si_ratio,
         "H2O/(Si+Al)": h2o_ratio,
-        "MCL": mcl,
+        "MCL": float(mcl),
         "Qn_distribution": pqsi
     }
+
+@singledispatch
+def analyze_silicates(source, types_map: dict = None, cutoff: float = 1.85):
+    """Entry point: merge types and delegate."""
+    config = TYPES_PRESET.copy()
+    if types_map:
+        config.update(types_map)
+    
+    # Call from dispatch
+    func = analyze_silicates.dispatch(type(source))
+    return func(source, config, cutoff)
+
+@analyze_silicates.register(AtomicSystem)
+def _(source: AtomicSystem, config=None, cutoff: float = 1.85):
+    # Use TYPES_PRESET if no dictionary is provided
+    config = config if config is not None else TYPES_PRESET
+    u = source.to_mda()
+    return _process_analyze(
+        u, 
+        si_types=config.get("si_types", "Si"),
+        o_types=config.get("o_types", "O"),
+        al_types=config.get("al_types", ""),
+        ca_types=config.get("ca_types", ""),
+        cutoff=cutoff
+    )
+
+@analyze_silicates.register(mda.Universe)
+def _(source: mda.Universe, config=None, cutoff: float = 1.85):
+    # Use TYPES_PRESET if no dictionary is provided
+    config = config if config is not None else TYPES_PRESET
+    return _process_analyze(
+        source, 
+        si_types=config.get("si_types", "Si"),
+        o_types=config.get("o_types", "O"),
+        al_types=config.get("al_types", ""),
+        ca_types=config.get("ca_types", ""),
+        cutoff=cutoff
+    )
