@@ -1,0 +1,825 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>cemd.analysis.density &#8212; cemd 0.0.5 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../_static/styles/theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/custom.css?v=11b9a366" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
+<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
+
+    <script src="../../../_static/documentation_options.js?v=282f96c0"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/cemd/analysis/density';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.0.5" />
+  
+    
+    <script src="../../../_static/searchtools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
+    <script src="../../../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../../_static/cemd_logo.svg" class="logo__image only-light" alt="cemd 0.0.5 documentation - Home"/>
+    <img src="../../../_static/cemd_logo_dark.svg" class="logo__image only-dark pst-js-only" alt="cemd 0.0.5 documentation - Home"/>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../getting_started.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../user_guide/index.html">
+    User Guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../api/core.html">
+    Core API
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../api/builders.html">
+    Builders Module
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../api/analysis.html">
+    Analysis
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../getting_started.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../user_guide/index.html">
+    User Guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../api/core.html">
+    Core API
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../api/builders.html">
+    Builders Module
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../api/analysis.html">
+    Analysis
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../../index.html" class="nav-link">Module code</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">cemd.analysis.density</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for cemd.analysis.density</h1><div class="highlight"><pre>
+<span></span><span class="c1">#</span>
+<span class="c1"># This file is part of the CEMD distribution</span>
+<span class="c1"># Copyright (c) 2022-2026 Jérôme Claverie.</span>
+<span class="c1">#</span>
+<span class="c1"># This program is free software: you can redistribute it and/or modify</span>
+<span class="c1"># it under the terms of the GNU General Public License as published by</span>
+<span class="c1"># the Free Software Foundation, version 3.</span>
+<span class="c1">#</span>
+<span class="c1"># This program is distributed in the hope that it will be useful, but</span>
+<span class="c1"># WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c1"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU</span>
+<span class="c1"># General Public License for more details.</span>
+<span class="c1">#</span>
+<span class="c1"># You should have received a copy of the GNU General Public License</span>
+<span class="c1"># along with this program. If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+<span class="c1">#</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy</span><span class="w"> </span><span class="kn">import</span> <span class="n">integrate</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tqdm</span><span class="w"> </span><span class="kn">import</span> <span class="n">tqdm</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">dask</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">MDAnalysis</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">mda</span>
+
+<span class="n">_AXIS_MAP</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;axid&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;axida&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;axidb&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">},</span>
+    <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;axid&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;axida&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;axidb&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">},</span>
+    <span class="s1">&#39;z&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;axid&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span><span class="s1">&#39;axida&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;axidb&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span>
+<span class="p">}</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_get_axis_ids</span><span class="p">(</span><span class="n">axis</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">axis</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">_AXIS_MAP</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;axis must be &#39;x&#39;, &#39;y&#39; or &#39;z&#39;, got &#39;</span><span class="si">{</span><span class="n">axis</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">_AXIS_MAP</span><span class="p">[</span><span class="n">axis</span><span class="p">]</span>
+
+<div class="viewcode-block" id="density_profile">
+<a class="viewcode-back" href="../../../api/generated/cemd.analysis.density_profile.html#cemd.analysis.density_profile">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">density_profile</span><span class="p">(</span><span class="n">universe</span><span class="p">:</span> <span class="n">mda</span><span class="o">.</span><span class="n">Universe</span><span class="p">,</span> 
+              <span class="n">atom_types</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="nb">int</span><span class="p">],</span> 
+              <span class="n">axis</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;z&quot;</span><span class="p">,</span> 
+              <span class="n">start</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> 
+              <span class="n">end</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> 
+              <span class="n">bin_size</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a DataFrame with the average density of atoms of given types along a given axis.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    universe : mda.Universe</span>
+<span class="sd">        The input MDAnalysis Universe to analyze.</span>
+<span class="sd">    atom_types : list</span>
+<span class="sd">        Atom types to compute the density for.</span>
+<span class="sd">    axis : str</span>
+<span class="sd">        Axis along which to calculate the density (&#39;x&#39;, &#39;y&#39;, or &#39;z&#39;).</span>
+<span class="sd">    start : int</span>
+<span class="sd">        Starting frame index.</span>
+<span class="sd">    end : int</span>
+<span class="sd">        Ending frame index.</span>
+<span class="sd">    bin_size : float</span>
+<span class="sd">        Size of bins for the histogram (in Angstroms).</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    pd.DataFrame</span>
+<span class="sd">        Average density profile for the specified atom types.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">box</span> <span class="o">=</span> <span class="n">universe</span><span class="o">.</span><span class="n">dimensions</span>
+
+    <span class="n">ids</span> <span class="o">=</span> <span class="n">_get_axis_ids</span><span class="p">(</span><span class="n">axis</span><span class="p">)</span>
+    <span class="n">axid</span> <span class="o">=</span> <span class="n">ids</span><span class="p">[</span><span class="s1">&#39;axid&#39;</span><span class="p">]</span>
+    <span class="n">axida</span><span class="p">,</span> <span class="n">axidb</span> <span class="o">=</span> <span class="n">ids</span><span class="p">[</span><span class="s1">&#39;axida&#39;</span><span class="p">],</span> <span class="n">ids</span><span class="p">[</span><span class="s1">&#39;axidb&#39;</span><span class="p">]</span>
+    <span class="n">slice_vol</span> <span class="o">=</span> <span class="n">bin_size</span> <span class="o">*</span> <span class="n">box</span><span class="p">[</span><span class="n">axida</span><span class="p">]</span> <span class="o">*</span> <span class="n">box</span><span class="p">[</span><span class="n">axidb</span><span class="p">]</span>
+
+    <span class="n">bins</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">box</span><span class="p">[</span><span class="n">axid</span><span class="p">],</span> <span class="n">bin_size</span><span class="p">)</span>
+    <span class="n">pos</span> <span class="o">=</span> <span class="p">(</span><span class="n">bins</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">+</span> <span class="n">bins</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">/</span> <span class="mi">2</span>
+    <span class="n">density_total</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">columns</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">count_pframe</span><span class="p">(</span><span class="n">frame_index</span><span class="p">,</span> <span class="n">sel</span><span class="p">):</span>
+
+        <span class="n">sel</span><span class="o">.</span><span class="n">universe</span><span class="o">.</span><span class="n">trajectory</span><span class="p">[</span><span class="n">frame_index</span><span class="p">]</span>
+
+        <span class="n">posi</span> <span class="o">=</span> <span class="n">sel</span><span class="o">.</span><span class="n">positions</span><span class="p">[:,</span><span class="n">axid</span><span class="p">]</span>
+
+        <span class="n">posi</span> <span class="o">=</span> <span class="n">posi</span> <span class="o">%</span> <span class="n">box</span><span class="p">[</span><span class="n">axid</span><span class="p">]</span>
+
+        <span class="n">count</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">histogram</span><span class="p">(</span><span class="n">posi</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="n">bins</span><span class="p">,</span> <span class="nb">range</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">box</span><span class="p">[</span><span class="n">axid</span><span class="p">]])[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">count</span>
+
+    <span class="k">if</span> <span class="n">atom_types</span> <span class="o">==</span> <span class="s2">&quot;all&quot;</span><span class="p">:</span>
+        <span class="n">atom_types</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">universe</span><span class="o">.</span><span class="n">atoms</span><span class="o">.</span><span class="n">types</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">atom_types</span><span class="p">:</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Compute 1D atomic density of </span><span class="si">{}</span><span class="s2"> atoms...&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">t</span><span class="p">))</span>
+
+        <span class="n">sel</span> <span class="o">=</span> <span class="n">universe</span><span class="o">.</span><span class="n">select_atoms</span><span class="p">(</span><span class="s2">&quot;type </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">t</span><span class="p">))</span>
+
+        <span class="c1"># nframes = len(universe.trajectory[start:end])</span>
+
+        <span class="c1"># job_list = []</span>
+        <span class="c1"># for frame_index in tqdm( range(nframes) ):</span>
+        <span class="c1">#     job_list.append(dask.delayed(count_pframe)(frame_index, sel))</span>
+
+        <span class="n">frames</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">universe</span><span class="o">.</span><span class="n">trajectory</span><span class="p">))[</span><span class="n">start</span><span class="p">:</span><span class="n">end</span><span class="p">]</span> <span class="k">if</span> <span class="n">end</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span> <span class="k">else</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">universe</span><span class="o">.</span><span class="n">trajectory</span><span class="p">))[</span><span class="n">start</span><span class="p">:]</span>
+        <span class="n">nframes</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">frames</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="n">nframes</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Le slice de la trajectoire [start:end] ne contient aucune frame.&quot;</span><span class="p">)</span>
+
+        <span class="n">job_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">frame_index</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">frames</span><span class="p">):</span>
+            <span class="n">job_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dask</span><span class="o">.</span><span class="n">delayed</span><span class="p">(</span><span class="n">count_pframe</span><span class="p">)(</span><span class="n">frame_index</span><span class="p">,</span> <span class="n">sel</span><span class="p">))</span>
+
+        <span class="n">result</span> <span class="o">=</span> <span class="n">dask</span><span class="o">.</span><span class="n">compute</span><span class="p">(</span><span class="n">job_list</span><span class="p">)</span>
+        <span class="n">atom_count</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="n">density</span> <span class="o">=</span> <span class="n">atom_count</span> <span class="o">/</span> <span class="n">slice_vol</span> <span class="o">/</span> <span class="n">nframes</span> <span class="o">*</span> <span class="mi">1000</span>
+
+        <span class="n">density_total</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">density</span><span class="p">)</span>
+
+        <span class="n">columns</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">t</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">density_total</span><span class="p">)</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">columns</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">pos</span><span class="p">)</span></div>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">density_map</span><span class="p">(</span><span class="n">univ</span><span class="p">:</span> <span class="n">mda</span><span class="o">.</span><span class="n">Universe</span><span class="p">,</span> 
+              <span class="n">atom_types</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="nb">int</span><span class="p">],</span>
+              <span class="n">interface_coordinate</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+              <span class="n">axis</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;z&quot;</span><span class="p">,</span>
+              <span class="n">eps</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">3.0</span><span class="p">,</span> 
+              <span class="n">start</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> 
+              <span class="n">end</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> 
+              <span class="n">bin_size</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a 2D density map of atoms within a specified distance of an interface.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    univ : mda.Universe</span>
+<span class="sd">        The input MDAnalysis Universe to analyze.</span>
+<span class="sd">    atom_types : str or list</span>
+<span class="sd">        Atom types to consider.</span>
+<span class="sd">    interface_coordinate : float</span>
+<span class="sd">        Interface coordinate along the given axis.</span>
+<span class="sd">    axis : str</span>
+<span class="sd">        Axis parallel to which to calculate the density.</span>
+<span class="sd">    eps : float</span>
+<span class="sd">        Distance from the interface to select atoms.</span>
+<span class="sd">    start : int</span>
+<span class="sd">        Starting trajectory frame.</span>
+<span class="sd">    end : int</span>
+<span class="sd">        Ending trajectory frame.</span>
+<span class="sd">    bin_size : float</span>
+<span class="sd">        Size of bins for the histogram in Angstroms.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    pd.DataFrame</span>
+<span class="sd">        2D average density map.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">box</span> <span class="o">=</span> <span class="n">univ</span><span class="o">.</span><span class="n">dimensions</span>
+
+    <span class="n">type_str</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">atom_types</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">atom_types</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="k">else</span> <span class="n">atom_types</span>
+    <span class="n">sel</span> <span class="o">=</span> <span class="n">univ</span><span class="o">.</span><span class="n">select_atoms</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">&quot;type </span><span class="si">{</span><span class="n">type_str</span><span class="si">}</span><span class="s2"> and prop </span><span class="si">{</span><span class="n">axis</span><span class="si">}</span><span class="s2"> &lt; </span><span class="si">{</span><span class="n">interface_coordinate</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">eps</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+        <span class="n">updating</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">)</span>
+
+    <span class="n">ids</span> <span class="o">=</span> <span class="n">_get_axis_ids</span><span class="p">(</span><span class="n">axis</span><span class="p">)</span>
+    <span class="n">axida</span><span class="p">,</span> <span class="n">axidb</span> <span class="o">=</span> <span class="n">ids</span><span class="p">[</span><span class="s1">&#39;axida&#39;</span><span class="p">],</span> <span class="n">ids</span><span class="p">[</span><span class="s1">&#39;axidb&#39;</span><span class="p">]</span>
+    <span class="n">bins_a</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">box</span><span class="p">[</span><span class="n">axida</span><span class="p">],</span> <span class="n">bin_size</span><span class="p">)</span>
+    <span class="n">bins_b</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">box</span><span class="p">[</span><span class="n">axidb</span><span class="p">],</span> <span class="n">bin_size</span><span class="p">)</span>
+    <span class="n">slice_vol</span> <span class="o">=</span> <span class="n">bin_size</span> <span class="o">*</span> <span class="n">box</span><span class="p">[</span><span class="n">axida</span><span class="p">]</span> <span class="o">*</span> <span class="n">box</span><span class="p">[</span><span class="n">axidb</span><span class="p">]</span>
+
+    <span class="n">nframes</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">univ</span><span class="o">.</span><span class="n">trajectory</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">end</span><span class="p">])</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Compute 2D atomic density of </span><span class="si">{}</span><span class="s2"> atoms...&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">type_str</span><span class="p">))</span>
+
+    <span class="n">pos_a_list</span><span class="p">,</span> <span class="n">pos_b_list</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">ts</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span> <span class="n">univ</span><span class="o">.</span><span class="n">trajectory</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">end</span><span class="p">]</span> <span class="p">):</span>
+
+        <span class="n">posi</span><span class="p">,</span> <span class="n">posj</span> <span class="o">=</span> <span class="n">sel</span><span class="o">.</span><span class="n">positions</span><span class="p">[:,</span><span class="n">axida</span><span class="p">],</span> <span class="n">sel</span><span class="o">.</span><span class="n">positions</span><span class="p">[:,</span><span class="n">axidb</span><span class="p">]</span>
+
+        <span class="n">posi</span> <span class="o">=</span> <span class="n">sel</span><span class="o">.</span><span class="n">positions</span><span class="p">[:,</span> <span class="n">axida</span><span class="p">]</span> <span class="o">%</span> <span class="n">box</span><span class="p">[</span><span class="n">axida</span><span class="p">]</span>
+        <span class="n">posj</span> <span class="o">=</span> <span class="n">sel</span><span class="o">.</span><span class="n">positions</span><span class="p">[:,</span> <span class="n">axidb</span><span class="p">]</span> <span class="o">%</span> <span class="n">box</span><span class="p">[</span><span class="n">axidb</span><span class="p">]</span>
+
+        <span class="n">pos_a_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">posi</span><span class="p">)</span>        
+        <span class="n">pos_b_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">posj</span><span class="p">)</span> 
+
+    <span class="n">pos_a</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">pos_a_list</span><span class="p">)</span>
+    <span class="n">pos_b</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">pos_b_list</span><span class="p">)</span>
+
+    <span class="n">hist</span><span class="p">,</span> <span class="n">edges_a</span><span class="p">,</span> <span class="n">edges_b</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">histogram2d</span><span class="p">(</span><span class="n">pos_a</span><span class="p">,</span> <span class="n">pos_b</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="p">(</span><span class="n">bins_a</span><span class="p">,</span> <span class="n">bins_b</span><span class="p">))</span>
+
+    <span class="n">ra</span> <span class="o">=</span> <span class="p">(</span><span class="n">edges_a</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">+</span> <span class="n">edges_a</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">/</span> <span class="mi">2</span>
+    <span class="n">rb</span> <span class="o">=</span> <span class="p">(</span><span class="n">edges_b</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">+</span> <span class="n">edges_b</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">/</span> <span class="mi">2</span>
+
+    <span class="n">density</span> <span class="o">=</span> <span class="n">hist</span> <span class="o">/</span> <span class="n">slice_vol</span> <span class="o">/</span> <span class="n">nframes</span> <span class="o">*</span> <span class="mi">1000</span>
+
+    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">density</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">ra</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">rb</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">find_interfaces_coordinates</span><span class="p">(</span><span class="n">input_df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
+               <span class="n">solid_types</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="nb">int</span><span class="p">],</span> 
+               <span class="n">liquid_types</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="nb">int</span><span class="p">]</span>
+               <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Calculate the solid/liquid interface coordinates for an interfacial system.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    input_df : pd.DataFrame</span>
+<span class="sd">        Input DataFrame of 1D atomic density profiles.</span>
+<span class="sd">    solid_types : list</span>
+<span class="sd">        List of atom types composing the solid phase.</span>
+<span class="sd">    liquid_types : list</span>
+<span class="sd">        List of atom types composing the liquid phase.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    tuple</span>
+<span class="sd">        Left liquid interface, left solid interface, right solid interface, </span>
+<span class="sd">        and right liquid interface coordinates.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">solid_series</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">input_df</span><span class="p">[</span><span class="n">solid_types</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span> <span class="n">index</span><span class="o">=</span><span class="n">input_df</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+    <span class="n">liquid_series</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">input_df</span><span class="p">[</span><span class="n">liquid_types</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span> <span class="n">index</span><span class="o">=</span><span class="n">input_df</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+
+    <span class="c1"># A gauche</span>
+    <span class="n">solid_left</span> <span class="o">=</span> <span class="p">(</span><span class="n">solid_series</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">idxmax</span><span class="p">()</span>
+    <span class="n">solution_left</span> <span class="o">=</span> <span class="p">(</span><span class="n">liquid_series</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">idxmax</span><span class="p">()</span>
+
+    <span class="c1"># A droite</span>
+    <span class="n">df_solide_r</span> <span class="o">=</span> <span class="n">solid_series</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">df_solution</span> <span class="o">=</span> <span class="n">liquid_series</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">solution_left</span><span class="p">:]</span>
+    <span class="n">solid_right</span> <span class="o">=</span> <span class="p">(</span><span class="n">df_solide_r</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">idxmax</span><span class="p">()</span>
+    <span class="n">solution_right</span> <span class="o">=</span> <span class="p">(</span><span class="n">df_solution</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">idxmax</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="n">solution_left</span><span class="p">,</span> <span class="n">solid_left</span><span class="p">,</span> <span class="n">solid_right</span><span class="p">,</span> <span class="n">solution_right</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">shift_profile</span><span class="p">(</span><span class="n">input_df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> 
+                  <span class="n">shift</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> 
+                  <span class="n">csv_output</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;new_density_profile.csv&quot;</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Shift the coordinates of a 1D density profile.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    input_df : pd.DataFrame</span>
+<span class="sd">        Input DataFrame of 1D atomic density profiles.</span>
+<span class="sd">    shift : float</span>
+<span class="sd">        Positive or negative shift in Angstroms.</span>
+<span class="sd">    csv_output : str</span>
+<span class="sd">        Output CSV file path.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    pd.DataFrame</span>
+<span class="sd">        Shifted density profile data.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># to avoid pylint warning</span>
+    <span class="c1"># pylint: disable=E1101</span>
+    <span class="n">columns</span> <span class="o">=</span> <span class="n">input_df</span><span class="o">.</span><span class="n">columns</span>
+
+    <span class="n">r</span> <span class="o">=</span> <span class="n">input_df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">values</span>
+    <span class="n">dr</span> <span class="o">=</span> <span class="n">r</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">r</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">densities</span> <span class="o">=</span> <span class="n">input_df</span><span class="o">.</span><span class="n">values</span>
+
+    <span class="n">idx</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">shift</span> <span class="o">/</span> <span class="n">dr</span><span class="p">)</span>
+    <span class="n">new_densities</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">roll</span><span class="p">(</span><span class="n">densities</span><span class="p">,</span> <span class="n">idx</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="n">new_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">r</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">size</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="n">new_densities</span><span class="p">))</span>
+
+    <span class="n">output_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">new_data</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">columns</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">csv_output</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">output_df</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">csv_output</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">output_df</span>
+
+<div class="viewcode-block" id="electrostatic_potential">
+<a class="viewcode-back" href="../../../api/generated/cemd.analysis.electrostatic_potential.html#cemd.analysis.electrostatic_potential">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">electrostatic_potential</span><span class="p">(</span><span class="n">input_df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> 
+               <span class="n">list_charges</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span>
+               <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Calculate charge distribution, electric field, and electrostatic potential.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    input_df : pd.DataFrame</span>
+<span class="sd">        DataFrame of atomic densities.</span>
+<span class="sd">    list_charges : list</span>
+<span class="sd">        List of charges for each atom type in the CSV file.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    charge_density : pd.Series</span>
+<span class="sd">        Calculated charge density profile.</span>
+<span class="sd">    efield : pd.Series</span>
+<span class="sd">        Calculated electric field profile.</span>
+<span class="sd">    potential : pd.Series</span>
+<span class="sd">        Calculated electrostatic potential profile.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">shift_constant</span><span class="p">(</span><span class="n">array</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">threshold</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="mf">0.1</span>
+                       <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Shifts the array by subtracting the mean of its constant (flat) regions.</span>
+
+<span class="sd">        This function automatically detects stationary or flat regions within a 1D signal by analyzing relative consecutive differences. It computes the average intensity of the signal across these stable baselines and subtracts it from the entire array, effectively centering the baseline/background around zero.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">            array </span>
+<span class="sd">            The 1D input array containing the signal to be corrected.</span>
+<span class="sd">            threshold</span>
+<span class="sd">            The maximum relative difference between consecutive elements to consider a region as &#39;constant&#39; or flat. Evaluated after scaling the array by its maximum value.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            np.ndarray: The baseline-corrected array where the flat regions </span>
+<span class="sd">                are centered around zero.</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; signal = np.array([10.0, 10.1, 10.0, 25.0, 50.0, 10.2, 10.0])</span>
+<span class="sd">            &gt;&gt;&gt; shift_constant(signal, threshold=0.02)</span>
+<span class="sd">            array([-0.025,  0.075, -0.025, 14.975, 39.975,  0.175, -0.025])</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">narr</span> <span class="o">=</span> <span class="n">array</span><span class="o">/</span><span class="n">array</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+        <span class="c1"># Calculate the absolute differences between consecutive elements</span>
+        <span class="n">differences</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">narr</span><span class="p">))</span>
+        
+        <span class="c1"># Identify indices where the difference is within the threshold</span>
+        <span class="n">constant_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">differences</span> <span class="o">&lt;=</span> <span class="n">threshold</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        
+        <span class="c1"># Adjust indices to include the next element in the array</span>
+        <span class="n">constant_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">constant_indices</span><span class="p">,</span> <span class="n">constant_indices</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        
+        <span class="c1"># Get unique indices and sort them</span>
+        <span class="n">constant_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">constant_indices</span><span class="p">)</span>
+
+        <span class="n">result_array</span> <span class="o">=</span> <span class="n">array</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">array</span><span class="p">[</span><span class="n">constant_indices</span><span class="p">])</span>
+        
+        <span class="k">return</span> <span class="n">result_array</span>
+
+    <span class="n">charge</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">list_charges</span><span class="p">)</span>
+
+    <span class="n">r</span> <span class="o">=</span> <span class="n">input_df</span><span class="o">.</span><span class="n">index</span>
+    <span class="n">dr</span> <span class="o">=</span> <span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">r</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">*</span> <span class="mf">1e-10</span>
+
+    <span class="n">charge_density</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">input_df</span><span class="o">.</span><span class="n">values</span> <span class="o">*</span> <span class="n">charge</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">axis</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">charge_density_series</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">charge_density</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">r</span><span class="p">)</span>
+    
+    <span class="n">efield</span> <span class="o">=</span> <span class="n">integrate</span><span class="o">.</span><span class="n">cumulative_trapezoid</span><span class="p">(</span><span class="n">charge_density</span> <span class="o">*</span> <span class="mf">1.602e-19</span> <span class="o">*</span> <span class="mf">1e27</span><span class="p">,</span> <span class="n">dx</span> <span class="o">=</span> <span class="n">dr</span><span class="p">)</span> <span class="o">/</span> <span class="mf">8.854e-12</span>
+    <span class="n">r</span> <span class="o">=</span> <span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">+</span> <span class="n">r</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">/</span> <span class="mi">2</span>
+    <span class="n">efield_series</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">shift_constant</span><span class="p">(</span><span class="n">efield</span><span class="p">),</span> <span class="n">index</span><span class="o">=</span><span class="n">r</span><span class="p">)</span>
+
+    <span class="n">potential</span> <span class="o">=</span> <span class="o">-</span> <span class="n">integrate</span><span class="o">.</span><span class="n">cumulative_trapezoid</span><span class="p">(</span><span class="n">efield</span><span class="p">,</span> <span class="n">dx</span> <span class="o">=</span> <span class="n">dr</span><span class="p">)</span>
+    <span class="n">r</span> <span class="o">=</span> <span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">+</span> <span class="n">r</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">/</span> <span class="mi">2</span>
+    <span class="n">potential_series</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">shift_constant</span><span class="p">(</span><span class="n">potential</span><span class="p">),</span> <span class="n">index</span><span class="o">=</span><span class="n">r</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">charge_density_series</span><span class="p">,</span> <span class="n">efield_series</span><span class="p">,</span> <span class="n">potential_series</span></div>
+
+
+
+
+</pre></div>
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9"></script>
+<script defer src="../../../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2022-2026, Jérôme Claverie.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.20.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

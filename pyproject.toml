@@ -1,0 +1,23 @@
+[project]
+name = "cemd"
+version = "0.1.0"
+dependencies = [
+    "numpy==2.4.4",
+    "scipy",
+    "pandas",
+    "MDAnalysis==2.10.0",
+    "pymatgen",
+    "rdkit",
+    "dask",
+    "pydantic==2.12.5",
+    "xlrd"
+]
+
+[project.optional-dependencies]
+gui = [
+    "PySide6==6.10.0",
+    "PySide6-Qlementine==1.4.3.0rc5",
+    "matplotlib",
+    "pyvista",
+    "pyvistaqt"
+]

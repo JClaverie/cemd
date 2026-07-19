@@ -1,0 +1,7 @@
+.navbar-brand img, 
+.sidebar-brand img,
+.logo img {
+    /* Ajustez la largeur selon vos besoins */
+    width: 300px; 
+    height: auto;
+}
