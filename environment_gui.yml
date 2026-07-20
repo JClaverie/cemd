@@ -1,23 +1,8 @@
 name: cemd_ui
 channels:
-  - defaults
   - conda-forge
 dependencies:
   - python=3.11
   - pip
-  - ipython
   - pip:
-      - PySide6==6.10.0
-      - PySide6-Qlementine==1.4.3.0rc5
-      - numpy=2.4.4
-      - scipy
-      - matplotlib
-      - pandas
-      - MDAnalysis==2.10.0
-      - pyvista
-      - pyvistaqt
-      - pymatgen
-      - rdkit
-      - dask
-      - pydantic==2.12.5
-      - xlrd
+      - -e ".[gui,dev]"

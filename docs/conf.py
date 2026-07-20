@@ -14,8 +14,8 @@ sys.path.insert(0, os.path.abspath('..'))
 project   = 'cemd'
 copyright = '2022-2026, Jérôme Claverie'
 author    = 'Jérôme Claverie'
-version   = '0.0.5'
-release   = '0.0.5'
+version   = '0.1.0'
+release   = '0.1.0'
 
 # ---------------------------------------------------------------------------
 # General configuration
@@ -27,6 +27,7 @@ extensions = [
     'sphinx.ext.mathjax',
     'sphinx.ext.viewcode',
     'sphinx.ext.intersphinx',
+    'sphinx.ext.doctest',
     'sphinx.ext.todo',
     'numpydoc',
 ]
@@ -116,6 +117,11 @@ html_static_path = ['_static']
 html_css_files = [
     'custom.css',
 ]
+
+html_sidebars = {
+    "api/**": ["sidebar-nav-bs"],  # garder sur les pages API
+    "**": []                        # supprimer ailleurs
+}
 
 # ---------------------------------------------------------------------------
 # LaTeX output

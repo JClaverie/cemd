@@ -1,19 +1,8 @@
 name: cemd
 channels:
-  - defaults
   - conda-forge
 dependencies:
   - python=3.11
   - pip
-  - ipython
   - pip:
-      - numpy==2.4.4
-      - scipy
-      - matplotlib
-      - pandas
-      - MDAnalysis==2.10.0
-      - pymatgen
-      - rdkit
-      - dask
-      - pydantic==2.12.5
-      - xlrd
+      - -e ".[dev]"

@@ -20,180 +20,24 @@ from __future__ import annotations
 import os
 import json
 import webbrowser
-import requests
+from typing import TYPE_CHECKING
+
 from PySide6 import QtWidgets, QtCore
-from typing import TYPE_CHECKING, Any
+
+from .base_dialog import BaseBuilderDialog
+from ...core.atomic_system import AtomicSystem
+from ...db.pubchem import (
+    get_structure,
+    get_pubchem_details,
+    pubchem_search_by_name,
+    pubchem_sdq_search
+)
 
 if TYPE_CHECKING:
     from main_window import AtomViewerGUI
 
-from cemd.gui.ui.base_dialog import BaseBuilderDialog
-from cemd.core.atomic_system import AtomicSystem
-
-
-def pubchem_search_by_name(name: str) -> list[dict[str, Any]]:
-    """Search for CIDs by common name or IUPAC."""
-    base_url = f"https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/{name}/description/json"
-    try:
-        response = requests.get(base_url, timeout=10)
-        if response.status_code != 200: return []
-        
-        data = response.json()
-        results = []
-        for info in data.get('InformationList', {}).get('Information', []):
-            cid = info.get('CID')
-            if cid:
-                # We retrieve the details (Formula, Weight) for display
-                details = get_pubchem_details(cid)
-                results.append({
-                    'id': str(cid),
-                    'common_name': info.get('Title', name),
-                    'formula': details.get('formula', 'N/A'),
-                    'weight': details.get('weight', 'N/A'),
-                    'smiles': details.get('smiles', 'N/A')
-                })
-        return results
-    except: return []
-    
-
-def pubchem_search_by_formula(formula: str) -> list[dict[str, Any]]:
-    """Search for CIDs by chemical formula."""
-    base_url = f"https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/formula/{formula}/listkey/json"
-    try:
-        # Formula search is asynchronous on PubChem (ListKey)
-        response = requests.get(base_url, timeout=10)
-        if response.status_code != 200: return []
-        
-        listkey = response.json().get('IdentifierList', {}).get('ListKey')
-        # We retrieve the first 20 results for the responsiveness of the UI
-        fetch_url = f"https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/listkey/{listkey}/cids/json?maxrecords=20"
-        fetch_res = requests.get(fetch_url, timeout=10)
-        cids = fetch_res.json().get('IdentifierList', {}).get('CID', [])
-
-        results = []
-        for cid in cids:
-            details = get_pubchem_details(cid)
-            results.append({
-                'id': str(cid),
-                'common_name': details.get('title', 'N/A'),
-                'formula': formula,
-                'weight': details.get('weight', 'N/A'),
-                'smiles': details.get('smiles', 'N/A')
-            })
-        return results
-    except: return []
-
-def get_pubchem_details(cid: int) -> dict:
-    """Retrieves properties. If SMILES is missing, performs a dedicated fallback request."""
-    url = f"https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/{cid}/property/MolecularFormula,MolecularWeight,Title,IUPACName,CanonicalSMILES/json"
-    
-    try:
-        r = requests.get(url, timeout=5)
-        if r.status_code != 200:
-            return {}
-            
-        props = r.json().get('PropertyTable', {}).get('Properties', [{}])[0]
-        smiles = props.get('ConnectivitySMILES')
-
-        if not smiles:
-
-            fallback_url = f"https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/{cid}/property/IsomericSMILES/json"
-            r_s = requests.get(fallback_url, timeout=3)
-            if r_s.status_code == 200:
-                s_props = r_s.json().get('PropertyTable', {}).get('Properties', [{}])[0]
-                smiles = s_props.get('ConnectivitySMILES')
-
-        return {
-            'formula': props.get('MolecularFormula'),
-            'weight': props.get('MolecularWeight'),
-            'smiles': smiles,
-            'title': props.get('Title'),
-            'iupac': props.get('IUPACName')
-        }
-    except:
-        return {}
-
-def get_structure(cid: int, smiles: str = None) -> dict | None:
-    """
-    Tries to fetch 3D SDF, then 2D SDF. 
-    If both fail (404), generates structure from SMILES using read_smiles.
-    """
-    from cemd.core._io import IOMixin
-    
-    url = f"https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/{cid}/SDF?record_type=3d"
-
-    response = requests.get(url, timeout=10)
-    if response.status_code == 200:
-        print(f"Loaded 3D SDF for CID {cid}")
-        return IOMixin.read_sdf_content(response.text)
-
-    if smiles:
-        print(f"SDF not found for {cid}. Generating structure from SMILES...")
-        try:
-            return IOMixin.read_smiles(smiles)
-        except Exception as e:
-            print(f"SMILES conversion error: {e}")
-
-    else:
-        print("Failer to find structure.")
-
-    return None
-
-def pubchem_sdq_search(query: str, limit: int = 50) -> list[dict]:
-    """
-    Retrieves exact results from PubChem site via SDQ API.
-    """
-    # Query cleanup and word separation for "AND"
-    words = [w.strip() for w in query.split() if w.strip()]
-    if not words:
-        return []
-
-    # Construction of the 'where' clause (identical to your URL)
-    ands = [{"*": word} for word in words]
-
-    query_params = {
-        "download": "*",
-        "collection": "compound",
-        "order": ["relevancescore,desc"],
-        "start": 1,
-        "limit": limit,
-        "where": {"ands": ands}
-    }
-
-    params = {
-        "infmt": "json",
-        "outfmt": "json",
-        "query": json.dumps(query_params)
-    }
-
-    url = "https://pubchem.ncbi.nlm.nih.gov/sdq/sphinxql.cgi"
-
-    try:
-        response = requests.get(url, params=params, timeout=15)
-        response.raise_for_status() # Throw an error if the query fails
-        
-        data = response.json()
-        
-        results = []
-        for item in data:
-            # We map the keys from JSON SDQ to your table format
-            results.append({
-                'id': str(item.get('cid', '')),
-                'common_name': item.get('cmpdname', 'N/A'),
-                'formula': item.get('mf', 'N/A'),
-                'weight': str(item.get('mw', 'N/A')),
-                'smiles': item.get('smiles', 'N/A'),
-                'iupac': item.get('iupacname', 'N/A')
-            })
-        return results
-
-    except Exception as e:
-        print(f"Error querying SDQ: {e}")
-        return []
-
-
 class PubChemBrowserDialog(BaseBuilderDialog):
-    def __init__(self, parent: AtomViewerGUI = None):
+    def __init__(self, parent: AtomViewerGUI = None) -> None:
         super().__init__(parent, "PubChem Database Explorer", 850)
         self.setMinimumHeight(600)
         
@@ -257,38 +101,13 @@ class PubChemBrowserDialog(BaseBuilderDialog):
         self.status_bar.showMessage("Ready")
         layout.addWidget(self.status_bar)
 
-    # def run_search(self) -> None:
-    #     query = self.search_input.text().strip()
-    #     if not query: return
-
-    #     mode = self.combo_type.currentText()
-    #     self.status_bar.showMessage(f"⏱ Searching in PubChem for '{query}'...")
-    #     QtCore.QCoreApplication.processEvents()
-
-    #     try:
-    #         results = []
-    #         if mode == "Compound Name or Formula":
-    #             results = pubchem_search_by_name(query)
-    #         elif mode == "PubChem CID":
-    #             details = get_pubchem_details(query)
-    #             if details:
-    #                 results = [{'id': query, 'common_name': details.get('title'), 'formula': details.get('formula'), 
-    #                             'weight': details.get('weight'), 'smiles': details.get('smiles')}]
-
-    #         self.display_results(results)
-    #         self.save_last_search(query, mode, results)
-    #         self.status_bar.showMessage(f"{len(results)} compounds found")
-    #     except Exception as e:
-    #         self.status_bar.showMessage("⚠ Error during search")
-    #         QtWidgets.QMessageBox.critical(self, "Search Error", str(e))
-
     def run_search(self) -> None:
         query = self.search_input.text().strip()
         if not query: return
 
         mode = self.combo_type.currentText()
         self.status_bar.showMessage(f"⏱ Searching in PubChem for '{query}'...")
-        # We force the refresh of the UI to display the message
+        # Force the refresh of the UI to display the message
         QtCore.QCoreApplication.processEvents()
 
         try:
@@ -345,24 +164,27 @@ class PubChemBrowserDialog(BaseBuilderDialog):
         row = self.table.currentRow()
         if row < 0: return
         
-        cid = self.table.item(row, 0).text()
+        cid   = self.table.item(row, 0).text()
         smiles = self.table.item(row, 4).text()
         self.status_bar.showMessage(f"Fetching 3D coordinates for CID {cid}...")
-        topo = get_structure(cid, smiles)
         
-        if topo:
-            self.selected_system = AtomicSystem.from_dict(topo)
+        system = get_structure(cid, smiles)  # ← déjà un AtomicSystem
+        if system:
+            self.selected_system = system
             self.accept()
         else:
-            QtWidgets.QMessageBox.warning(self, "3D Error", "No 3D conformer available for this compound on PubChem.")
+            QtWidgets.QMessageBox.warning(
+                self, "3D Error",
+                "No 3D conformer available for this compound on PubChem."
+            )
 
-    def save_last_search(self, query, mode, results):
+    def save_last_search(self, query, mode, results) -> None:
         try:
             with open(self.cache_file, "w") as f:
                 json.dump({"query": query, "mode": mode, "results": results}, f)
         except: pass
 
-    def load_last_search(self):
+    def load_last_search(self) -> None:
         if not os.path.exists(self.cache_file): return
         try:
             with open(self.cache_file, "r") as f:

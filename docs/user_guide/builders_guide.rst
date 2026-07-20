@@ -19,15 +19,51 @@ To create a water-based solution with solutes, you can use the `build_solution` 
 
 .. code-block:: python
 
-   from cemd.builders.base import build_solution
+   from cemd.builders import build_solution, concentration2count
 
-   # Create a solution box of 30x30x30 Angstroms with a density of 1.0 g/cm³
-   # containing 10 ions of a custom type 'Na' and 'Cl'
-   solution = build_solution(
-       box=[30, 30, 30],
-       density=1.0,
-       solutes_dict={'Na': 10, 'Cl': 10}
+   # --- Configuration ---
+   # Define the simulation box dimensions in Angstroms (Å)
+   my_box = [30, 30, 30]
+
+   # Define target molar concentrations for each solute species (mol/L)
+   concentrations = {"Na": 1.0, "Cl": 1.0}
+
+   # --- Step 1: Calculate Particle Counts ---
+   # Convert molar concentrations into integer molecule counts based on box volume.
+   # This ensures physical accuracy while adhering to the integer constraints of Packmol.
+   solutes_counts, errors = concentration2count(concentrations, my_box)
+
+   # --- Step 2: Build the Atomic System ---
+   # Use the calculated counts to generate the final liquid solution.
+   # The builder will automatically balance the total density with H2O molecules.
+   system = build_solution(
+      box=my_box, 
+      density=1.04, 
+      solutes_dict=solutes_counts
    )
+
+.. code-block:: none
+
+   <AtomicSystem with 2693 atoms, 1774 bonds>
+
+   Box
+   a (Å)  b (Å)  c (Å)  α (°)  β (°)  γ (°)
+      30     30     30     90     90     90
+
+   Atoms
+   type  number     %      mass  charge
+   Cl      16  0.59 35.453200     0.0
+      H    1774 65.87  1.007947     0.0
+   Na      16  0.59 22.989769     0.0
+      O     887 32.94 15.999430     0.0
+
+   Bonds
+   type  number
+   H-O    1774
+
+   Total charge: 0.000e
+   Volume: 27.00 nm3
+   Density: 1.04 g/cm3
 
 ### Building Complex C-S-H Models
 For cementitious materials, the `hydrates` submodule provides the `pycsh` tool, which generates structures based on specific Calcium/Silicate (C/S) and Water/Silicate (W/S) ratios.

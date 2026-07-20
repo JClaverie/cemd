@@ -1,40 +1,56 @@
 Installation
 ============
 
-Follow these instructions to set up your development environment and install the **cemd** package.
-
 Prerequisites
 -------------
-* **Python 3.10+**
-* **Conda** (Miniconda or Anaconda)
-* **Packmol** (Required for system construction)
-* **VMD** (Required for system visualization)
 
-Step-by-Step Installation
--------------------------
+The following software must be installed before setting up **cemd**:
+
+* **Python 3.11** — required Python version.
+* **Conda** — package and environment manager (`Miniconda <https://docs.conda.io/en/latest/miniconda.html>`__ or `Anaconda <https://www.anaconda.com/>`__).
+* **Packmol** — required for automated system construction (`download <https://m3g.github.io/packmol/>`__). Must be accessible in your ``$PATH``.
+
+Standard Installation
+---------------------
 
 1. Clone the repository:
-   .. code-block:: bash
 
-      git clone https://github.com/votre-utilisateur/cemd.git
-      cd cemd
+.. code-block:: bash
 
-2. Create the environment from the provided YAML file:
-   .. code-block:: bash
+   git clone https://github.com/your-username/cemd.git
+   cd cemd
 
-      conda env create -f environment.yml
-      conda activate cemd_env
+2. Create the conda environment:
+
+.. code-block:: bash
+
+   conda env create -f environment.yml
+   conda activate cemd
 
 3. Install the package in editable mode:
-   .. code-block:: bash
 
-      pip install -e .
+.. code-block:: bash
+
+   pip install -e .
+
+GUI Installation
+----------------
+
+To use the graphical interface, use the dedicated environment file instead:
+
+.. code-block:: bash
+
+   conda env create -f environment_gui.yml
+   conda activate cemd_ui
+   pip install -e ".[gui]"
 
 Verifying the Installation
 --------------------------
-To ensure everything is correctly installed, you can run a simple check:
+
+Run the following to confirm that **cemd** is correctly installed:
 
 .. code-block:: python
 
    import cemd
-   print(f"CEMD version {cemd.__version__} is ready.")
+   from cemd import AtomicSystem
+   print(f"CEMD {cemd.__version__} is ready.")

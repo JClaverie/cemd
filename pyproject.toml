@@ -1,23 +1,42 @@
 [project]
 name = "cemd"
 version = "0.1.0"
+description = "Computational Elementary Matter Design"
+authors = [{name = "Jérôme Claverie"}]
+license = {text = "GPL-3.0"}
+requires-python = ">=3.11"
 dependencies = [
-    "numpy==2.4.4",
-    "scipy",
-    "pandas",
-    "MDAnalysis==2.10.0",
-    "pymatgen",
+    "numpy>=2.0,<3",
+    "scipy>=1.10",
+    "pandas>=2.0",
+    "matplotlib>=3.7",
+    "MDAnalysis>=2.10",
+    "pymatgen>=2024.0",
     "rdkit",
     "dask",
-    "pydantic==2.12.5",
-    "xlrd"
+    "pydantic>=2.0,<3",
+    "xlrd",
+    "questionary",
 ]
 
 [project.optional-dependencies]
 gui = [
-    "PySide6==6.10.0",
-    "PySide6-Qlementine==1.4.3.0rc5",
-    "matplotlib",
+    "PySide6>=6.6",
+    "PySide6-Qlementine",
     "pyvista",
-    "pyvistaqt"
+    "pyvistaqt",
 ]
+docs = [
+    "sphinx",
+    "pydata-sphinx-theme",
+    "numpydoc",
+]
+dev = [
+    "pytest",
+    "pytest-cov",
+    "ipython",
+]
+
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.backends.legacy:build"

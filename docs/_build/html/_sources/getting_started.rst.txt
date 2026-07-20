@@ -1,56 +1,228 @@
 Getting Started
 ===============
 
-The **cemd** package revolves around the ``AtomicSystem`` class, which serves as the primary container for your molecular system data.
+The **cemd** package revolves around the :class:`~cemd.core.atomic_system.AtomicSystem` class,
+which serves as the primary container for all atomic data: coordinates, topology, box
+parameters, masses, and force field parameters.
 
 Loading a System
 ----------------
 
-To start, you need to load your atomic data. The system currently supports initialization from a dictionary containing the topology (or directly from files via the `IOMixin` methods).
+The easiest way to load a system is directly from a LAMMPS ``.data`` file:
 
 .. code-block:: python
 
    from cemd import AtomicSystem
 
-   # Initialize with a topology dictionary
-   topology = {
-       "atoms": ...,          # pandas.DataFrame with x, y, z, type, charge
-       "lmp_box": ...,        # LAMMPS box parameters
-       "atom_types": ...,     # List of types
-       "masses": ...,         # Dictionary of masses
-       "charges": ...         # Dictionary of charges
-   }
-
-   system = AtomicSystem(topology)
+   system = AtomicSystem.from_file("waterbox.data")
    print(system)
 
-Key Features
-------------
+.. code-block:: none
 
-The ``AtomicSystem`` object provides immediate access to physical properties and system topology:
+   <AtomicSystem with 2709 atoms, 1806 bonds>
+   
+   Box
+   a (Å)  b (Å)  c (Å)  α (°)  β (°)  γ (°)
+      30     30     30     90     90     90
+   
+   Atoms
+   type  number     %      mass  charge
+      H    1806 66.67  1.007947     0.0
+      O     903 33.33 15.999430     0.0
+   
+   Bonds
+   type  number
+   H-O    1806
+   
+   Total charge: 0.000e
+   Volume: 27.00 nm3
+   Density: 1.00 g/cm3
 
-* **System Analysis**: Use properties to get density, total charge, or center of mass.
-  
-  .. code-block:: python
 
-     print(f"Density: {system.density:.2f} g/cm³")
-     print(f"Center of Mass: {system.get_center_of_mass()}")
+Other supported formats include ``.cif`` and ``.pdb``:
 
-* **Data Inspection**: The `type_summary` property returns a formatted summary of your atom types, masses, and counts.
+.. code-block:: python
+
+   system = AtomicSystem.from_file("structure.cif")
+   system = AtomicSystem.from_file("molecule.pdb")
+
+Inspecting a System
+-------------------
+
+Once loaded, the ``AtomicSystem`` object provides immediate access to physical
+properties and topology:
+
+.. code-block:: python
+
+   # Basic properties
+   print(f"Box parameters [a, b, c, α, β, γ] : {system.box}")
+   print(f"Number of atoms : {system.num_atoms}")
+   print(f"Atom types      : {system.atom_types}")
+   print(f"Density         : {system.density:.3f} g/cm³")
+   print(f"Total charge    : {system.total_charge:.4f} e")
+   print(f"Volume          : {system.volume:.2f} Å³")
+
+.. code-block:: none
+
+   Box parameters [a, b, c, α, β, γ] : [30 30 30 90 90 90]
+   Number of atoms : 2709
+   Atom types      : ['H', 'O']
+   Density         : 1.000 g/cm³
+   Total charge    : 0.0000 e
+   Volume          : 27000.00 Å³
+
+.. code-block:: python
+
+   # Direct access to the atoms DataFrame
+   print(system.atoms)
+
+.. code-block:: none
+
+         type  charge          x          y       z
+   id                                             
+   1       O     0.0  14.507000  26.157000  14.212
+   2       H     0.0  13.987000  25.868000  13.408
+   3       H     0.0  15.459000  26.318001  13.954
+   4       O     0.0  16.625999  16.400000  13.285
+   5       H     0.0  15.970000  15.702000  12.997
+   ...   ...     ...        ...        ...     ...
+   2705    H     0.0  27.193001  18.150999  12.969
+   2706    H     0.0  28.473000  18.754000  12.153
+   2707    O     0.0  19.752001   1.068000  10.500
+   2708    H     0.0  18.818001   0.731000  10.623
+   2709    H     0.0  20.035000   0.929000   9.552
+
+   [2709 rows x 5 columns]
+
+Saving a System
+---------------
+
+To write a system back to a LAMMPS ``.data`` file:
+
+.. code-block:: python
+
+   # Save with the default atom style (preserved from the input file)
+   system.write("output.data")
+
+   # Specify the atom style explicitly
+   system.write("output.data", atom_style="full")    # full: id mol type charge x y z
+   system.write("output.data", atom_style="charge")  # charge: id type charge x y z
+
+.. note::
+
+   The ``.data`` format is the recommended output format for LAMMPS simulations.
+   The system can also be exported to the ``.pdb``.
+
+Converting a System
+---------------
+
+Another solution to save to other formats is to convert the AtomicSystem to a `MDAnalysis Universe <https://userguide.mdanalysis.org/stable/universe.html>`_. The MDAnalysis package allow to write in `many formats <https://userguide.mdanalysis.org/stable/formats/index.html>`_.
+
+.. code-block:: python
+
+   u = system.to_mda()
+   print(u)
+
+.. code-block:: none
+
+   <Universe with 2709 atoms>
+
+.. code-block:: python
+
+   struct = system.to_pmg()
+   print(struct)
+
+.. code-block:: none
+
+   Full Formula (H1806 O903)
+   Reduced Formula: H2O
+   abc   :  30.000000  30.000000  30.000000
+   angles:  90.000000  90.000000  90.000000
+   pbc   :       True       True       True
+   Sites (2709)
+      #  SP            a          b          c    charge
+   ----  ----  ---------  ---------  ---------  --------
+      0  O      0.483567   0.8719     0.473733         0
+      1  H      0.466233   0.862267   0.446933         0
+      2  H      0.5153     0.877267   0.465133         0
+      3  O      0.5542     0.546667   0.442833         0
+      4  H      0.532333   0.5234     0.433233         0
+      5  H      0.543333   0.5767     0.433367         0
+      ...
+
+Explore structure databases
+---------------------------
+
+You can explore the `COD <https://www.crystallography.net/cod/>`_ and `PubChem <https://pubchem.ncbi.nlm.nih.gov/>`_ open databases to find structures and load them in an interactive way.
+
+.. code-block:: python
+
+   from cemd.db import explore_cod
+
+   system = explore_cod()
+
+.. code-block:: none
+
+   ? Search by: (Use arrow keys)
+ » Mineral Name
+   Chemical Formula
+   COD ID
+
+.. code-block:: none
+
+   ? Search by: Mineral Name
+   ? Enter your query: calcite
+   Found 145 structures
+   ↑↓ Move   [Enter] Load   [d] DOI   [w] COD page   [q] Quit
+
+         ID | NAME                 | FORMULA            | LATTICE PARAMETERS                    | DOI
+   ----------------------------------------------------------------------------------------------------
+      1001741 | Nitrocalcite         | - Ca H8 N2 O10 -   |   6.3   9.2  14.9 |  90° 106°  90°    |  ✓
+      1001743 | Nitrocalcite         | - Ca H8 N2 O10 -   |   6.3   9.1  14.8 |  90° 106°  90°    |  -
+      1010917 | Barytocalcite        | - C2 Ba Ca O6 -    |   8.2   5.2   6.6 |  90° 106°  90°    |  -
+   ➜  1010928 | Calcite              | - C Ca O3 -        |   6.4   6.4   6.4 |  46°  46°  46°    |  ✓
+      1010962 | Calcite              | - C Ca O3 -        |   6.4   6.4   6.4 |  46°  46°  46°    |  -
+      1011029 | Nitratine            | - N Na O3 -        |   6.3   6.3   6.3 |  47°  47°  47°    |  ✓
+      1011228 | Rhodochrosite        | - C Mn O3 -        |   5.8   5.8   5.8 |  48°  48°  48°    |  ✓
+
+   ...
+
+.. code-block:: none
+   
+   <AtomicSystem with 30 atoms>
+
+   Box
+   a (Å)  b (Å)  c (Å)  α (°)  β (°)  γ (°)
+   4.98  17.02   4.98  90.00 120.00  90.00
+
+   Atoms
+   type  number     %     mass  charge
+      C       6 20.00 12.01078     4.0
+   Ca       6 20.00 40.07840     2.0
+      O      18 60.00 15.99943    -2.0
+
+   Total charge: 0.000e
+   Volume: 0.37 nm3
+   Density: 2.73 g/cm3
+
+
 
 Visualization
 -------------
 
-You can visualize your system directly using VMD:
+You can visualize your system in `VMD <https://www.ks.uiuc.edu/Research/vmd/>`_ directly from Python :
 
 .. code-block:: python
 
-   # View the current system
+   # Static view of the current configuration
    system.view()
 
-   # View with an associated trajectory
+   # View with an associated MD trajectory
    system.view(trajectory="md_production.dcd")
 
 Next Steps
 ----------
-Explore the `analysis` module to start computing radial distribution functions (RDF) or mean squared displacements (MSD) on your systems.
+
+* Build new systems with the :mod:`cemd.builders` module.
+* Compute structural and dynamic properties with the :mod:`cemd.analysis` module.
+* Apply force field topology with :meth:`~cemd.core.atomic_system.AtomicSystem.set_topology`.

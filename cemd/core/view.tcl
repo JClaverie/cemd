@@ -1,6 +1,6 @@
 #
 # This file is part of the CEMD distribution
-# Copyright (c) 2024 Jérôme Claverie.
+# Copyright (c) 2022-2026 Jérôme Claverie.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -182,6 +182,10 @@ mol addrep $system
 
 mol selection type O Al
 mol representation DynamicBonds 2 0.200000 12.000000
+mol addrep $system
+
+mol selection type C H
+mol representation DynamicBonds 1.2 0.200000 12.000000
 mol addrep $system
 
 # # Dynamic bonds between aluminates and silicates

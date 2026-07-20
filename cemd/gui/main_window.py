@@ -596,21 +596,13 @@ class AtomViewerGUI(QtWidgets.QMainWindow):
 
     @QtCore.Slot()
     def open_cod_browser(self):
-        """Launches the COD browser and creates a tab if a structure is chosen."""
-        dialog = CODBrowserDialog(self) 
-
+        dialog = CODBrowserDialog(self)
         if dialog.exec() == QtWidgets.QDialog.Accepted:
-            # Retrieving the Pymatgen structure from the dialog
-            pymatgen_struct = dialog.selected_system
-            cod_id = dialog.last_cod_id # can store the ID for the title
- 
-            system = AtomicSystem.from_pymatgen(pymatgen_struct)
-
-            # Creating the tab using your existing method
-            title = f"{pymatgen_struct.composition.reduced_formula}"
+            system = dialog.selected_system  # ← déjà un AtomicSystem
+            cod_id = dialog.last_cod_id
+            title = f"COD_{cod_id}"
             self.add_structure_tab(system, title=title)
-
-            self.statusBar().showMessage(f"Structure COD {cod_id} imported successfully.", 5000) 
+            self.statusBar().showMessage(f"Structure COD {cod_id} imported.", 5000)
 
     @QtCore.Slot()
     def open_pubchem_browser(self) -> None:
@@ -626,8 +618,7 @@ class AtomViewerGUI(QtWidgets.QMainWindow):
             name = dialog.table.item(selected_row, 1).text()
             formula = dialog.table.item(selected_row, 2).text()
  
-            title = f"{formula}"
-            self.add_structure_tab(system, title=title)
+            self.add_structure_tab(system, title=f"PubChem_{dialog.last_cid}")
 
             self.statusBar().showMessage(f"Compound {name} (CID {cid}) imported from PubChem.", 5000)
 

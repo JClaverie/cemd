@@ -19,165 +19,24 @@ from __future__ import annotations
 
 import os
 import json
-import re
 import webbrowser
-import requests
-from io import StringIO
+
 from PySide6 import QtWidgets, QtCore
-from pymatgen.io.cif import CifParser
+
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from cemd.core.atomic_system import AtomicSystem
     from main_window import AtomViewerGUI
 
 from ui.base_dialog import BaseBuilderDialog
 
-def formula_to_elements(formula: str) -> list[dict[str, Any]]:
-    """
-    Transforms a chemical formula into a list of unique elements.
-    Example: "Ca(OH)2" -> ['Ca', 'O', 'H']
-              "Al2O3" -> ['Al', 'O']
-    """
-    
-    return list(dict.fromkeys(re.findall(r'[A-Z][a-z]?', formula)))
-
-def cod_search_by_elements(elements_list: list) -> list[dict[str, Any]]:
-    """
-    EXCLUSIVE search: only finds compound structures 
-    STRICTLY items provided.
-    """
-    # Cleaning and sorting
-    elements = sorted([el.strip() for el in elements_list if el.strip()])
-    num_el = len(elements)
-    
-    base_url = "https://www.crystallography.net/cod/result.php"
-    params = {
-        'el[]': elements,
-        'strictmin': num_el, # Minimum n elements
-        'strictmax': num_el, # Maximum n elements
-        'format': 'json'
-    }
-    
-    try:
-        response = requests.get(base_url, params=params, timeout=15)
-        if response.status_code != 200: return []
-        
-        results = response.json()
-        if not isinstance(results, list): return []
-
-        cleaned_results = []
-        # Define a set of our elements in capital letters for comparison
-        target_set = set(el.upper() for el in elements)
-
-        for r in results:
-            formula = r.get('formula', '')
-            if not formula: continue
-            
-            # Extracting the elements of the formula returned by the COD
-            # "Ca1 H2 O2" -> ['Ca', 'H', 'O']
-            found_elements = set(formula_to_elements(formula))
-            found_set_upper = set(el.upper() for el in found_elements)
-
-            # Exclusive filter
-            if found_set_upper == target_set:
-                cleaned_results.append({
-                    'id': r.get('id') or r.get('file'),
-                    'formula': formula,
-                    'spacegroup': r.get('sg', 'N/A'),
-                    'cell': f"a={r.get('a', '?')} b={r.get('b', '?')} c={r.get('c', '?')}",
-                    'common_name': r.get('mineral') or r.get('compound') or 'N/A',
-                    'doi': r.get('doi', 'N/A') # add the DOI here
-                })
-                
-        return cleaned_results
-
-    except Exception as e:
-        print(f"Search error: {e}")
-        return []
-    
-def cod_search_by_name(mineral_name: str) -> list[dict[str, Any]]:
-    """
-    Search the COD by mineral name or free text.
-    Returns a formatted list identical to advanced_cod_search.
-    """
-    base_url = "https://www.crystallography.net/cod/result.php"
-    params = {
-        'text': mineral_name,
-        'format': 'json'
-    }
-    
-    try:
-        response = requests.get(base_url, params=params, timeout=15)
-        
-        if response.status_code == 200:
-            try:
-                results = response.json()
-            except:
-                return []
-
-            if not isinstance(results, list):
-                return []
-
-            cleaned_results = []
-            for r in results:
-                # Use the same format as advanced cod search
-                cleaned_results.append({
-                    'id': r.get('id') or r.get('file'),
-                    'formula': r.get('formula', 'N/A'),
-                    'spacegroup': r.get('sg', 'N/A'),
-                    # Make sure to have default values ​​if a, b or c are missing
-                    'cell': f"a={r.get('a', '?')} b={r.get('b', '?')} c={r.get('c', '?')}",
-                    'common_name': r.get('mineral') or r.get('compound') or 'N/A',
-                    'doi': r.get('doi', 'N/A')
-                })
-            return cleaned_results
-            
-    except Exception as e:
-        print(f"Connexion error (Name Search): {e}")
-        
-    return []
-
-def cod_search_by_id(cod_id: int) -> list[dict[str, Any]]:
-    """Performs a direct search on a specific ID."""
-    base_url = "https://www.crystallography.net/cod/result.php"
-    params = {'id': cod_id, 'format': 'json'}
-    try:
-        r = requests.get(base_url, params=params, timeout=10)
-        if r.status_code == 200:
-            data = r.json()
-            # Format to match 'cleaned_results' format
-            return [{
-                'id': d.get('id'),
-                'formula': d.get('formula', 'N/A'),
-                'spacegroup': d.get('sg', 'N/A'),
-                'cell': f"a={d.get('a')} b={d.get('b')} c={d.get('c')}",
-                'common_name': d.get('mineral') or d.get('compound') or 'N/A'
-            } for d in data] if isinstance(data, list) else []
-    except: return []
-    return []
-
-def get_structure_by_cod_id(cod_id: int) -> AtomicSystem:
-    """
-    Retrieves a structure without the need for MySQL.
-    We download the raw CIF and parse it with Pymatgen.
-    """
-    # Direct URL of CIF file
-    url = f"https://www.crystallography.net/cod/{cod_id}.cif"
-    
-    try:
-        response = requests.get(url, timeout=10)
-        response.raise_for_status() # Check if the download was successful
-        
-        # We use StringIO so that CifParser believes that it is a file
-        parser = CifParser(StringIO(response.text))
-        structure = parser.parse_structures()[0]
-        return structure
-        
-    except Exception as e:
-        print(f"Error retrieving COD {cod_id}: {e}")
-        return None
-
+from ...db.cod import (
+    cod_search_by_elements,
+    cod_search_by_id,
+    cod_search_by_name,
+    formula_to_elements,
+    get_structure_by_cod_id
+)
 
 class CODBrowserDialog(BaseBuilderDialog):
     def __init__(self, parent:AtomViewerGUI =None):
@@ -379,15 +238,13 @@ class CODBrowserDialog(BaseBuilderDialog):
     def load_selected(self) -> None:
         row = self.table.currentRow()
         if row < 0: return
-        
         self.last_cod_id = self.table.item(row, 0).text()
-        
         try:
-            structure = get_structure_by_cod_id(self.last_cod_id)
-            if structure:
-                self.selected_system = structure
+            system = get_structure_by_cod_id(self.last_cod_id)
+            if system:
+                self.selected_system = system  # ← déjà un AtomicSystem
                 self.accept()
             else:
                 raise ValueError("Could not parse CIF.")
         except Exception as e:
-            QtWidgets.QMessageBox.critical(self, "Import Error", f"Failed to load CIF: {e}")
+            QtWidgets.QMessageBox.critical(self, "Import Error", str(e))
