@@ -31,6 +31,8 @@ from rdkit.Chem import AllChem
 
 from .._utils import lattice2lammps
 from .._constants import MASSES_DICT, CHARGES_DICT
+from ..db.cod import explore_cod
+from ..db.pubchem import explore_pubchem
 
 if TYPE_CHECKING:
     from .atomic_system import AtomicSystem
@@ -89,7 +91,13 @@ class IOMixin:
             raise ValueError(f"Extension {ext} not supported.")
         
         return cls(topology)
-            
+
+    @classmethod
+    def from_cod(cls) -> Self: return explore_cod()
+
+    @classmethod
+    def from_pubchem(cls) -> Self: return explore_pubchem()
+
     @classmethod
     def from_dict(cls, topo_dict: dict) -> Self:
         """Creates a system from a topology dictionary.

@@ -18,9 +18,14 @@
 from __future__ import annotations
 from itertools import combinations_with_replacement
 from typing import TYPE_CHECKING, Sequence
+import webbrowser
 
 import numpy as np
 import pandas as pd
+from prompt_toolkit import Application
+from prompt_toolkit.layout import Layout, HSplit, Window
+from prompt_toolkit.layout.controls import FormattedTextControl
+from prompt_toolkit.key_binding import KeyBindings
 
 from .._config import FF_DATABASE_FILE
 
@@ -148,6 +153,87 @@ class ForceFieldMixin:
         self._set_pair_forcefield(assignments, df_lj)
         self._set_bond_forcefield(assignments, df_bond)
         self._set_angle_forcefield(assignments, df_angle)
+
+    def explore_ff_database(self, ff_database: str = FF_DATABASE_FILE) -> dict:
+        """Interactive Forcefield Explorer using the prompt_toolkit UI pattern."""
+        
+        try:
+            df_list = pd.read_excel(ff_database, sheet_name='list')
+        except Exception as e:
+            print(f"Error reading database: {e}")
+            return {}
+
+        assignments = {}
+        system_elements = self.elements
+        system_types = self.atom_types
+
+        # Iterate through elements in the system
+        for el, t in zip(system_elements, system_types):
+            subset = df_list[df_list['element'] == el]
+            if subset.empty:
+                print(f"No parameters for element {el}. Skipping.")
+                continue
+                
+            types = subset.to_dict('records')
+            index = 0
+            selected = None
+            kb = KeyBindings()
+
+            # Format: TYPE(10) | ENVIRONMENT(30)
+            ROW_FORMAT = "{cursor} {type:<15} | {env:<45.45}"
+
+            def render():
+                header = ROW_FORMAT.format(cursor=" ", type="TYPE", env="ENVIRONMENT")
+                lines = [
+                    f"--- Select Forcefield Parameters for type {t} ({el}) ---",
+                    "↑↓ Move   [Enter] Assign   [p] Open DOI   [q] Quit",
+                    "", header, "-" * len(header)
+                ]
+                for i, r in enumerate(types):
+                    cursor = "➜" if i == index else " "
+                    lines.append(ROW_FORMAT.format(
+                        cursor=cursor, type=r['type'], env=r['environment']
+                    ))
+                return "\n".join(lines)
+
+            @kb.add("up")
+            def _(e):
+                nonlocal index
+                if index > 0: index -= 1
+                e.app.invalidate()
+
+            @kb.add("down")
+            def _(e):
+                nonlocal index
+                if index < len(types) - 1: index += 1
+                e.app.invalidate()
+
+            @kb.add("enter")
+            def _(e):
+                nonlocal selected
+                selected = types[index]
+                e.app.exit()
+
+            @kb.add("p")
+            def _(e):
+                webbrowser.open(types[index]['ref'])
+
+            @kb.add("q")
+            @kb.add("escape")
+            def _(e): e.app.exit()
+
+            Application(layout=Layout(HSplit([Window(FormattedTextControl(render))])), key_bindings=kb).run()
+
+            if selected:
+                assignments[t] = selected['type']
+                print(f"Assigned: {t} -> {selected['type']}")
+            else:
+                print("Selection cancelled.")
+                break
+
+            self.set_ff_from_database(assignments, ff_database)
+                
+        return assignments
 
     def set_atom_type_param(self: AtomicSystem, 
                             atom_type: str | int, 

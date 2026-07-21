@@ -30,6 +30,12 @@ import MDAnalysis as mda
 from pymatgen.core import Composition
 from pymatgen.core.surface import SlabGenerator
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
+import questionary
+from prompt_toolkit.application import Application
+from prompt_toolkit.key_binding import KeyBindings
+from prompt_toolkit.layout import Layout
+from prompt_toolkit.layout.containers import HSplit, Window
+from prompt_toolkit.layout.controls import FormattedTextControl
 
 from .._config import STRUCTURES_DIR
 from .._constants import MASSES_DICT
@@ -203,7 +209,7 @@ def _cap_broken_framework_bonds(u: mda.Universe,
     return np.array(new_pos), new_types
 
 
-def build_surface(data: AtomicSystem, 
+def build_surfaces(data: AtomicSystem, 
                  miller_indices: Sequence[int], 
                  min_slab_size: float=25.0, 
                  min_vacuum_size: float=15.0
@@ -235,6 +241,8 @@ def build_surface(data: AtomicSystem,
     actual_broken : int
         Number of bonds broken during generation.
     """
+
+    from ..core.atomic_system import AtomicSystem
 
     if hasattr(data, '_pmg_struct'):
         struct = data._pmg_struct
@@ -280,6 +288,91 @@ def build_surface(data: AtomicSystem,
         slabs_list_as.append(AtomicSystem.from_pymatgen(slab))
     
     return slabs_list_as, shift_list, dipole_list, actual_broken
+
+def explore_surfaces(data: AtomicSystem) -> AtomicSystem | None:
+    """Interactive surface explorer."""
+    
+    # Miller indices input
+    miller_str = questionary.text(
+        "Enter Miller indices (e.g. 1 0 0):",
+        default="1 0 0"
+    ).ask()
+    if not miller_str: return None
+    miller = [int(x) for x in miller_str.split()]
+
+    min_slab = questionary.text("Min slab size (Å):", default="25.0").ask()
+    min_vac  = questionary.text("Min vacuum size (Å):", default="15.0").ask()
+
+    print(f"Generating ({miller[0]}{miller[1]}{miller[2]}) surfaces...")
+    slabs, shifts, dipoles, n_broken = build_surfaces(
+        data, miller,
+        min_slab_size=float(min_slab),
+        min_vacuum_size=float(min_vac)
+    )
+
+    if not slabs:
+        print("No surfaces generated.")
+        return None
+
+    # Format display
+    HEADER_FORMAT = "{cursor} {idx:>4} | {shift:>10} | {dipole:>12} | {natoms:>8}"
+    ROW_FORMAT = "{cursor} {idx:>4} | {shift:>10.4f} | {dipole:>12.4f} | {natoms:>8}"
+    index = 0
+
+    def render():
+        header = HEADER_FORMAT.format(
+            cursor=" ", idx="#", shift="Shift", 
+            dipole="Dipole (D)", natoms="N atoms"
+        )
+        lines = [
+            f"Generated {len(slabs)} surfaces — {n_broken} broken bonds",
+            "↑↓ Move   [Enter] Select   [q] Quit",
+            "",
+            header, "-" * len(header)
+        ]
+        for i, (slab, shift, dipole) in enumerate(zip(slabs, shifts, dipoles)):
+            cursor = "➜" if i == index else " "
+            lines.append(ROW_FORMAT.format(
+                cursor=cursor,
+                idx=i + 1,
+                shift=shift,
+                dipole=dipole,
+                natoms=slab.num_atoms
+            ))
+        return "\n".join(lines)
+
+    # Même pattern que explore_pubchem
+    selected_idx = [0]
+    kb = KeyBindings()
+
+    @kb.add("up")
+    def _(e):
+        nonlocal index
+        if index > 0: index -= 1
+        e.app.invalidate()
+
+    @kb.add("down")
+    def _(e):
+        nonlocal index
+        if index < len(slabs) - 1: index += 1
+        e.app.invalidate()
+
+    @kb.add("enter")
+    def _(e):
+        selected_idx[0] = index
+        e.app.exit()
+
+    @kb.add("q")
+    @kb.add("escape")
+    def _(e): e.app.exit()
+
+    window = Window(
+        content=FormattedTextControl(render),
+        always_hide_cursor=True,
+    )
+    Application(layout=Layout(HSplit([window])), key_bindings=kb).run()
+
+    return slabs[selected_idx[0]]
 
 def build_solution(box: Sequence[float] | np.ndarray = [30,30,30], 
                   density: float=1.0, 

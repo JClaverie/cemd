@@ -15,10 +15,12 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
+from __future__ import annotations
+
 import re
 import webbrowser
 from io import StringIO
-from typing import Any
+from typing import Any, TYPE_CHECKING
 
 import requests
 import questionary
@@ -30,7 +32,8 @@ from prompt_toolkit.layout.containers import HSplit, Window
 from prompt_toolkit.layout import ScrollOffsets
 from prompt_toolkit.layout.controls import FormattedTextControl
 
-from ..core.atomic_system import AtomicSystem
+if TYPE_CHECKING:
+    from ..core.atomic_system import AtomicSystem
 
 def formula_to_elements(formula: str) -> list[dict[str, Any]]:
     """
@@ -172,6 +175,9 @@ def get_structure_by_cod_id(cod_id: int) -> AtomicSystem:
     Retrieves a structure without the need for MySQL.
     We download the raw CIF and parse it with Pymatgen.
     """
+
+    from ..core.atomic_system import AtomicSystem
+    
     # Direct URL of CIF file
     url = f"https://www.crystallography.net/cod/{cod_id}.cif"
     try:
@@ -242,7 +248,7 @@ def explore_cod() -> AtomicSystem | None:
         
         lines = [
             f"Found {len(results)} structures",
-            "↑↓ Move   [Enter] Load   [d] DOI   [w] COD page   [q] Quit",
+            "↑↓ Move   [Enter] Load   [d] DOI   [c] COD page   [q] Quit",
             "",
             header,
             separator

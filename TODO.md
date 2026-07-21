@@ -1,4 +1,5 @@
 - reset_types ne change pas les bonds, angles
+- corriger read_sdf, read_smiles pour return AtomicSystem directement
 
 Home
 │

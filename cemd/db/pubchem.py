@@ -15,9 +15,11 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
+from __future__ import annotations
+
 import json
 import webbrowser
-from typing import Any
+from typing import Any, TYPE_CHECKING
 
 import requests
 import questionary
@@ -28,7 +30,8 @@ from prompt_toolkit.layout.containers import HSplit, Window
 from prompt_toolkit.layout import ScrollOffsets
 from prompt_toolkit.layout.controls import FormattedTextControl
 
-from ..core.atomic_system import AtomicSystem
+if TYPE_CHECKING:
+    from ..core.atomic_system import AtomicSystem
 
 def pubchem_search_by_name(name: str) -> list[dict[str, Any]]:
     """Search for CIDs by common name or IUPAC."""

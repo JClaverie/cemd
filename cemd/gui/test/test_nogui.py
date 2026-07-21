@@ -1,7 +1,7 @@
 from core._topology import set_topology_rule
 from cemd.core._io import read_mda, to_pmg
 from cemd.builders.hydrates import make_csh, pycsh, calculate_csh_modifiers, csh_to_cash, substitute_si_by_al
-from cemd.builders.base import build_surface, add_liquid, build_solution, protonate, split, add_droplet
+from cemd.builders.base import build_surfaces, add_liquid, build_solution, protonate, split, add_droplet
 from cemd.core.atomic_system import AtomicSystem
 
 from pymatgen.core.surface import SlabGenerator

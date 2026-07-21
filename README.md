@@ -1,1 +1,0 @@
-Voir [README.rst](README.rst)

@@ -17,7 +17,8 @@
 
 from .base import (
     build_solution,
-    build_surface,
+    build_surfaces,
+    explore_surfaces,
     build_glass,
     add_liquid,
     add_droplet,
@@ -32,7 +33,8 @@ __all__ = [
     "build_csh",
     "csh_to_cash",
     "build_solution",
-    "build_surface",
+    "build_surfaces",
+    "explore_surfaces",
     "build_glass",
     "add_liquid",
     "add_droplet",
