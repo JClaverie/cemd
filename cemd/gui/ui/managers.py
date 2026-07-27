@@ -23,7 +23,7 @@ from PySide6 import QtWidgets, QtCore, QtGui
 from PySide6Qlementine import ActionButton
 from .base_dialog import BaseBuilderDialog
 from .gui_utils import get_icon
-from ..._config import FF_DATABASE_FILE
+from ..._paths import FF_DATABASE_FILE
 
 
 class FFComboDelegate(QtWidgets.QStyledItemDelegate):

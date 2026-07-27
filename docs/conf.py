@@ -29,7 +29,8 @@ extensions = [
     'sphinx.ext.intersphinx',
     'sphinx.ext.doctest',
     'sphinx.ext.todo',
-    'numpydoc',
+    'sphinx_design',
+    'numpydoc'
 ]
  
 templates_path  = ['_templates']
@@ -40,12 +41,6 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 pygments_style  = 'sphinx'
 todo_include_todos = True
 add_module_names = False
-
-autosummary_imported_members = True
-autosummary_generate = True
-numpydoc_show_class_members = False
-numpydoc_class_members_toctree = False
-numpydoc_attributes_as_param_list = False
 
 # ---------------------------------------------------------------------------
 # Autodoc / Autosummary
@@ -61,8 +56,6 @@ autodoc_mock_imports = [
 ]
 
 autodoc_default_options = {
-    'members':          True,
-    'inherited-members': True,
     'show-inheritance': True,
     'undoc-members':    False,
     # Exclude instance attributes already documented in the class docstring
@@ -102,8 +95,6 @@ intersphinx_mapping = {
  
 html_theme = 'pydata_sphinx_theme'
  
-# html_logo = 'logo/logo.svg'
- 
 html_theme_options = {
     'logo': {
         'image_light': 'logo/cemd_logo.svg',
@@ -111,28 +102,32 @@ html_theme_options = {
     },
     'navbar_end': ['theme-switcher', 'navbar-icon-links'],
 }
+
+html_show_sourcelink = False
  
 html_static_path = ['_static']
 
 html_css_files = [
+    'https://fonts.googleapis.com/icon?family=Material+Icons',
     'custom.css',
 ]
 
 html_sidebars = {
-    "api/**": ["sidebar-nav-bs"],  # garder sur les pages API
-    "**": []                        # supprimer ailleurs
+    "api/atomic_system": [],
+    "installation": []
+
 }
 
 # ---------------------------------------------------------------------------
 # LaTeX output
 # ---------------------------------------------------------------------------
  
-latex_documents = [
-    (master_doc, 'cemd.tex', 'cemd Documentation', author, 'manual'),
-]
+# latex_documents = [
+#     (master_doc, 'cemd.tex', 'cemd Documentation', author, 'manual'),
+# ]
 
 
-todo_include_todos = True
+# todo_include_todos = True
 
 # -- Options for HTMLHelp output ---------------------------------------------
 
@@ -140,7 +135,7 @@ todo_include_todos = True
 htmlhelp_basename = 'cemdsdoc'
 
 # ---------------------------------------------------------------------------
-# Other builders (HTMLHelp, man, Texinfo, epub)
+# Other build (HTMLHelp, man, Texinfo, epub)
 # ---------------------------------------------------------------------------
  
 htmlhelp_basename = 'cemddoc'

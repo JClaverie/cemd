@@ -15,22 +15,10 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-import shutil
-import logging
+# import shutil
+# import logging
 
 from .core.atomic_system import AtomicSystem
-# from .core._io import read_log
-# from .builders.base import (
-#     add_droplet,
-#     add_liquid,
-#     build_glass,
-#     build_solution,
-#     build_surface,
-#     merge,
-#     split,
-# )
-# from .builders.hydrates import make_csh, csh_to_cash
-# from ._utils import concentration2count
 
 __author__ = "Jérôme Claverie"
 
@@ -40,15 +28,15 @@ __license__ = "GPL-3.0"
 
 __all__  = ['AtomicSystem']
 
-logger = logging.getLogger(__name__)
-_packmol_path = shutil.which("packmol")
-if _packmol_path:
-    logger.warning(f"✓ Packmol is installed here: {_packmol_path}")
-else:
-    logger.warning("✕ Packmol was not found in the $PATH.")
+# logger = logging.getLogger(__name__)
+# _packmol_path = shutil.which("packmol")
+# if _packmol_path:
+#     logger.warning(f"✓ Packmol is installed here: {_packmol_path}")
+# else:
+#     logger.warning("✕ Packmol was not found in the $PATH.")
 
-_vmd_path = shutil.which("vmd")
-if _vmd_path:
-    logger.warning(f"✓ VMD is installed here: {_vmd_path}")
-else:
-    logger.warning("✕ VMD was not found in the $PATH.")
+# _vmd_path = shutil.which("vmd")
+# if _vmd_path:
+#     logger.warning(f"✓ VMD is installed here: {_vmd_path}")
+# else:
+#     logger.warning("✕ VMD was not found in the $PATH.")

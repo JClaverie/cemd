@@ -38,7 +38,7 @@ from cemd.gui.ui.managers import TypeManagerDialog, ConnectivityDialog
 
 from cemd.gui.logic.file_handler import open_file, save_file, save_file_as
 
-from cemd.gui.logic.builders import (
+from cemd.gui.logic.build import (
     open_make_solution,
     open_make_glass,
     open_make_surface,
@@ -531,7 +531,13 @@ class AtomViewerGUI(QtWidgets.QMainWindow):
 
     @QtCore.Slot()
     def on_orthogonalize_clicked(self) -> None:
-        self.system.orthogonalize()
+        try:
+            self.system.orthogonalize()
+        except ValueError:
+            self.system.unskew()
+            self.statusBar().showMessage(
+                "Could not orthogonalize — unskew applied instead.", 5000
+            )
         self.sync_ui(refresh_bonds=True)
 
     @QtCore.Slot()  

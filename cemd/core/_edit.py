@@ -20,7 +20,6 @@ from __future__ import annotations
 from typing import Sequence, Self, TYPE_CHECKING
 
 import numpy as np
-import pandas as pd
 
 from .._utils import lattice2lammps, lattice2vectors, vectors2lattice
 from .._constants import MASSES_DICT
@@ -32,6 +31,177 @@ class EditMixin:
     """Mixin class containing editing and modification methods 
     for the AtomicSystem class.
     """
+
+    def add_atoms(self,
+                  atypes: list[str | int] | np.ndarray,
+                  positions: list[list[float]] | np.ndarray,
+                  charges: list[float] | np.ndarray | None = None,
+                  masses: list[float] | np.ndarray | None = None) -> None:
+        """Add multiple atoms to the system in a single operation.
+
+        Parameters
+        ----------
+        atypes : list of str or int, or np.ndarray
+            Atom types (e.g. ``['H', 'Ow', 'Ca']``).
+        positions : array-like of shape (n, 3)
+            Cartesian coordinates in Angstroms.
+        charges : array-like of shape (n,), optional
+            Partial charges in elementary charge units. Default is ``0.0``
+            for each atom.
+        masses : list of float, optional
+            Atomic masses in g/mol. If ``None``, masses are looked up in
+            ``MASSES_DICT`` or default to ``1.0`` for unknown types.
+        """
+
+        import pandas as pd
+
+        atypes    = list(atypes)
+        positions = np.asarray(positions, dtype=float)
+        
+        if positions.ndim == 1:
+            positions = positions.reshape(1, 3)
+        
+        n = len(atypes)
+        charges = np.zeros(n) if charges is None else np.asarray(charges, dtype=float)
+        masses  = [None] * n  if masses  is None else list(masses)
+
+        new_id  = 1 if self.atoms.empty else self.atoms.index.max() + 1
+        new_ids = np.arange(new_id, new_id + n)
+
+        new_rows = []
+        for atype, pos, charge, mass in zip(atypes, positions, charges, masses):
+            new_rows.append({
+                'type':   str(atype),
+                'x':      pos[0],
+                'y':      pos[1],
+                'z':      pos[2],
+                'charge': float(charge),
+            })
+            if atype not in self._masses_storage:
+                if mass is not None:
+                    self._masses_storage[atype] = float(mass)
+                elif atype in MASSES_DICT:
+                    self._masses_storage[atype] = MASSES_DICT[atype]
+                else:
+                    self._masses_storage[atype] = 1.0
+
+        new_df     = pd.DataFrame(new_rows, index=new_ids)
+        self.atoms = pd.concat([self.atoms, new_df])
+        self._cache = {}
+
+    def add_atom(self,
+             atype:    str | int,
+             position: list[float],
+             charge:   float = 0.0,
+             mass:     float = None) -> None:
+        """Add a single atom. See :meth:`add_atoms` for batch insertion."""
+        self.add_atoms([atype], [position], [charge], [mass])
+
+    def protonate_atoms(self, 
+                    atom_indices: list[int],
+                    bond_length: float = 1.0) -> None:
+        """Add protons to multiple atoms in a single operation."""
+
+        u = self.to_mda()
+        p_mass = MASSES_DICT.get('H', 1.008)
+        
+        new_atoms = []
+        
+        for atom_index in atom_indices:
+            target_atom = self.atoms.iloc[atom_index]
+            pos_target  = target_atom[['x', 'y', 'z']].values.astype(float)
+
+            neighbors = u.select_atoms(f"around 2.2 index {atom_index + 1}")
+            if len(neighbors) > 0:
+                direction = pos_target - neighbors.center_of_mass()
+            else:
+                direction = np.array([0., 0., 1.0])
+
+            norm = np.linalg.norm(direction)
+            direction = direction / norm if norm > 1e-5 else np.array([0., 0., 1.0])
+
+            new_atoms.append({
+                'atype':    'H',
+                'position': pos_target + direction * bond_length,
+                'charge':   1.0,
+                'mass':     p_mass,
+            })
+
+        for atom in new_atoms:
+            self.add_atom(**atom)
+
+    def protonate_atom(self: AtomicSystem, 
+                atom_index: int, 
+                bond_length: float=1.0) -> AtomicSystem:
+        """Add a proton to a single atom."""
+        self.protonate_atoms([atom_index], bond_length)
+    
+    def remove_atoms(self: AtomicSystem, indices: list[int] | int) -> None:
+        """
+        Remove the specified atoms and update connectivity accordingly.
+
+        Parameters
+        ----------
+        indices : list[int] | int
+            Indices of the atoms to remove.
+
+        Notes
+        -----
+        This method automatically reindexes the remaining atoms, updates velocities, 
+        and removes any bonds, angles, dihedrals, or impropers containing the 
+        removed atoms.
+        """
+
+        # create a copy of the atoms DataFrame
+        df_atoms = self.atoms.copy()
+        old_types = self.atom_types
+
+        if isinstance(indices, int):
+            indices = [indices]
+
+        indices_valides = [idx for idx in indices if idx in df_atoms.index]
+
+        if not indices_valides:
+            print(f"None of the {indices} atoms were found in the current system.")
+            return
+
+        # remove atoms that are in the 'indices' list
+        df_atoms = df_atoms.drop(indices)
+
+        # create list to remap the atom indices in the DataFrame
+        old_ids = df_atoms.index
+        new_ids = np.arange(1, len(df_atoms) + 1)
+        df_atoms.set_index(new_ids, inplace=True)
+        self.atoms = df_atoms
+
+        new_types = self.atom_types
+
+        for i, t in enumerate(old_types):
+            if t not in new_types:
+                self.masses.pop(i)
+
+        if self.velocities is not None:
+            df_vel = self.velocities.copy()
+            df_vel = df_vel.drop(indices)
+            df_vel.set_index(new_ids, inplace=True)
+            self.velocities = df_vel
+
+        id_map = dict(zip(old_ids, new_ids))
+
+        for name, n_cols in [('bonds', 2), ('angles', 3), ('dihedrals', 4), ('impropers', 4)]:
+            df = getattr(self, name)
+            if df is None:
+                continue
+            atom_cols = [f'atom_{i}' for i in range(1, n_cols + 1)]
+            df = df.loc[~df[atom_cols].isin(indices).any(axis=1)].copy()
+            df.index = np.arange(1, len(df) + 1)
+            for col in atom_cols:
+                df[col] = df[col].map(id_map)
+            setattr(self, name, df if len(df) > 0 else None)
+
+    def remove_atom(self, index: int) -> None:
+        """Remove a single atom. See :meth:`remove_atoms` for batch removal."""
+        self.remove_atoms([index])
 
     def set_box(self, new_box: Sequence[float] | np.ndarray) -> None:
         """Assign a new box to the system.
@@ -49,7 +219,7 @@ class EditMixin:
         self._lmp_box = lattice2lammps(new_box)
         self._box_vectors = lattice2vectors(self._box)
 
-    def set_coordinates(self: AtomicSystem, 
+    def set_atom_position(self: AtomicSystem, 
                         index: int, 
                         position: Sequence[float]) -> AtomicSystem:
         """Modify the coordinates of a single atom using a vector (x, y, z).
@@ -94,6 +264,9 @@ class EditMixin:
         Self
             The replicated system.
         """
+
+        import pandas as pd
+
         nx, ny, nz = factors
         if nx == 1 and ny == 1 and nz == 1:
             return self
@@ -220,12 +393,11 @@ class EditMixin:
             lattice vectors. Higher values increase the chance of finding an 
             orthogonal cell but significantly increase computation time.
 
-        Returns
-        -------
-        bool
-            True if an orthogonal cell was successfully found and populated, 
-            False otherwise. In case of failure, the box is 'unskewed' 
-            (tilt factors removed) to maintain consistency.
+        Raises
+        ------
+        ValueError
+            If no orthogonal representation could be found within ``max_replica``
+            replications.
 
         Notes
         -----
@@ -234,6 +406,8 @@ class EditMixin:
           invalidated during this specific geometric transformation.
         - The resulting box will have tilt factors (xy, xz, yz) set to zero.
         """
+
+        import pandas as pd
 
         H = np.array(lattice2vectors(self.box))
         new_vectors = []
@@ -258,10 +432,11 @@ class EditMixin:
                                 best_v = v_cand
             
             if best_v is None:
-                print(f"Error: Unable to find an orthogonal vector for axis {i}")
-                print(f"Unskew the box anyway")
-                self.unskew() 
-                return False
+                raise ValueError(
+                    f"Could not find an orthogonal representation for axis {i} "
+                    f"within {max_replica} replications. "
+                    f"Try increasing 'max_replica' or use 'unskew()' instead."
+                )
             new_vectors.append(best_v)
 
         diag_dim = [abs(new_vectors[0][0]), abs(new_vectors[1][1]), abs(new_vectors[2][2])]
@@ -300,8 +475,6 @@ class EditMixin:
             self.atoms['id'] = range(1, len(self.atoms) + 1)
 
         self.set_box(vectors2lattice(tuple(new_H)))
-        
-        return True
 
     def unskew(self) -> None:
         """
@@ -323,45 +496,23 @@ class EditMixin:
         self.set_box( vectors2lattice( (boxm[0], boxm[1], boxm[2]) ) )
         self.wrap()
 
-    def center_on_com(self) -> None:
-        """Translates the system so its center of mass is at the center of the box.
-
-        This method handles Periodic Boundary Conditions (PBC) using the 
-        periodic center of mass calculation (Bai and Breen method).
-        """
-
-        # Prepare dimensions and weights
-        box_dims = self.box[:3]  # [Lx, Ly, Lz]
-        atom_masses = self.atoms['type'].map(lambda t: self._masses_storage.get(t, MASSES_DICT.get(t, 1.0)))
-        total_mass = atom_masses.sum()
+    def center_on_com(self, atom_types: list[str] | None = None) -> None:
+        """Translates the system so its center of mass is at the center of the box."""
         
-        if total_mass <= 0:
-            return
-
-        # Calculate the Periodic Center of Mass (Bai and Breen method)
-        # transform coordinates to periodic angles: theta = 2 * pi * x / L
-        com_coords = []
-        for i, axis in enumerate(['x', 'y', 'z']):
-            L = box_dims[i]
-            theta = (self.atoms[axis] / L) * 2 * np.pi
-            
-            # Average of sine and cosine weighted by mass
-            avg_sin = (np.sin(theta) * atom_masses).sum() / total_mass
-            avg_cos = (np.cos(theta) * atom_masses).sum() / total_mass
-            
-            # Back to average angle, then back to coordinate
-            avg_theta = np.arctan2(-avg_sin, -avg_cos) + np.pi
-            com_coords.append((avg_theta / (2 * np.pi)) * L)
+        u = self.to_mda()
         
-        com_pbc = np.array(com_coords)
-
-        # Translate the system
-        # Target: put the COM at the center of the box (box_dims / 2)
-        target = box_dims / 2
-        shift = target - com_pbc
+        if atom_types is not None:
+            type_str = " ".join(atom_types)
+            sel = u.select_atoms(f"type {type_str}")
+        else:
+            sel = u.atoms
+        
+        com = sel.center_of_mass(pbc=True)  # ← Bai & Breen intégré, PBC, triclinique
+        
+        center = u.dimensions[:3] / 2
+        shift  = center - com
         
         self.atoms[['x', 'y', 'z']] += shift
-        
-        # Wrap everything back into the box [0, L]
+        self._cache = {}
         self.wrap()
 

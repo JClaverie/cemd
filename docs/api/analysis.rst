@@ -1,5 +1,5 @@
-Analysis
-========
+Analysis Module
+===============
 
 The analysis package provides tools for computing structural,
 dynamical, and interfacial properties from molecular dynamics
@@ -13,8 +13,8 @@ Distribution Functions
 
    cemd.analysis.compute_rdf
 
-Dynamics
---------
+Diffusion
+---------
 
 .. autosummary::
    :toctree: generated/

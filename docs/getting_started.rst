@@ -114,7 +114,7 @@ To write a system back to a LAMMPS ``.data`` file:
    The system can also be exported to the ``.pdb``.
 
 Converting a System
----------------
+-------------------
 
 Another solution to save to other formats is to convert the AtomicSystem to a `MDAnalysis Universe <https://userguide.mdanalysis.org/stable/universe.html>`_. The MDAnalysis package allow to write in `many formats <https://userguide.mdanalysis.org/stable/formats/index.html>`_.
 
@@ -225,6 +225,6 @@ You can visualize your system in `VMD <https://www.ks.uiuc.edu/Research/vmd/>`_ 
 Next Steps
 ----------
 
-* Build new systems with the :mod:`cemd.builders` module.
+* Build new systems with the :mod:`cemd.build` module.
 * Compute structural and dynamic properties with the :mod:`cemd.analysis` module.
 * Apply force field topology with :meth:`~cemd.core.atomic_system.AtomicSystem.set_topology`.

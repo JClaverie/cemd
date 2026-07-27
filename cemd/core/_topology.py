@@ -20,13 +20,12 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Sequence
 from itertools import combinations
 
-import pandas as pd
 import numpy as np
-import MDAnalysis as mda
 
 from .._constants import MASSES_DICT
 
 if TYPE_CHECKING:
+    import MDAnalysis as mda
     from .atomic_system import AtomicSystem
 
 def _build_rule(center: str,
@@ -181,7 +180,7 @@ def _apply_clayff_rules(universe: mda.Universe) -> tuple[mda.Universe, dict]:
 def _apply_cshff_rules(universe: mda.Universe) -> tuple[mda.Universe, dict]:
     """Applies CSHFF to the universe and returns the calcium indices to modify."""
 
-    from ..builders._silicate_helpers import get_interlayer_ca_indices
+    from ..build._silicate_helpers import get_interlayer_ca_indices
 
     universe, _ = _apply_clayff_rules(universe)
     
@@ -197,139 +196,29 @@ RULE_SETS: dict[str, list[dict]] = {
 
 class TopologyMixin:
 
-    def add_atom(self, 
-                 atype: str | int, 
-                 position: list[float], 
-                 charge: float=0.0, 
-                 mass: float=None) -> None:
-        """
-        Add a single atom to the system and synchronize metadata.
-
-        Parameters
-        ----------
-        atype
-            The atom type or symbol (e.g., 'H', 'Ow', 'Ca').
-        position
-            Cartesian coordinates of the atom in Angstroms.
-        charge
-            Partial charge of the atom, by default 0.0.
-        mass
-            Atomic mass. If None, it uses mass_dic or defaults to 1.0.
-
-        Returns
-        -------
-            The real index (ID) assigned to the new atom.
-        """
-
-        new_id = 1
-        if not self.atoms.empty:
-            new_id = self.atoms.index.max() + 1
-
-        x, y, z = position
-
-        new_row = {
-            'type': str(atype),
-            'x': float(x),
-            'y': float(y),
-            'z': float(z),
-            'charge': float(charge)
-        }
-        
-        self.atoms.loc[new_id] = new_row
-        self._cache = {}
-
-        if atype not in self._masses_storage:
-            # ---Update Masses ---
-            if mass is not None:
-                self._masses_storage[atype] = float(mass)
-            elif atype in MASSES_DICT:
-                self._masses_storage[atype] = MASSES_DICT[atype]
-            else:
-                # Default fallback if unknown
-                self._masses_storage[atype] = 1.0
-    
-    def remove_atoms(self: AtomicSystem, indices: list[int] | int) -> None:
-        """
-        Remove the specified atoms and update connectivity accordingly.
-
-        Parameters
-        ----------
-        indices : list[int] | int
-            Indices of the atoms to remove.
-
-        Notes
-        -----
-        This method automatically reindexes the remaining atoms, updates velocities, 
-        and removes any bonds, angles, dihedrals, or impropers containing the 
-        removed atoms.
-        """
-
-        # create a copy of the atoms DataFrame
-        df_atoms = self.atoms.copy()
-        old_types = self.atom_types
-
-        if isinstance(indices, int):
-            indices = [indices]
-
-        indices_valides = [idx for idx in indices if idx in df_atoms.index]
-
-        if not indices_valides:
-            print(f"None of the {indices} atoms were found in the current system.")
-            return
-
-        # remove atoms that are in the 'indices' list
-        df_atoms = df_atoms.drop(indices)
-
-        # create list to remap the atom indices in the DataFrame
-        old_ids = df_atoms.index
-        new_ids = np.arange(1, len(df_atoms) + 1)
-        df_atoms.set_index(new_ids, inplace=True)
-        self.atoms = df_atoms
-
-        new_types = self.atom_types
-
-        for i, t in enumerate(old_types):
-            if t not in new_types:
-                self.masses.pop(i)
-
-        if self.velocities is not None:
-            df_vel = self.velocities.copy()
-            df_vel = df_vel.drop(indices)
-            df_vel.set_index(new_ids, inplace=True)
-            self.velocities = df_vel
-
-        id_map = dict(zip(old_ids, new_ids))
-
-        for name, n_cols in [('bonds', 2), ('angles', 3), ('dihedrals', 4), ('impropers', 4)]:
-            df = getattr(self, name)
-            if df is None:
-                continue
-            atom_cols = [f'atom_{i}' for i in range(1, n_cols + 1)]
-            df = df.loc[~df[atom_cols].isin(indices).any(axis=1)].copy()
-            df.index = np.arange(1, len(df) + 1)
-            for col in atom_cols:
-                df[col] = df[col].map(id_map)
-            setattr(self, name, df if len(df) > 0 else None)
-
     def _remap_connection_types(self, connection_type: str):
         """Generic method to update connection types.
-        connection_type must be 'bond', 'angle', 'dihedral' or 'improper'.
+            connection_type must be 'bond', 'angle', 'dihedral' or 'improper'.
         """
-        df = getattr(self, connection_type + 's') # Get self.bonds, self.angles, etc.
+        df = getattr(self, connection_type + 's')
         if df is None:
             return
 
-        # We dynamically reconstruct the type name from the atom types
         def get_new_type(row):
-            # Get the indices of the atoms in the line
             indices = [row[f'atom_{i+1}'] for i in range(len(row) - 1)]
-            # Get the type of each atom in the DataFrame self.atoms
-            types = [self.atoms.loc[idx, 'type'] for idx in indices]
-            return '-'.join(map(str, types))
+            types = [str(self.atoms.loc[idx, 'type']) for idx in indices]
 
-        # Apply the transformation to the 'type' column
-        df['type'] = df.apply(get_new_type, axis=1)
-        setattr(self, connection_type + 's', df)
+            if connection_type == "bond":
+                types.sort()
+
+            elif connection_type == "angle":
+                if types[0] > types[2]:
+                    types = [types[2], types[1], types[0]]
+
+            return "-".join(types)
+
+        df["type"] = df.apply(get_new_type, axis=1)
+        setattr(self, connection_type + "s", df)
 
     def set_types(self: AtomicSystem, new_types: Sequence[str | int] | dict[str | int, str | int]) -> AtomicSystem:
         """Assign types to atoms, supporting both full lists and partial dictionaries.
@@ -392,32 +281,13 @@ class TopologyMixin:
 
         if prevent is None:
             prevent = []
-
-        new_types = []
-
-        for mass, atype in zip(self.masses, self.atom_types):
-            # If the type is protected, we keep it as is
-            if atype in prevent:
-                new_types.append(atype)
-                continue
-            
-            # look for the element whose mass is closest
-            best_element = None
-            min_diff = float('inf')
-
-            for element, val in MASSES_DICT.items():
-                diff = abs(mass - val)
-                if diff < min_diff:
-                    min_diff = diff
-                    best_element = element
-            
-            if best_element and (min_diff / mass) < 0.05:
-                new_types.append(best_element)
-                if (min_diff / mass) > 0.01:
-                    print(f"Imprecise match for type {atype} ({mass:.3f} u) -> Assigned to {best_element} (diff: {min_diff:.3f})")
-            else:
-                new_types.append(str(atype))
-                print(f"No credible match for mass {mass:.3f} (type {atype}). Retaining the original.")
+    
+        element_map = dict(zip(self.atom_types, self.elements))
+        
+        new_types = [
+            atype if atype in prevent else element_map.get(atype, str(atype))
+            for atype in self.atom_types
+        ]
 
         return self.set_types(new_types)
 
@@ -465,7 +335,7 @@ class TopologyMixin:
 
         return self
     
-    def set_bond(self, atom_list: Sequence[int], bond_type: str | int) -> None:
+    def add_bond(self, atom_list: Sequence[int], bond_type: str | int) -> None:
         """Set a bond between two atoms.
 
         Parameters
@@ -478,7 +348,7 @@ class TopologyMixin:
 
         self._set_connection('bond', atom_list, bond_type)
 
-    def set_angle(self, atom_list: Sequence[int], angle_type: str | int) -> None:
+    def add_angle(self, atom_list: Sequence[int], angle_type: str | int) -> None:
         """Set a angle between two atoms.
 
         Parameters
@@ -491,7 +361,7 @@ class TopologyMixin:
 
         self._set_connection('angle', atom_list, angle_type)
 
-    def set_dihedral(self, atom_list: Sequence[int], dihedral_type: str | int) -> None:
+    def add_dihedral(self, atom_list: Sequence[int], dihedral_type: str | int) -> None:
         """Set a dihedral between two atoms.
 
         Parameters
@@ -504,7 +374,7 @@ class TopologyMixin:
 
         self._set_connection('dihedral', atom_list, dihedral_type)
 
-    def set_improper(self, atom_list: Sequence[int], improper_type: str | int) -> None:
+    def add_improper(self, atom_list: Sequence[int], improper_type: str | int) -> None:
         """Set a improper between two atoms.
 
         Parameters
@@ -524,6 +394,9 @@ class TopologyMixin:
         """
         Factorized version to manage connections dynamically.
         """
+
+        import pandas as pd
+
         # 1. Setting up connections
         conn_config = {
             'bond':     {'cols': 2, 'target': 'bonds'},

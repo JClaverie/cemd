@@ -114,7 +114,7 @@ To write a system back to a LAMMPS ``.data`` file:
    The system can also be exported to the ``.pdb``.
 
 Converting a System
----------------
+-------------------
 
 Another solution to save to other formats is to convert the AtomicSystem to a `MDAnalysis Universe <https://userguide.mdanalysis.org/stable/universe.html>`_. The MDAnalysis package allow to write in `many formats <https://userguide.mdanalysis.org/stable/formats/index.html>`_.
 
@@ -187,6 +187,10 @@ You can explore the `COD <https://www.crystallography.net/cod/>`_ and `PubChem <
 
    ...
 
+.. code-block:: python
+
+   print(system)
+
 .. code-block:: none
    
    <AtomicSystem with 30 atoms>
@@ -198,14 +202,12 @@ You can explore the `COD <https://www.crystallography.net/cod/>`_ and `PubChem <
    Atoms
    type  number     %     mass  charge
       C       6 20.00 12.01078     4.0
-   Ca       6 20.00 40.07840     2.0
+     Ca       6 20.00 40.07840     2.0
       O      18 60.00 15.99943    -2.0
 
    Total charge: 0.000e
    Volume: 0.37 nm3
    Density: 2.73 g/cm3
-
-
 
 Visualization
 -------------
@@ -223,6 +225,6 @@ You can visualize your system in `VMD <https://www.ks.uiuc.edu/Research/vmd/>`_ 
 Next Steps
 ----------
 
-* Build new systems with the :mod:`cemd.builders` module.
+* Build new systems with the :mod:`cemd.build` module.
 * Compute structural and dynamic properties with the :mod:`cemd.analysis` module.
 * Apply force field topology with :meth:`~cemd.core.atomic_system.AtomicSystem.set_topology`.

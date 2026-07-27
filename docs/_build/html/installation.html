@@ -31,7 +31,9 @@
 <link href="_static/styles/pydata-sphinx-theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
 
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
-    <link rel="stylesheet" type="text/css" href="_static/custom.css?v=11b9a366" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
+    <link rel="stylesheet" type="text/css" href="_static/custom.css?v=8521e8bd" />
   
   <!-- So that users can add custom icons -->
   <script defer src="_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -42,12 +44,11 @@
     <script src="_static/documentation_options.js?v=01f34227"></script>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/design-tabs.js?v=f930bc37"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'installation';</script>
     <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Getting Started" href="getting_started.html" />
-    <link rel="prev" title="cemd documentation" href="index.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="0.1.0" />
@@ -138,47 +139,6 @@
 <nav>
   <ul class="bd-navbar-elements navbar-nav">
     
-<li class="nav-item current active">
-  <a class="nav-link nav-internal" href="#">
-    Installation
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="getting_started.html">
-    Getting Started
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="user_guide/index.html">
-    User Guide
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="api/core.html">
-    Core API
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="api/builders.html">
-    Builders Module
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="api/analysis.html">
-    Analysis
-  </a>
-</li>
-
   </ul>
 </nav></div>
       
@@ -243,6 +203,8 @@
       
       
       
+        
+      
       <dialog id="pst-primary-sidebar-modal"></dialog>
       <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar hide-on-wide">
         
@@ -259,47 +221,6 @@
 <nav>
   <ul class="bd-navbar-elements navbar-nav">
     
-<li class="nav-item current active">
-  <a class="nav-link nav-internal" href="#">
-    Installation
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="getting_started.html">
-    Getting Started
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="user_guide/index.html">
-    User Guide
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="api/core.html">
-    Core API
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="api/builders.html">
-    Builders Module
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="api/analysis.html">
-    Analysis
-  </a>
-</li>
-
   </ul>
 </nav></div>
           
@@ -388,8 +309,9 @@
 <p>The following software must be installed before setting up <strong>cemd</strong>:</p>
 <ul class="simple">
 <li><p><strong>Python 3.11</strong> — required Python version.</p></li>
-<li><p><strong>Conda</strong> — package and environment manager (<a class="reference external" href="https://docs.conda.io/en/latest/miniconda.html">Miniconda</a> or <a class="reference external" href="https://www.anaconda.com/">Anaconda</a>).</p></li>
+<li><p><strong>Conda</strong> — package and environment manager (<a class="reference external" href="https://www.anaconda.com/docs/main">Miniconda or Anaconda</a>).</p></li>
 <li><p><strong>Packmol</strong> — required for automated system construction (<a class="reference external" href="https://m3g.github.io/packmol/">download</a>). Must be accessible in your <code class="docutils literal notranslate"><span class="pre">$PATH</span></code>.</p></li>
+<li><p><strong>VMD</strong> — required for system visualization (<a class="reference external" href="https://www.ks.uiuc.edu/Research/vmd/">download</a>). Must be accessible in your <code class="docutils literal notranslate"><span class="pre">$PATH</span></code>.</p></li>
 </ul>
 </section>
 <section id="standard-installation">
@@ -397,7 +319,7 @@
 <ol class="arabic simple">
 <li><p>Clone the repository:</p></li>
 </ol>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/your-username/cemd.git
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/JClaverie/cemd.git
 <span class="nb">cd</span><span class="w"> </span>cemd
 </pre></div>
 </div>
@@ -445,24 +367,6 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
                 <footer class="prev-next-footer d-print-none">
                   
 <div class="prev-next-area">
-    <a class="left-prev"
-       href="index.html"
-       title="previous page">
-      <i class="fa-solid fa-angle-left"></i>
-      <div class="prev-next-info">
-        <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">cemd documentation</p>
-      </div>
-    </a>
-    <a class="right-next"
-       href="getting_started.html"
-       title="next page">
-      <div class="prev-next-info">
-        <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Getting Started</p>
-      </div>
-      <i class="fa-solid fa-angle-right"></i>
-    </a>
 </div>
                 </footer>
               
@@ -488,15 +392,6 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#verifying-the-installation">Verifying the Installation</a></li>
 </ul>
   </nav></div>
-
-  <div class="sidebar-secondary-item">
-
-  <div class="tocsection sourcelink">
-    <a href="_sources/installation.rst.txt">
-      <i class="fa-solid fa-file-lines"></i> Show Source
-    </a>
-  </div>
-</div>
 
 </div></div>
               

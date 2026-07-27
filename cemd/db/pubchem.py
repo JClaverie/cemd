@@ -22,13 +22,6 @@ import webbrowser
 from typing import Any, TYPE_CHECKING
 
 import requests
-import questionary
-from prompt_toolkit.application import Application
-from prompt_toolkit.key_binding import KeyBindings
-from prompt_toolkit.layout import Layout
-from prompt_toolkit.layout.containers import HSplit, Window
-from prompt_toolkit.layout import ScrollOffsets
-from prompt_toolkit.layout.controls import FormattedTextControl
 
 if TYPE_CHECKING:
     from ..core.atomic_system import AtomicSystem
@@ -117,20 +110,17 @@ def get_pubchem_details(cid: int) -> dict:
 
 def get_structure(cid: int, smiles: str = None) -> AtomicSystem | None:
     """Fetch 3D structure from PubChem, fallback to SMILES generation."""
-    from cemd.core._io import IOMixin
     from cemd.core.atomic_system import AtomicSystem
 
     url = f"https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/{cid}/SDF?record_type=3d"
     response = requests.get(url, timeout=10)
     
     if response.status_code == 200:
-        topo = IOMixin.read_sdf_content(response.text)
-        return AtomicSystem.from_dict(topo) if topo else None
+        return AtomicSystem.from_file(response.text)
 
     if smiles:
         try:
-            topo = IOMixin.read_smiles(smiles)
-            return AtomicSystem.from_dict(topo) if topo else None
+            return AtomicSystem.from_smiles(smiles)
         except Exception as e:
             print(f"SMILES conversion error: {e}")
 
@@ -190,6 +180,13 @@ def pubchem_sdq_search(query: str, limit: int = 50) -> list[dict]:
     
 def explore_pubchem() -> Any:
     """Interactive PubChem Explorer aligned with the COD interface."""
+    import questionary
+    from prompt_toolkit.application import Application
+    from prompt_toolkit.key_binding import KeyBindings
+    from prompt_toolkit.layout import Layout
+    from prompt_toolkit.layout.containers import HSplit, Window
+    from prompt_toolkit.layout import ScrollOffsets
+    from prompt_toolkit.layout.controls import FormattedTextControl
     
     query = questionary.text("Enter name or formula:").ask()
     if not query: return None

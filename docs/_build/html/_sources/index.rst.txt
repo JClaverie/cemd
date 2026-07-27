@@ -1,54 +1,72 @@
-=================================
-cemd documentation
-=================================
+CEMD Documentation
+==================
 
-**cemd** is a Python package for building atomistic models of cementitious
-materials, clays and aqueous interfaces.
+**Computational Elementary Matter Design** — a Python library for building,
+manipulating and analyzing atomistic systems for cement and silicate simulations.
 
-It provides high-level tools for
+.. grid:: 2
+   :gutter: 3
 
-- constructing crystalline structures;
-- creating aqueous solutions;
-- generating solid/liquid interfaces;
-- assigning force fields;
-- exporting systems for LAMMPS;
-- analysing molecular dynamics trajectories.
+   .. grid-item-card:: :material-regular:`construction;2em` Installation
+      :link: installation
+      :link-type: doc
+      :text-align: center
 
-Getting Started
-===============
+      Step-by-step instructions to set up CEMD and its dependencies
+      on your system.
 
-New users should begin here.
+      +++
+      .. button-ref:: installation
+         :expand:
+         :color: primary
+         :click-parent:
 
-.. toctree::
-   :maxdepth: 1
+         To the installation guide
 
-   installation
-   getting_started
+   .. grid-item-card:: :material-regular:`rocket_launch;2em` Getting Started
+      :link: getting_started
+      :link-type: doc
+      :text-align: center
 
-User Guide
-==========
+      New to CEMD? Start here for a quick introduction to the main
+      concepts and your first atomic system.
 
-Conceptual documentation.
+      +++
+      .. button-ref:: getting_started
+         :expand:
+         :color: primary
+         :click-parent:
 
-.. toctree::
-   :maxdepth: 2
+         To the getting started guide
 
-   user_guide/index
+   .. grid-item-card:: :material-regular:`auto_stories;2em` User Guide
+      :link: user_guide/index
+      :link-type: doc
+      :text-align: center
 
-API Reference
-=============
+      In-depth explanations of CEMD concepts — building systems,
+      applying force fields, and running analyses.
 
-Detailed documentation of every class and function.
+      +++
+      .. button-ref:: user_guide/index
+         :expand:
+         :color: primary
+         :click-parent:
 
-.. toctree::
-   :maxdepth: 2
+         To the user guide
 
-   api/core
-   api/builders
-   api/analysis
+   .. grid-item-card:: :material-regular:`biotech;2em` API Reference
+      :link: api/index
+      :link-type: doc
+      :text-align: center
 
-Indices
-=======
+      Detailed description of all classes, methods and functions
+      in CEMD. Assumes familiarity with the key concepts.
 
-* :ref:`genindex`
-* :ref:`modindex`
+      +++
+      .. button-ref:: api/index
+         :expand:
+         :color: primary
+         :click-parent:
+
+         To the API reference

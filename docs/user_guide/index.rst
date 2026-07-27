@@ -1,10 +1,10 @@
 User Guide
 ==========
 
-This guide explains the fundamental concepts of **cemd** and how to use them effectively to build and analyze your atomistic models.
+This guide explains how to build and analyze your atomistic models.
 
 .. toctree::
    :maxdepth: 2
 
-   builders_guide
+   build_guide
    analysis_guide

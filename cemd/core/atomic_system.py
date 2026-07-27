@@ -22,16 +22,16 @@ from typing import Sequence, Any, Self
 
 import numpy as np
 import pandas as pd
-import scipy.constants as cst
 
 from ._edit import EditMixin
 from ._topology import TopologyMixin
 from ._io import IOMixin
 from ._forcefield import ForceFieldMixin
 
-from .visualization import view
+from ..view.visualization_new import view
 
 from .._constants import(
+    AVOGADRO,
     MASSES_DICT, 
     INV_MASSES, 
     MASS_KEYS
@@ -152,11 +152,11 @@ class AtomicSystem(EditMixin, IOMixin, TopologyMixin, ForceFieldMixin):
 
         self._pmg_struct = topology.get('_pmg_struct', None)
 
-        self.pair_params = topology.get('pair_params', None)
-        self.bond_params = topology.get('bond_params', None)
-        self.angle_params = topology.get('angle_params', None)
-        self.dihedral_params = topology.get('dihedral_params', None)
-        self.improper_params =topology.get('improper_params', None)
+        self.pair_params = topology.get('pair_params', {})
+        self.bond_params = topology.get('bond_params', {})
+        self.angle_params = topology.get('angle_params', {})
+        self.dihedral_params = topology.get('dihedral_params', {})
+        self.improper_params =topology.get('improper_params', {})
 
     def _finalize_data(self) -> None:
         """Sorts indices and ensures integer types for atom references."""
@@ -237,7 +237,6 @@ class AtomicSystem(EditMixin, IOMixin, TopologyMixin, ForceFieldMixin):
         new.improper_params = dict(self.improper_params)
         
         if self._pmg_struct is not None:
-            import copy
             new._pmg_struct = copy.deepcopy(self._pmg_struct)
 
         return new
@@ -334,18 +333,6 @@ class AtomicSystem(EditMixin, IOMixin, TopologyMixin, ForceFieldMixin):
         return self._cache['elements']
 
     @property
-    def num_atoms(self) -> int:
-        """
-        Return the number of atoms.
-
-        Returns
-        -------
-        int
-            Number of atoms in the system.
-        """
-        return len(self.atoms)
-
-    @property
     def atom_types(self) -> list[str | int]:
         """
         Return the list of unique atom types.
@@ -418,6 +405,18 @@ class AtomicSystem(EditMixin, IOMixin, TopologyMixin, ForceFieldMixin):
             return sorted(self.impropers.type.unique().tolist())
         else:
             return list()
+
+    @property
+    def num_atoms(self) -> int:
+        """
+        Return the number of atoms.
+
+        Returns
+        -------
+        int
+            Number of atoms in the system.
+        """
+        return len(self.atoms)
 
     @property
     def num_bonds(self) -> int:
@@ -568,17 +567,11 @@ class AtomicSystem(EditMixin, IOMixin, TopologyMixin, ForceFieldMixin):
         float
             Density in g/cm³.
         """
-        return self.total_mass / cst.Avogadro / self.volume / 1e-24
+        return self.total_mass / AVOGADRO / self.volume / 1e-24
 
-    @property
-    def type_summary(self) -> pd.DataFrame:
+    def _get_type_summary(self) -> pd.DataFrame:
         """
         Return a summarized DataFrame of atom types, numbers, masses and charges.
-
-        Returns
-        -------
-        pandas.DataFrame
-            Summary table for each atom type.
         """
         if 'type_summary' not in self._cache:
             df_atoms = self.atoms.copy()
@@ -630,7 +623,7 @@ class AtomicSystem(EditMixin, IOMixin, TopologyMixin, ForceFieldMixin):
 
         # Atoms Section (Using type_summary)
         output_string += "Atoms\n"
-        red_df = self.type_summary.copy()
+        red_df = self._get_type_summary()
         
         # Added percentage for console display
         red_df['%'] = (red_df['number'] / red_df['number'].sum()) * 100

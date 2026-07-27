@@ -19,24 +19,20 @@ from __future__ import annotations
 
 import os
 import datetime
-import MDAnalysis as mda
+
 import pandas as pd
 import numpy as np
 
-from pymatgen.core import Structure, Lattice
-from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from typing import TYPE_CHECKING, Self
-from rdkit import Chem
-from rdkit.Chem import AllChem
 
 from .._utils import lattice2lammps
 from .._constants import MASSES_DICT, CHARGES_DICT
-from ..db.cod import explore_cod
-from ..db.pubchem import explore_pubchem
 
 if TYPE_CHECKING:
+    import MDAnalysis as mda
+    from pymatgen.core import Structure
     from .atomic_system import AtomicSystem
-
+    
 class IOMixin:
 
     @classmethod
@@ -70,6 +66,9 @@ class IOMixin:
             topology = cls._read_lmp(path)
 
         elif ext == '.cif':
+            from pymatgen.core import Structure
+            from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
+
             raw_struct = Structure.from_file(path)
             analyzer = SpacegroupAnalyzer(raw_struct)
             refined_struct = analyzer.get_refined_structure()
@@ -77,6 +76,8 @@ class IOMixin:
             topology['_pmg_struct'] = raw_struct
 
         elif ext == '.pdb':
+            import MDAnalysis as mda
+
             univ = mda.Universe(path)
             univ.atoms.types = [string.capitalize() for string in univ.atoms.names]
 
@@ -86,6 +87,9 @@ class IOMixin:
             univ.atoms.masses = np.array(masses)
 
             topology = cls._read_mda(univ)
+
+        elif ext == 'sdf':
+            topology = cls._read_sdf(path)
                 
         else:
             raise ValueError(f"Extension {ext} not supported.")
@@ -93,10 +97,26 @@ class IOMixin:
         return cls(topology)
 
     @classmethod
-    def from_cod(cls) -> Self: return explore_cod()
+    def from_cod(cls) -> Self:
+        """Creates an instance by exploring the Crystallography Open Database (COD).
+
+        Returns:
+            Self: A new instance populated with data from the COD source.
+        """
+        from ..db.cod import explore_cod
+
+        return explore_cod()
 
     @classmethod
-    def from_pubchem(cls) -> Self: return explore_pubchem()
+    def from_pubchem(cls) -> Self:
+        """Creates an instance by fetching and parsing data from PubChem.
+
+        Returns:
+            Self: A new instance populated with data from PubChem.
+        """
+        from ..db.pubchem import explore_pubchem
+        
+        return explore_pubchem()
 
     @classmethod
     def from_dict(cls, topo_dict: dict) -> Self:
@@ -128,7 +148,7 @@ class IOMixin:
         Self
             Instance of the class.
         """
-        topo_dict = cls.read_smiles(smiles)
+        topo_dict = cls._read_smiles(smiles)
         return cls(topo_dict)
     
     @classmethod
@@ -149,7 +169,7 @@ class IOMixin:
         return cls(topology)
 
     @classmethod
-    def from_pymatgen(cls, struct: Structure) -> Self:
+    def from_pmg(cls, struct: Structure) -> Self:
         """Creates a system from a Pymatgen Structure.
 
         Parameters
@@ -162,6 +182,10 @@ class IOMixin:
         Self
             Instance of the class.
         """
+
+        from pymatgen.core import Structure
+        from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
+
         analyzer = SpacegroupAnalyzer(struct)
         refined_struct  = analyzer.get_refined_structure()
         topology = cls._read_pmg(refined_struct, struct.lattice.abc)
@@ -203,6 +227,8 @@ class IOMixin:
                 A MDAnalysis universe
 
         """
+
+        import MDAnalysis as mda
 
         univ = mda.Universe.empty(self.num_atoms, trajectory=True)
         univ.add_TopologyAttr('type', self.atoms.type.to_numpy())
@@ -266,6 +292,8 @@ class IOMixin:
         -------
         pmg_structure: pymatgen.core.Structure
         """
+
+        from pymatgen.core import Lattice, Structure
 
         if hasattr(topology, 'atoms'):
             df_atoms = topology.atoms
@@ -538,35 +566,35 @@ class IOMixin:
         unique_atom_types = sorted(atoms.type.unique().tolist())
         if "Atoms" in sections:
             if type_label or (not type_label and types_in_coeffs):
-                atoms.type.replace(unique_atom_types, atom_types, inplace=True)
+                atoms.type = atoms.type.replace(unique_atom_types, atom_types)
         else:
             raise ValueError("No 'Atoms' section was found in the LAMMPS datafile.")
 
         if "Bonds" in sections:
             if type_label or (not type_label and types_in_coeffs):
                 unique_bond_types = sorted(bonds.type.unique().tolist())
-                bonds.type.replace(unique_bond_types, bond_types, inplace=True)
+                bonds.type = bonds.type.replace(unique_bond_types, bond_types)
         else:
             bonds = None
 
         if "Angles" in sections:
             if type_label or (not type_label and types_in_coeffs):
                 unique_angle_types = sorted(angles.type.unique().tolist())
-                angles.type.replace(unique_angle_types, angle_types, inplace=True)
+                angles.type = angles.type.replace(unique_angle_types, angle_types)
         else:
             angles = None
 
         if "Dihedrals" in sections:
             if type_label or (not type_label and types_in_coeffs):
                 unique_dihedral_types = sorted(dihedrals.type.unique().tolist())
-                dihedrals.type.replace(unique_dihedral_types, dihedral_types, inplace=True)
+                dihedrals.type = dihedrals.type.replace(unique_dihedral_types, dihedral_types)
         else:
             dihedrals = None
 
         if "Impropers" in sections:
             if type_label or (not type_label and types_in_coeffs):
                 unique_improper_types = sorted(impropers.type.unique().tolist())
-                impropers.type.replace(unique_improper_types, improper_types, inplace=True)
+                impropers.type = impropers.type.replace(unique_improper_types, improper_types)
         else:
             impropers = None
 
@@ -867,7 +895,7 @@ class IOMixin:
         return topology
 
     @staticmethod
-    def read_sdf_content(source: str) -> dict:
+    def _read_sdf(source: str) -> dict:
         """Reads and parses content from an SDF file or string.
 
         Parameters
@@ -931,10 +959,14 @@ class IOMixin:
         return topology
 
     @staticmethod
-    def read_smiles(smiles: str):
+    def _read_smiles(smiles: str):
         """
         Converts a SMILES into a dictionary compatible with _assign_topology.
         """
+
+        from rdkit import Chem
+        from rdkit.Chem import AllChem
+
         mol = Chem.MolFromSmiles(smiles)
         if not mol: raise ValueError("SMILES invalide")
         mol = Chem.AddHs(mol)
@@ -1194,12 +1226,12 @@ def _write_lmp(lmp_data: AtomicSystem,
                     if actual_entries == n:
                         # ---MODE PAIR COEFFS ---
                         ostream.write("\n Pair Coeffs\n\n")
-                        # We loop from 1 to n to guarantee increasing numerical order
+                        # loop from 1 to n to guarantee increasing numerical order
                         for i in range(1, n + 1):
                             label_i = lmp_data.atom_types[i - 1]
                             
-                            # We are looking for the pair (label_i, label_i) in your parameters
-                            # We handle the case where the order of the keys of the original tuple is reversed
+                            # looking for the pair (label_i, label_i) in your parameters
+                            # handle the case where the order of the keys of the original tuple is reversed
                             params = lmp_data.pair_params.get((label_i, label_i))
                             
                             if params is not None:

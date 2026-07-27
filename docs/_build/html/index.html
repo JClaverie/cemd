@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>cemd documentation &#8212; cemd 0.1.0 documentation</title>
+    <title>CEMD Documentation &#8212; cemd 0.1.0 documentation</title>
   
   
   
@@ -31,7 +31,9 @@
 <link href="_static/styles/pydata-sphinx-theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
 
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
-    <link rel="stylesheet" type="text/css" href="_static/custom.css?v=11b9a366" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
+    <link rel="stylesheet" type="text/css" href="_static/custom.css?v=8521e8bd" />
   
   <!-- So that users can add custom icons -->
   <script defer src="_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -42,11 +44,11 @@
     <script src="_static/documentation_options.js?v=01f34227"></script>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/design-tabs.js?v=f930bc37"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'index';</script>
     <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Installation" href="installation.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="0.1.0" />
@@ -137,47 +139,6 @@
 <nav>
   <ul class="bd-navbar-elements navbar-nav">
     
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="installation.html">
-    Installation
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="getting_started.html">
-    Getting Started
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="user_guide/index.html">
-    User Guide
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="api/core.html">
-    Core API
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="api/builders.html">
-    Builders Module
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="api/analysis.html">
-    Analysis
-  </a>
-</li>
-
   </ul>
 </nav></div>
       
@@ -228,10 +189,6 @@
   
 
   
-    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
-      <span class="fa-solid fa-outdent"></span>
-    </button>
-  
 </div>
 
     </header>
@@ -260,47 +217,6 @@
 <nav>
   <ul class="bd-navbar-elements navbar-nav">
     
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="installation.html">
-    Installation
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="getting_started.html">
-    Getting Started
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="user_guide/index.html">
-    User Guide
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="api/core.html">
-    Core API
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="api/builders.html">
-    Builders Module
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="api/analysis.html">
-    Analysis
-  </a>
-</li>
-
   </ul>
 </nav></div>
           
@@ -359,72 +275,65 @@
                 <article class="bd-article">
                   
   <section id="cemd-documentation">
-<h1>cemd documentation<a class="headerlink" href="#cemd-documentation" title="Link to this heading">#</a></h1>
-<p><strong>cemd</strong> is a Python package for building atomistic models of cementitious
-materials, clays and aqueous interfaces.</p>
-<p>It provides high-level tools for</p>
-<ul class="simple">
-<li><p>constructing crystalline structures;</p></li>
-<li><p>creating aqueous solutions;</p></li>
-<li><p>generating solid/liquid interfaces;</p></li>
-<li><p>assigning force fields;</p></li>
-<li><p>exporting systems for LAMMPS;</p></li>
-<li><p>analysing molecular dynamics trajectories.</p></li>
-</ul>
-<section id="getting-started">
-<h2>Getting Started<a class="headerlink" href="#getting-started" title="Link to this heading">#</a></h2>
-<p>New users should begin here.</p>
-<div class="toctree-wrapper compound">
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a></li>
-</ul>
+<h1>CEMD Documentation<a class="headerlink" href="#cemd-documentation" title="Link to this heading">#</a></h1>
+<p><strong>Computational Elementary Matter Design</strong> — a Python library for building,
+manipulating and analyzing atomistic systems for cement and silicate simulations.</p>
+<div class="sd-container-fluid sd-sphinx-override sd-mb-4 docutils">
+<div class="sd-row sd-row-cols-2 sd-row-cols-xs-2 sd-row-cols-sm-2 sd-row-cols-md-2 sd-row-cols-lg-2 sd-g-3 sd-g-xs-3 sd-g-sm-3 sd-g-md-3 sd-g-lg-3 docutils">
+<div class="sd-col sd-d-flex-row docutils">
+<div class="sd-card sd-sphinx-override sd-w-100 sd-shadow-sm sd-card-hover sd-text-center docutils">
+<div class="sd-card-body docutils">
+<div class="sd-card-title sd-font-weight-bold docutils">
+<svg version="4.0.0.63c5cb3" width="2.0em" height="2.0em" class="sd-material-icon sd-material-icon-construction" viewBox="0 0 24 24" aria-hidden="true"><g><rect fill="none" height="24" width="24"></rect></g><g><g><rect height="8.48" transform="matrix(0.7071 -0.7071 0.7071 0.7071 -6.8717 17.6255)" width="3" x="16.34" y="12.87"></rect><path d="M17.5,10c1.93,0,3.5-1.57,3.5-3.5c0-0.58-0.16-1.12-0.41-1.6l-2.7,2.7L16.4,6.11l2.7-2.7C18.62,3.16,18.08,3,17.5,3 C15.57,3,14,4.57,14,6.5c0,0.41,0.08,0.8,0.21,1.16l-1.85,1.85l-1.78-1.78l0.71-0.71L9.88,5.61L12,3.49 c-1.17-1.17-3.07-1.17-4.24,0L4.22,7.03l1.41,1.41H2.81L2.1,9.15l3.54,3.54l0.71-0.71V9.15l1.41,1.41l0.71-0.71l1.78,1.78 l-7.41,7.41l2.12,2.12L16.34,9.79C16.7,9.92,17.09,10,17.5,10z"></path></g></g></svg> Installation</div>
+<p class="sd-card-text">Step-by-step instructions to set up CEMD and its dependencies
+on your system.</p>
 </div>
-</section>
-<section id="user-guide">
-<h2>User Guide<a class="headerlink" href="#user-guide" title="Link to this heading">#</a></h2>
-<p>Conceptual documentation.</p>
-<div class="toctree-wrapper compound">
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="user_guide/index.html">User Guide</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="user_guide/builders_guide.html">Using the Builders Module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="user_guide/analysis_guide.html">Analyzing MD Trajectories</a></li>
-</ul>
-</li>
-</ul>
+<div class="sd-card-footer docutils">
+<p class="sd-card-text"><span class="sd-d-grid"><a class="sd-sphinx-override sd-btn sd-text-wrap sd-btn-primary sd-stretched-link reference internal" href="installation.html"><span class="doc">To the installation guide</span></a></span></p>
 </div>
-</section>
-<section id="api-reference">
-<h2>API Reference<a class="headerlink" href="#api-reference" title="Link to this heading">#</a></h2>
-<p>Detailed documentation of every class and function.</p>
-<div class="toctree-wrapper compound">
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="api/core.html">Core API</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="api/core.html#main-class">Main Class</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="api/builders.html">Builders Module</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="api/builders.html#system-construction">System Construction</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api/builders.html#interface-generation">Interface Generation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api/builders.html#structural-refinement">Structural Refinement</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="api/analysis.html">Analysis</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="api/analysis.html#distribution-functions">Distribution Functions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api/analysis.html#dynamics">Dynamics</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api/analysis.html#interface-properties">Interface Properties</a></li>
-</ul>
-</li>
-</ul>
+<a class="sd-stretched-link sd-hide-link-text reference internal" href="installation.html"><span class="doc">Installation</span></a></div>
 </div>
-</section>
-<section id="indices">
-<h2>Indices<a class="headerlink" href="#indices" title="Link to this heading">#</a></h2>
-<ul class="simple">
-<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
-<li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
-</ul>
-</section>
+<div class="sd-col sd-d-flex-row docutils">
+<div class="sd-card sd-sphinx-override sd-w-100 sd-shadow-sm sd-card-hover sd-text-center docutils">
+<div class="sd-card-body docutils">
+<div class="sd-card-title sd-font-weight-bold docutils">
+<svg version="4.0.0.63c5cb3" width="2.0em" height="2.0em" class="sd-material-icon sd-material-icon-rocket_launch" viewBox="0 0 24 24" aria-hidden="true"><g><rect fill="none" height="24" width="24"></rect></g><g><g><path d="M9.19,6.35c-2.04,2.29-3.44,5.58-3.57,5.89L2,10.69l4.05-4.05c0.47-0.47,1.15-0.68,1.81-0.55L9.19,6.35L9.19,6.35z M11.17,17c0,0,3.74-1.55,5.89-3.7c5.4-5.4,4.5-9.62,4.21-10.57c-0.95-0.3-5.17-1.19-10.57,4.21C8.55,9.09,7,12.83,7,12.83 L11.17,17z M17.65,14.81c-2.29,2.04-5.58,3.44-5.89,3.57L13.31,22l4.05-4.05c0.47-0.47,0.68-1.15,0.55-1.81L17.65,14.81 L17.65,14.81z M9,18c0,0.83-0.34,1.58-0.88,2.12C6.94,21.3,2,22,2,22s0.7-4.94,1.88-6.12C4.42,15.34,5.17,15,6,15 C7.66,15,9,16.34,9,18z M13,9c0-1.1,0.9-2,2-2s2,0.9,2,2s-0.9,2-2,2S13,10.1,13,9z"></path></g></g></svg> Getting Started</div>
+<p class="sd-card-text">New to CEMD? Start here for a quick introduction to the main
+concepts and your first atomic system.</p>
+</div>
+<div class="sd-card-footer docutils">
+<p class="sd-card-text"><span class="sd-d-grid"><a class="sd-sphinx-override sd-btn sd-text-wrap sd-btn-primary sd-stretched-link reference internal" href="getting_started.html"><span class="doc">To the getting started guide</span></a></span></p>
+</div>
+<a class="sd-stretched-link sd-hide-link-text reference internal" href="getting_started.html"><span class="doc">Getting Started</span></a></div>
+</div>
+<div class="sd-col sd-d-flex-row docutils">
+<div class="sd-card sd-sphinx-override sd-w-100 sd-shadow-sm sd-card-hover sd-text-center docutils">
+<div class="sd-card-body docutils">
+<div class="sd-card-title sd-font-weight-bold docutils">
+<svg version="4.0.0.63c5cb3" width="2.0em" height="2.0em" class="sd-material-icon sd-material-icon-auto_stories" viewBox="0 0 24 24" aria-hidden="true"><path d="M0 0h24v24H0V0z" fill="none"></path><path d="M19 1l-5 5v11l5-4.5V1zM1 6v14.65c0 .25.25.5.5.5.1 0 .15-.05.25-.05C3.1 20.45 5.05 20 6.5 20c1.95 0 4.05.4 5.5 1.5V6c-1.45-1.1-3.55-1.5-5.5-1.5S2.45 4.9 1 6zm22 13.5V6c-.6-.45-1.25-.75-2-1v13.5c-1.1-.35-2.3-.5-3.5-.5-1.7 0-4.15.65-5.5 1.5v2c1.35-.85 3.8-1.5 5.5-1.5 1.65 0 3.35.3 4.75 1.05.1.05.15.05.25.05.25 0 .5-.25.5-.5v-1.1z"></path></svg> User Guide</div>
+<p class="sd-card-text">In-depth explanations of CEMD concepts — building systems,
+applying force fields, and running analyses.</p>
+</div>
+<div class="sd-card-footer docutils">
+<p class="sd-card-text"><span class="sd-d-grid"><a class="sd-sphinx-override sd-btn sd-text-wrap sd-btn-primary sd-stretched-link reference internal" href="user_guide/index.html"><span class="doc">To the user guide</span></a></span></p>
+</div>
+<a class="sd-stretched-link sd-hide-link-text reference internal" href="user_guide/index.html"><span class="doc">User Guide</span></a></div>
+</div>
+<div class="sd-col sd-d-flex-row docutils">
+<div class="sd-card sd-sphinx-override sd-w-100 sd-shadow-sm sd-card-hover sd-text-center docutils">
+<div class="sd-card-body docutils">
+<div class="sd-card-title sd-font-weight-bold docutils">
+<svg version="4.0.0.63c5cb3" width="2.0em" height="2.0em" class="sd-material-icon sd-material-icon-biotech" viewBox="0 0 24 24" aria-hidden="true"><g><rect fill="none" height="24" width="24"></rect></g><g><g><path d="M7,19c-1.1,0-2,0.9-2,2h14c0-1.1-0.9-2-2-2h-4v-2h3c1.1,0,2-0.9,2-2h-8c-1.66,0-3-1.34-3-3c0-1.09,0.59-2.04,1.46-2.56 C8.17,9.03,8,8.54,8,8c0-0.21,0.04-0.42,0.09-0.62C6.28,8.13,5,9.92,5,12c0,2.76,2.24,5,5,5v2H7z"></path><path d="M10.56,5.51C11.91,5.54,13,6.64,13,8c0,0.75-0.33,1.41-0.85,1.87l0.59,1.62l0.94-0.34l0.34,0.94l1.88-0.68l-0.34-0.94 l0.94-0.34L13.76,2.6l-0.94,0.34L12.48,2L10.6,2.68l0.34,0.94L10,3.97L10.56,5.51z"></path><circle cx="10.5" cy="8" r="1.5"></circle></g></g></svg> API Reference</div>
+<p class="sd-card-text">Detailed description of all classes, methods and functions
+in CEMD. Assumes familiarity with the key concepts.</p>
+</div>
+<div class="sd-card-footer docutils">
+<p class="sd-card-text"><span class="sd-d-grid"><a class="sd-sphinx-override sd-btn sd-text-wrap sd-btn-primary sd-stretched-link reference internal" href="api/index.html"><span class="doc">To the API reference</span></a></span></p>
+</div>
+<a class="sd-stretched-link sd-hide-link-text reference internal" href="api/index.html"><span class="doc">API Reference</span></a></div>
+</div>
+</div>
+</div>
 </section>
 
 
@@ -437,51 +346,12 @@ materials, clays and aqueous interfaces.</p>
                 <footer class="prev-next-footer d-print-none">
                   
 <div class="prev-next-area">
-    <a class="right-next"
-       href="installation.html"
-       title="next page">
-      <div class="prev-next-info">
-        <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Installation</p>
-      </div>
-      <i class="fa-solid fa-angle-right"></i>
-    </a>
 </div>
                 </footer>
               
             </div>
             
             
-              
-                <dialog id="pst-secondary-sidebar-modal"></dialog>
-                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
-
-
-  <div class="sidebar-secondary-item">
-<div
-    id="pst-page-navigation-heading-2"
-    class="page-toc tocsection onthispage">
-    <i class="fa-solid fa-list"></i> On this page
-  </div>
-  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
-    <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#getting-started">Getting Started</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#user-guide">User Guide</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#api-reference">API Reference</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#indices">Indices</a></li>
-</ul>
-  </nav></div>
-
-  <div class="sidebar-secondary-item">
-
-  <div class="tocsection sourcelink">
-    <a href="_sources/index.rst.txt">
-      <i class="fa-solid fa-file-lines"></i> Show Source
-    </a>
-  </div>
-</div>
-
-</div></div>
               
             
           </div>

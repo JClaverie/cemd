@@ -23,14 +23,8 @@ from io import StringIO
 from typing import Any, TYPE_CHECKING
 
 import requests
-import questionary
+
 from pymatgen.io.cif import CifParser
-from prompt_toolkit.application import Application
-from prompt_toolkit.key_binding import KeyBindings
-from prompt_toolkit.layout import Layout
-from prompt_toolkit.layout.containers import HSplit, Window
-from prompt_toolkit.layout import ScrollOffsets
-from prompt_toolkit.layout.controls import FormattedTextControl
 
 if TYPE_CHECKING:
     from ..core.atomic_system import AtomicSystem
@@ -185,7 +179,7 @@ def get_structure_by_cod_id(cod_id: int) -> AtomicSystem:
         response.raise_for_status()
         parser = CifParser(StringIO(response.text))
         pmg_structure = parser.parse_structures()[0]
-        return AtomicSystem.from_pymatgen(pmg_structure) 
+        return AtomicSystem.from_pmg(pmg_structure) 
     except Exception as e:
         print(f"Error retrieving COD {cod_id}: {e}")
         return None
@@ -193,6 +187,14 @@ def get_structure_by_cod_id(cod_id: int) -> AtomicSystem:
 
 def explore_cod() -> AtomicSystem | None:
     """Interactive COD explorer."""
+
+    import questionary
+    from prompt_toolkit.application import Application
+    from prompt_toolkit.key_binding import KeyBindings
+    from prompt_toolkit.layout import Layout
+    from prompt_toolkit.layout.containers import HSplit, Window
+    from prompt_toolkit.layout import ScrollOffsets
+    from prompt_toolkit.layout.controls import FormattedTextControl
 
     mode = questionary.select(
         "Search by:",

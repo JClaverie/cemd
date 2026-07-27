@@ -16,20 +16,21 @@
 #
 
 from __future__ import annotations
-from itertools import combinations_with_replacement
+from itertools import combinations_with_replacement, combinations
 from typing import TYPE_CHECKING, Sequence
 import webbrowser
 
 import numpy as np
-import pandas as pd
+
 from prompt_toolkit import Application
 from prompt_toolkit.layout import Layout, HSplit, Window
 from prompt_toolkit.layout.controls import FormattedTextControl
 from prompt_toolkit.key_binding import KeyBindings
 
-from .._config import FF_DATABASE_FILE
+from .._paths import FF_DATABASE_FILE
 
 if TYPE_CHECKING:
+    import pandas as pd
     from .atomic_system import AtomicSystem
 
 class ForceFieldMixin:
@@ -54,7 +55,7 @@ class ForceFieldMixin:
             current_types = self.atom_types
             if len(value) != len(current_types):
                 import traceback
-                traceback.print_stack()  # ← pour voir d'où vient l'appel
+                traceback.print_stack()  # ← to see where the call is coming from
                 print(f"ERROR: ...")
                 return
                 print(f"ERROR: Mass list length ({len(value)}) does not match "
@@ -139,6 +140,9 @@ class ForceFieldMixin:
             FileNotFoundError: If the specified database file does not exist.
             ValueError: If required sheets ('lj_12-6', 'bond', 'angle') are missing.
         """
+
+        import pandas as pd
+
         all_sheets = pd.read_excel(ff_database, sheet_name=None)
 
         df_lj: pd.DataFrame | None = all_sheets.get('lj_12-6')
@@ -235,9 +239,9 @@ class ForceFieldMixin:
                 
         return assignments
 
-    def set_atom_type_param(self: AtomicSystem, 
+    def set_ff_pair_param(self: AtomicSystem, 
                             atom_type: str | int, 
-                            pair_coeffs: list[float]) -> None:
+                            coeffs: list[float]) -> None:
         """
         Assign the non-bond (Lennard-Jones) parameters for a specific atom type.
 
@@ -245,7 +249,7 @@ class ForceFieldMixin:
         ----------
         atom_type : str or int
             The identifier of the atom type.
-        pair_coeffs : list of float
+        coeffs : list of float
             The L-J coefficients (typically [epsilon, sigma]).
 
         Raises
@@ -254,13 +258,13 @@ class ForceFieldMixin:
             If the atom_type is not present in the system's current atoms.
         """
         # Dynamic extraction of real types present in the DataFrame
-        if atom_type not in self.atoms['type'].unique():
+        if atom_type not in self.atom_types:
             raise ValueError(f"Atom type '{atom_type}' does not exist in the system.")
         
         sorted_key = (atom_type, atom_type)
-        self.pair_params[sorted_key] = pair_coeffs
+        self.pair_params[sorted_key] = coeffs
 
-    def set_bond_type_param(self: AtomicSystem, 
+    def set_ff_bond_param(self: AtomicSystem, 
                             bond_type: str, 
                             coeffs: list[float]) -> None:
         """
@@ -285,7 +289,7 @@ class ForceFieldMixin:
         
         self.bond_params[bond_type] = coeffs
 
-    def set_angle_type_param(self: AtomicSystem, 
+    def set_ff_angle_param(self: AtomicSystem, 
                             angle_type: str, 
                             coeffs: list[float]) -> None:
         """
@@ -310,6 +314,68 @@ class ForceFieldMixin:
         
         self.angle_params[angle_type] = coeffs
 
+    def apply_pair_mixing_rules(self, rule='arithmetic', overwrite=False) -> dict:
+        """
+        Calculate and update cross-interaction parameters (i != j).
+
+        This method estimates parameters for pair interactions that are not
+        explicitly defined in `self.pair_params`. It uses self-interaction 
+        parameters (i, i) to compute cross-interaction parameters based on 
+        the LAMMPS mixing rules.
+
+        Parameters
+        ----------
+        rule : str, optional
+            The mixing rule to apply. Supported rules:
+            
+            - 'arithmetic':
+                .. math:: \\epsilon_{ij} = \\sqrt{\\epsilon_i \\epsilon_j}
+                .. math:: \\sigma_{ij} = \\frac{1}{2}(\\sigma_i + \\sigma_j)
+            
+            - 'geometric':
+                .. math:: \\epsilon_{ij} = \\sqrt{\\epsilon_i \\epsilon_j}
+                .. math:: \\sigma_{ij} = \\sqrt{\\sigma_i \\sigma_j}
+
+        overwrite : bool, optional
+            If True, existing cross-interaction parameters are recalculated.
+            If False, only missing interactions are computed. Default is False.
+
+        Returns
+        -------
+        None
+            The method updates `self.pair_params` in-place.
+
+        References
+        ----------
+        .. [1] LAMMPS Pair Modify Documentation
+           https://docs.lammps.org/pair_modify.html
+        """
+
+        missing_self_params = []
+        for t in self.atom_types:
+            if (t, t) not in self.pair_params:
+                missing_self_params.append(t)
+                
+        if missing_self_params:
+            raise ValueError(f"Missing parameters for self-interaction of the following types: {missing_self_params}. "
+                            "You must set these parameters with 'set_atom_type_param' before blending.")
+
+        for t1, t2 in combinations(self.atom_types, 2):
+            key_cross = tuple(sorted((t1, t2)))
+            
+            if key_cross not in self.pair_params or overwrite:
+                eps1, sig1 = self.pair_params[(t1, t1)]
+                eps2, sig2 = self.pair_params[(t2, t2)]
+                
+                if rule == 'arithmetic':
+                    eps_mixed = (eps1 * eps2) ** (0.5)
+                    sig_mixed = (sig1 + sig2) / 2.0
+                elif rule == 'geometric':
+                    eps_mixed = (eps1 * eps2) ** (0.5)
+                    sig_mixed = (sig1 + sig2) ** (0.5)                  
+                
+                self.pair_params[key_cross] = [eps_mixed, sig_mixed]
+                
     def _set_pair_forcefield(
         self: AtomicSystem, 
         atom_type_assignments: dict[str | int, str], 
@@ -351,7 +417,7 @@ class ForceFieldMixin:
                 
                 if label1 == label2:
                     # LEVEL 2 CALL: Assign charge and non-bond parameters for this specific single type
-                    self.set_atom_type_param(label1, pair_coeffs)
+                    self.set_ff_pair_param(label1, pair_coeffs)
                 else:
                     # Custom cross-interaction (i != j) stored as a sorted label tuple key
                     sorted_key = tuple(sorted([label1, label2]))
@@ -412,7 +478,7 @@ class ForceFieldMixin:
                 coeffs = [float(row.iloc[0].iloc[2]), float(row.iloc[0].iloc[3])]
                 
                 # Applies the settings to the original system label (e.g. 'H-O')
-                self.set_bond_type_param(bond_str, coeffs)
+                self.set_ff_bond_param(bond_str, coeffs)
 
     def _set_angle_forcefield(
         self: AtomicSystem, 
@@ -455,4 +521,6 @@ class ForceFieldMixin:
             
             if not row.empty:
                 coeffs = [float(row.iloc[0].iloc[3]), float(row.iloc[0].iloc[4])]
-                self.set_angle_type_param(angle_str, coeffs)
+                self.set_ff_angle_param(angle_str, coeffs)
+
+

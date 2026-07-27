@@ -30,7 +30,9 @@
 <link href="../../../_static/styles/pydata-sphinx-theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
 
     <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/custom.css?v=11b9a366" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/custom.css?v=8521e8bd" />
   
   <!-- So that users can add custom icons -->
   <script defer src="../../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
@@ -41,6 +43,7 @@
     <script src="../../../_static/documentation_options.js?v=01f34227"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/design-tabs.js?v=f930bc37"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = '_modules/cemd/core/atomic_system';</script>
     <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
     <link rel="index" title="Index" href="../../../genindex.html" />
@@ -135,47 +138,6 @@
 <nav>
   <ul class="bd-navbar-elements navbar-nav">
     
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../../installation.html">
-    Installation
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../../getting_started.html">
-    Getting Started
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../../user_guide/index.html">
-    User Guide
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../../api/core.html">
-    Core API
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../../api/builders.html">
-    Builders Module
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../../api/analysis.html">
-    Analysis
-  </a>
-</li>
-
   </ul>
 </nav></div>
       
@@ -254,47 +216,6 @@
 <nav>
   <ul class="bd-navbar-elements navbar-nav">
     
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../../installation.html">
-    Installation
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../../getting_started.html">
-    Getting Started
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../../user_guide/index.html">
-    User Guide
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../../api/core.html">
-    Core API
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../../api/builders.html">
-    Builders Module
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../../api/analysis.html">
-    Analysis
-  </a>
-</li>
-
   </ul>
 </nav></div>
           
@@ -424,7 +345,7 @@
 <span class="p">)</span>
 
 <div class="viewcode-block" id="AtomicSystem">
-<a class="viewcode-back" href="../../../api/core.html#cemd.core.atomic_system.AtomicSystem">[docs]</a>
+<a class="viewcode-back" href="../../../api/atomic_system.html#cemd.core.atomic_system.AtomicSystem">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">AtomicSystem</span><span class="p">(</span><span class="n">EditMixin</span><span class="p">,</span> <span class="n">IOMixin</span><span class="p">,</span> <span class="n">TopologyMixin</span><span class="p">,</span> <span class="n">ForceFieldMixin</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Container storing the complete atomic system representation.</span>
@@ -536,11 +457,11 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_pmg_struct</span> <span class="o">=</span> <span class="n">topology</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;_pmg_struct&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">pair_params</span> <span class="o">=</span> <span class="n">topology</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;pair_params&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">bond_params</span> <span class="o">=</span> <span class="n">topology</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;bond_params&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">angle_params</span> <span class="o">=</span> <span class="n">topology</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;angle_params&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">dihedral_params</span> <span class="o">=</span> <span class="n">topology</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;dihedral_params&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">improper_params</span> <span class="o">=</span><span class="n">topology</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;improper_params&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pair_params</span> <span class="o">=</span> <span class="n">topology</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;pair_params&#39;</span><span class="p">,</span> <span class="p">{})</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bond_params</span> <span class="o">=</span> <span class="n">topology</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;bond_params&#39;</span><span class="p">,</span> <span class="p">{})</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">angle_params</span> <span class="o">=</span> <span class="n">topology</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;angle_params&#39;</span><span class="p">,</span> <span class="p">{})</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dihedral_params</span> <span class="o">=</span> <span class="n">topology</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;dihedral_params&#39;</span><span class="p">,</span> <span class="p">{})</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">improper_params</span> <span class="o">=</span><span class="n">topology</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;improper_params&#39;</span><span class="p">,</span> <span class="p">{})</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_finalize_data</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Sorts indices and ensures integer types for atom references.&quot;&quot;&quot;</span>
@@ -581,8 +502,6 @@
             <span class="kn">import</span><span class="w"> </span><span class="nn">copy</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_pmg_struct</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">_pmg_struct</span><span class="p">)</span>
 
-<div class="viewcode-block" id="AtomicSystem.copy">
-<a class="viewcode-back" href="../../../api/core.html#cemd.core.atomic_system.AtomicSystem.copy">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Self</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Create an independent deep copy of the atomic system.</span>
@@ -623,11 +542,9 @@
         <span class="n">new</span><span class="o">.</span><span class="n">improper_params</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">improper_params</span><span class="p">)</span>
         
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pmg_struct</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="kn">import</span><span class="w"> </span><span class="nn">copy</span>
             <span class="n">new</span><span class="o">.</span><span class="n">_pmg_struct</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_pmg_struct</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">new</span></div>
-
+        <span class="k">return</span> <span class="n">new</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">box</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
@@ -721,18 +638,6 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="p">[</span><span class="s1">&#39;elements&#39;</span><span class="p">]</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">num_atoms</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Return the number of atoms.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        int</span>
-<span class="sd">            Number of atoms in the system.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">atoms</span><span class="p">)</span>
-
-    <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">atom_types</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="nb">int</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return the list of unique atom types.</span>
@@ -805,6 +710,18 @@
             <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">impropers</span><span class="o">.</span><span class="n">type</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="nb">list</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">num_atoms</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the number of atoms.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        int</span>
+<span class="sd">            Number of atoms in the system.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">atoms</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">num_bonds</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
@@ -957,15 +874,9 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">total_mass</span> <span class="o">/</span> <span class="n">cst</span><span class="o">.</span><span class="n">Avogadro</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">volume</span> <span class="o">/</span> <span class="mf">1e-24</span>
 
-    <span class="nd">@property</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">type_summary</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_type_summary</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return a summarized DataFrame of atom types, numbers, masses and charges.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        pandas.DataFrame</span>
-<span class="sd">            Summary table for each atom type.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="s1">&#39;type_summary&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="p">:</span>
             <span class="n">df_atoms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">atoms</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
@@ -1017,7 +928,7 @@
 
         <span class="c1"># Atoms Section (Using type_summary)</span>
         <span class="n">output_string</span> <span class="o">+=</span> <span class="s2">&quot;Atoms</span><span class="se">\n</span><span class="s2">&quot;</span>
-        <span class="n">red_df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">type_summary</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">red_df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_type_summary</span><span class="p">()</span>
         
         <span class="c1"># Added percentage for console display</span>
         <span class="n">red_df</span><span class="p">[</span><span class="s1">&#39;%&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">red_df</span><span class="p">[</span><span class="s1">&#39;number&#39;</span><span class="p">]</span> <span class="o">/</span> <span class="n">red_df</span><span class="p">[</span><span class="s1">&#39;number&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span> <span class="o">*</span> <span class="mi">100</span>
@@ -1063,8 +974,6 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__repr__</span><span class="p">()</span>
     
-<div class="viewcode-block" id="AtomicSystem.get_count">
-<a class="viewcode-back" href="../../../api/core.html#cemd.core.atomic_system.AtomicSystem.get_count">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_count</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">symbol</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Calculate the exact number of atoms for a specific type.</span>
@@ -1094,11 +1003,8 @@
         <span class="k">else</span><span class="p">:</span> 
             <span class="n">res</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">summary</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">mask</span><span class="p">,</span> <span class="s1">&#39;number&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
             
-        <span class="k">return</span> <span class="n">res</span></div>
-
+        <span class="k">return</span> <span class="n">res</span>
     
-<div class="viewcode-block" id="AtomicSystem.get_center_of_mass">
-<a class="viewcode-back" href="../../../api/core.html#cemd.core.atomic_system.AtomicSystem.get_center_of_mass">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_center_of_mass</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Calculates the center of mass (COM) of the system.</span>
@@ -1117,11 +1023,8 @@
 
         <span class="n">weighted_pos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">atoms</span><span class="p">[[</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="s1">&#39;z&#39;</span><span class="p">]]</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">atom_masses</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">weighted_pos</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="o">.</span><span class="n">values</span> <span class="o">/</span> <span class="n">total_mass</span></div>
+        <span class="k">return</span> <span class="n">weighted_pos</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="o">.</span><span class="n">values</span> <span class="o">/</span> <span class="n">total_mass</span>
 
-
-<div class="viewcode-block" id="AtomicSystem.view">
-<a class="viewcode-back" href="../../../api/core.html#cemd.core.atomic_system.AtomicSystem.view">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">view</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">trajectory</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Visualize the current system in VMD, with an optional trajectory.</span>
@@ -1140,7 +1043,6 @@
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="n">view</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">trajectory</span><span class="o">=</span><span class="n">trajectory</span><span class="p">)</span></div>
-</div>
 
 
 

@@ -330,7 +330,7 @@ class StructureTabWidget(QtWidgets.QWidget):
             # ---UPDATE LOGIC ---
             if col_name in ['x', 'y', 'z']:
                 new_val = model.data(top_left, QtCore.Qt.ItemDataRole.EditRole)
-                self.system.set_coordinates([real_idx], **{col_name: float(new_val)})
+                self.system.set_atom_position([real_idx], **{col_name: float(new_val)})
                 QtCore.QTimer.singleShot(10, lambda: self.parent_gui.sync_ui(full_rebuild=False))
 
             elif col_name == 'type':
@@ -347,7 +347,6 @@ class StructureTabWidget(QtWidgets.QWidget):
 
             # ---DELAYED UI SYNC ---
             # call sync_ui which contains the single call to update_info
-            
 
         except Exception as e:
             print(f"Erreur d'édition dans l'onglet : {e}")

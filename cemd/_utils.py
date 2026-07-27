@@ -15,7 +15,9 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
+import shutil
 from typing import Sequence
+from functools import lru_cache
 
 import numpy as np
 
@@ -135,3 +137,17 @@ def lattice2lammps(box: np.ndarray | Sequence[float]
     yz = vec_c[1]
     
     return (0, lx), (0, ly), (0, lz), (xy, xz, yz)
+
+@lru_cache
+def require_program(name) -> str:
+    """Return the path of an external executable.
+
+    Raises
+    ------
+    RuntimeError
+        If the executable is not found in PATH.
+    """
+    path = shutil.which(name)
+    if path is None:
+        raise RuntimeError(f"{name} not found")
+    return path

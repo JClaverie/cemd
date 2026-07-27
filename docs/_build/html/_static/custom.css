@@ -1,7 +1,24 @@
 .navbar-brand img, 
 .sidebar-brand img,
+
 .logo img {
     /* Ajustez la largeur selon vos besoins */
     width: 300px; 
     height: auto;
+}
+
+dl.field-list {
+    margin-bottom: 0.0rem;
+}
+
+dl.field-list > dt {
+    margin-top: 0.0rem;
+}
+
+dl.field-list > dd {
+    margin-bottom: 0.0rem;
+}
+
+.rst-content dl:not(.docutils) {
+    margin-bottom: 0.0rem;
 }

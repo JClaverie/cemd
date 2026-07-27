@@ -1,0 +1,1446 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>cemd.build.base &#8212; cemd 0.1.0 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../_static/styles/theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/custom.css?v=8521e8bd" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
+<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
+
+    <script src="../../../_static/documentation_options.js?v=01f34227"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/design-tabs.js?v=f930bc37"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/cemd/build/base';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.1.0" />
+  
+    
+    <script src="../../../_static/searchtools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
+    <script src="../../../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../../_static/cemd_logo.svg" class="logo__image only-light" alt="cemd 0.1.0 documentation - Home"/>
+    <img src="../../../_static/cemd_logo_dark.svg" class="logo__image only-dark pst-js-only" alt="cemd 0.1.0 documentation - Home"/>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../../index.html" class="nav-link">Module code</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">cemd.build.base</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for cemd.build.base</h1><div class="highlight"><pre>
+<span></span><span class="c1">#</span>
+<span class="c1"># This file is part of the CEMD distribution</span>
+<span class="c1"># Copyright (c) 2022-2026 Jérôme Claverie.</span>
+<span class="c1">#</span>
+<span class="c1"># This program is free software: you can redistribute it and/or modify</span>
+<span class="c1"># it under the terms of the GNU General Public License as published by</span>
+<span class="c1"># the Free Software Foundation, version 3.</span>
+<span class="c1">#</span>
+<span class="c1"># This program is distributed in the hope that it will be useful, but</span>
+<span class="c1"># WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c1"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU</span>
+<span class="c1"># General Public License for more details.</span>
+<span class="c1">#</span>
+<span class="c1"># You should have received a copy of the GNU General Public License</span>
+<span class="c1"># along with this program. If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+<span class="c1">#</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">tempfile</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">TYPE_CHECKING</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">scipy.constants</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">cst</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">MDAnalysis</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">mda</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pymatgen.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">Composition</span><span class="p">,</span> <span class="n">Structure</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pymatgen.core.surface</span><span class="w"> </span><span class="kn">import</span> <span class="n">SlabGenerator</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pymatgen.symmetry.analyzer</span><span class="w"> </span><span class="kn">import</span> <span class="n">SpacegroupAnalyzer</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">questionary</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">prompt_toolkit.application</span><span class="w"> </span><span class="kn">import</span> <span class="n">Application</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">prompt_toolkit.key_binding</span><span class="w"> </span><span class="kn">import</span> <span class="n">KeyBindings</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">prompt_toolkit.layout</span><span class="w"> </span><span class="kn">import</span> <span class="n">Layout</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">prompt_toolkit.layout.containers</span><span class="w"> </span><span class="kn">import</span> <span class="n">HSplit</span><span class="p">,</span> <span class="n">Window</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">prompt_toolkit.layout.controls</span><span class="w"> </span><span class="kn">import</span> <span class="n">FormattedTextControl</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">.._config</span><span class="w"> </span><span class="kn">import</span> <span class="n">STRUCTURES_DIR</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.._constants</span><span class="w"> </span><span class="kn">import</span> <span class="n">MASSES_DICT</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.._utils</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">lattice2lammps</span><span class="p">,</span> 
+    <span class="n">lattice2vectors</span><span class="p">,</span> 
+    <span class="n">vectors2lattice</span><span class="p">,</span>
+    <span class="n">require_program</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">._packmol</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">add_packmol_structure</span><span class="p">,</span> 
+    <span class="n">get_structure_path</span><span class="p">,</span>
+    <span class="n">run_packmol</span>
+<span class="p">)</span>
+
+<span class="n">warnings</span><span class="o">.</span><span class="n">filterwarnings</span><span class="p">(</span><span class="s2">&quot;ignore&quot;</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">..core.atomic_system</span><span class="w"> </span><span class="kn">import</span> <span class="n">AtomicSystem</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_sanitize_path</span><span class="p">(</span><span class="n">full_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Takes a full path, sanitizes ONLY the filename part to be </span>
+<span class="sd">    Packmol-safe, and returns the full reconstructed absolute path.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">directory</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">full_path</span><span class="p">)</span>
+    <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">full_path</span><span class="p">)</span>
+    
+    <span class="n">name</span><span class="p">,</span> <span class="n">ext</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+    
+    <span class="n">name</span> <span class="o">=</span> <span class="n">name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="s2">&quot;_&quot;</span><span class="p">)</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;[^a-zA-Z0-9_\-]&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+    
+    <span class="n">safe_filename</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}{</span><span class="n">ext</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="n">safe_filename</span><span class="p">))</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_validate_for_surface</span><span class="p">(</span><span class="n">system</span><span class="p">:</span> <span class="n">AtomicSystem</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Validate that a pymatgen Structure can be used to generate surfaces.&quot;&quot;&quot;</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">system</span><span class="p">,</span> <span class="s1">&#39;_pmg_struct&#39;</span><span class="p">):</span>
+            <span class="n">struct</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">_pmg_struct</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">struct</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">to_pmg</span><span class="p">()</span>
+    <span class="k">except</span> <span class="p">(</span><span class="ne">TypeError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Cannot generate surfaces: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">struct</span><span class="p">,</span> <span class="n">Structure</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+            <span class="s2">&quot;Surface generation requires a periodic 3D structure. &quot;</span>
+            <span class="s2">&quot;Isolated molecules are not supported.&quot;</span>
+        <span class="p">)</span>
+    
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">analyzer</span> <span class="o">=</span> <span class="n">SpacegroupAnalyzer</span><span class="p">(</span><span class="n">struct</span><span class="p">,</span> <span class="n">symprec</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
+        <span class="n">spacegroup</span> <span class="o">=</span> <span class="n">analyzer</span><span class="o">.</span><span class="n">get_space_group_symbol</span><span class="p">()</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s2">&quot;Could not determine the space group of the structure. &quot;</span>
+            <span class="s2">&quot;Make sure the structure is a well-defined crystal.&quot;</span>
+        <span class="p">)</span>
+    
+    <span class="c1"># 3. Vérifier que la maille n&#39;est pas trop distordue</span>
+    <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">c</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">lattice</span><span class="o">.</span><span class="n">abc</span>
+    <span class="k">if</span> <span class="nb">min</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">c</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">1.0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Lattice parameter too small (</span><span class="si">{</span><span class="nb">min</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">,</span><span class="n">c</span><span class="p">)</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> Å). &quot;</span>
+            <span class="s2">&quot;The structure may not be a valid crystal.&quot;</span>
+        <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">struct</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">rebuild_silicates</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">si_o_cutoff</span><span class="o">=</span><span class="mf">1.9</span><span class="p">,</span> <span class="n">oh_dist</span><span class="o">=</span><span class="mf">0.96</span><span class="p">,</span> <span class="n">si_o_dist</span><span class="o">=</span><span class="mf">1.6</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Rebuild the coordination of Si atoms with coordination &lt; 4 by adding silanol (OH) groups.</span>
+
+<span class="sd">    Uses MDAnalysis selection and distance calculation tools.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    u : MDAnalysis.Universe</span>
+<span class="sd">        The universe containing the system.</span>
+<span class="sd">    si_o_cutoff : float, optional</span>
+<span class="sd">        Cutoff radius to search for neighboring oxygens.</span>
+<span class="sd">    oh_dist : float, optional</span>
+<span class="sd">        Bond length of the added O-H group.</span>
+<span class="sd">    si_o_dist : float, optional</span>
+<span class="sd">        Bond length of the added Si-O group.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    list[dict]</span>
+<span class="sd">        A list of dictionaries containing the type and position of the new atoms.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">new_atoms_data</span> <span class="o">=</span> <span class="p">[]</span>
+    
+    <span class="c1"># 1. Select all silicon</span>
+    <span class="n">silicons</span> <span class="o">=</span> <span class="n">u</span><span class="o">.</span><span class="n">select_atoms</span><span class="p">(</span><span class="s2">&quot;type Si&quot;</span><span class="p">)</span>
+    
+    <span class="k">for</span> <span class="n">si</span> <span class="ow">in</span> <span class="n">silicons</span><span class="p">:</span>
+        <span class="c1"># 2. Count neighboring oxygens in the cutoff radius (using PBC)</span>
+        <span class="c1"># &#39;around&#39; is MDAnalysis&#39;s native neighborhood tool</span>
+        <span class="n">neighbors</span> <span class="o">=</span> <span class="n">u</span><span class="o">.</span><span class="n">select_atoms</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;type O and around </span><span class="si">{</span><span class="n">si_o_cutoff</span><span class="si">}</span><span class="s2"> index </span><span class="si">{</span><span class="n">si</span><span class="o">.</span><span class="n">index</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        
+        <span class="n">n_bonds</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">neighbors</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="n">n_bonds</span> <span class="o">&lt;</span> <span class="mi">4</span><span class="p">:</span>
+            <span class="n">missing</span> <span class="o">=</span> <span class="mi">4</span> <span class="o">-</span> <span class="n">n_bonds</span>
+            
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">missing</span><span class="p">):</span>
+                <span class="c1"># Calculation of a simple direction (towards the outside of the tetrahedron)</span>
+                <span class="c1"># Note: In a real case, we would calculate the vector opposite the barycenter</span>
+                <span class="n">direction</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+                <span class="n">direction</span> <span class="o">/=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">direction</span><span class="p">)</span>
+                
+                <span class="c1"># Position of the new Oxygen</span>
+                <span class="n">o_pos</span> <span class="o">=</span> <span class="n">si</span><span class="o">.</span><span class="n">position</span> <span class="o">+</span> <span class="p">(</span><span class="n">direction</span> <span class="o">*</span> <span class="n">si_o_dist</span><span class="p">)</span>
+                <span class="c1"># Position of the new Hydrogen</span>
+                <span class="n">h_pos</span> <span class="o">=</span> <span class="n">o_pos</span> <span class="o">+</span> <span class="p">(</span><span class="n">direction</span> <span class="o">*</span> <span class="n">oh_dist</span><span class="p">)</span>
+                
+                <span class="n">new_atoms_data</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;O&#39;</span><span class="p">,</span> <span class="s1">&#39;pos&#39;</span><span class="p">:</span> <span class="n">o_pos</span><span class="p">})</span>
+                <span class="n">new_atoms_data</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;H&#39;</span><span class="p">,</span> <span class="s1">&#39;pos&#39;</span><span class="p">:</span> <span class="n">h_pos</span><span class="p">})</span>
+                
+    <span class="k">return</span> <span class="n">new_atoms_data</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_build_atomic_system_from_coords</span><span class="p">(</span><span class="n">positions</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> 
+                                      <span class="n">types</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> 
+                                      <span class="n">box</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AtomicSystem</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Builds a basic AtomicSystem object directly from atomic coordinates and atom types.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    positions : np.ndarray</span>
+<span class="sd">        Array of shape (N, 3) containing atomic coordinates (x, y, z).</span>
+<span class="sd">    types : list[str]</span>
+<span class="sd">        List of strings specifying the type/name of each atom.</span>
+<span class="sd">    box : np.ndarray, optional</span>
+<span class="sd">        Simulation box parameters [a, b, c, alpha, beta, gamma].</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    AtomicSystem</span>
+<span class="sd">        The constructed AtomicSystem instance.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+    
+    <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span>
+        <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="n">types</span><span class="p">,</span>
+        <span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="n">positions</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span>
+        <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="n">positions</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span>
+        <span class="s1">&#39;z&#39;</span><span class="p">:</span> <span class="n">positions</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]</span>
+    <span class="p">})</span>
+    
+    <span class="n">system</span> <span class="o">=</span> <span class="n">AtomicSystem</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">box</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">system</span><span class="o">.</span><span class="n">set_box</span><span class="p">(</span><span class="n">box</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">system</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_cap_broken_framework_bonds</span><span class="p">(</span><span class="n">u</span><span class="p">:</span> <span class="n">mda</span><span class="o">.</span><span class="n">Universe</span><span class="p">,</span>
+                                 <span class="n">framework_bonds</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]],</span>
+                                 <span class="n">si_al_types</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;Si&quot;</span><span class="p">,</span> <span class="s2">&quot;Al&quot;</span><span class="p">),</span>
+                                 <span class="n">o_bond_length</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.75</span><span class="p">,</span>
+                                 <span class="n">oh_bond_length</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    For each broken Si/Al-O bond (si_idx, o_idx), on the ALREADY MOVED</span>
+<span class="sd">    universe u:</span>
+<span class="sd">      -add one H on the O side (-&gt; existing O becomes a silanol)</span>
+<span class="sd">      -add one O+H on the Si/Al side (-&gt; new silanol replacing the lost O)</span>
+<span class="sd">    Returns arrays of new positions and new (generic) type labels, ready</span>
+<span class="sd">    to be merged into the final system.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">new_pos</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">new_types</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">framework_bonds</span><span class="p">:</span>
+        <span class="n">atom_a</span><span class="p">,</span> <span class="n">atom_b</span> <span class="o">=</span> <span class="n">u</span><span class="o">.</span><span class="n">atoms</span><span class="p">[</span><span class="n">a</span><span class="p">],</span> <span class="n">u</span><span class="o">.</span><span class="n">atoms</span><span class="p">[</span><span class="n">b</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">atom_a</span><span class="o">.</span><span class="n">type</span> <span class="ow">in</span> <span class="n">si_al_types</span><span class="p">:</span>
+            <span class="n">si_atom</span><span class="p">,</span> <span class="n">o_atom</span> <span class="o">=</span> <span class="n">atom_a</span><span class="p">,</span> <span class="n">atom_b</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">si_atom</span><span class="p">,</span> <span class="n">o_atom</span> <span class="o">=</span> <span class="n">atom_b</span><span class="p">,</span> <span class="n">atom_a</span>
+
+        <span class="c1"># ---Cap the surviving bridging O with an H ---</span>
+        <span class="c1"># place the H roughly along the (now vacant) Si-&gt;O direction,</span>
+        <span class="c1"># extended past O</span>
+        <span class="n">direction</span> <span class="o">=</span> <span class="n">o_atom</span><span class="o">.</span><span class="n">position</span> <span class="o">-</span> <span class="n">si_atom</span><span class="o">.</span><span class="n">position</span>
+        <span class="n">direction</span> <span class="o">/=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">direction</span><span class="p">)</span>
+        <span class="n">h_on_o</span> <span class="o">=</span> <span class="n">o_atom</span><span class="o">.</span><span class="n">position</span> <span class="o">+</span> <span class="n">direction</span> <span class="o">*</span> <span class="n">oh_bond_length</span>
+        <span class="n">new_pos</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">h_on_o</span><span class="p">)</span>
+        <span class="n">new_types</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;H&quot;</span><span class="p">)</span>  <span class="c1"># bonded to the existing O -&gt; becomes Osih</span>
+
+        <span class="c1"># ---Cap the under-coordinated Si with a new O-H ---</span>
+        <span class="n">si_neighbors</span> <span class="o">=</span> <span class="n">u</span><span class="o">.</span><span class="n">select_atoms</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;around 2.0 index </span><span class="si">{</span><span class="n">si_atom</span><span class="o">.</span><span class="n">index</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">si_neighbors</span> <span class="o">=</span> <span class="n">si_neighbors</span><span class="o">.</span><span class="n">select_atoms</span><span class="p">(</span><span class="s2">&quot;type O*&quot;</span><span class="p">)</span>  <span class="c1"># remaining O&#39;s</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">si_neighbors</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">to_neighbors</span> <span class="o">=</span> <span class="n">si_neighbors</span><span class="o">.</span><span class="n">positions</span> <span class="o">-</span> <span class="n">si_atom</span><span class="o">.</span><span class="n">position</span>
+            <span class="n">to_neighbors</span> <span class="o">/=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">to_neighbors</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">new_o_dir</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">to_neighbors</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+            <span class="n">new_o_dir</span> <span class="o">/=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">new_o_dir</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">new_o_dir</span> <span class="o">=</span> <span class="o">-</span><span class="n">direction</span>  <span class="c1"># fallback: opposite of the broken bond</span>
+
+        <span class="n">new_o_pos</span> <span class="o">=</span> <span class="n">si_atom</span><span class="o">.</span><span class="n">position</span> <span class="o">+</span> <span class="n">new_o_dir</span> <span class="o">*</span> <span class="n">o_bond_length</span>
+        <span class="n">new_h_pos</span> <span class="o">=</span> <span class="n">new_o_pos</span> <span class="o">+</span> <span class="n">new_o_dir</span> <span class="o">*</span> <span class="n">oh_bond_length</span>
+        <span class="n">new_pos</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">new_o_pos</span><span class="p">,</span> <span class="n">new_h_pos</span><span class="p">])</span>
+        <span class="n">new_types</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="s2">&quot;Osih&quot;</span><span class="p">,</span> <span class="s2">&quot;Hsi&quot;</span><span class="p">])</span>
+
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">new_pos</span><span class="p">),</span> <span class="n">new_types</span>
+
+
+<div class="viewcode-block" id="build_surfaces">
+<a class="viewcode-back" href="../../../api/generated/cemd.build.build_surfaces.html#cemd.build.build_surfaces">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">build_surfaces</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">AtomicSystem</span><span class="p">,</span> 
+                 <span class="n">miller_indices</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> 
+                 <span class="n">min_slab_size</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="mf">25.0</span><span class="p">,</span> 
+                 <span class="n">min_vacuum_size</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="mf">15.0</span>
+                 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="n">AtomicSystem</span><span class="p">],</span>
+                            <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
+                            <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
+                            <span class="nb">int</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate crystalline surfaces from a given structure.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    data : AtomicSystem</span>
+<span class="sd">        The initial structure.</span>
+<span class="sd">    miller_indices : Sequence[int]</span>
+<span class="sd">        Miller indices for the surface cut.</span>
+<span class="sd">    min_slab_size : float, optional</span>
+<span class="sd">        Minimum thickness of the slab.</span>
+<span class="sd">    min_vacuum_size : float, optional</span>
+<span class="sd">        Minimum size of the added vacuum.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    slabs_list_as : list[AtomicSystem]</span>
+<span class="sd">        List of generated surfaces as AtomicSystem objects.</span>
+<span class="sd">    shift_list : list[float]</span>
+<span class="sd">        Shifts used for surface generation.</span>
+<span class="sd">    dipole_list : list[float]</span>
+<span class="sd">        Calculated dipoles for each surface.</span>
+<span class="sd">    actual_broken : int</span>
+<span class="sd">        Number of bonds broken during generation.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="kn">from</span><span class="w"> </span><span class="nn">..core.atomic_system</span><span class="w"> </span><span class="kn">import</span> <span class="n">AtomicSystem</span>
+
+    <span class="n">struct</span> <span class="o">=</span> <span class="n">_validate_for_surface</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        
+    <span class="n">struct</span><span class="o">.</span><span class="n">add_oxidation_state_by_guess</span><span class="p">()</span>
+    
+    <span class="n">slabgen</span> <span class="o">=</span> <span class="n">SlabGenerator</span><span class="p">(</span><span class="n">struct</span><span class="p">,</span> <span class="n">miller_indices</span><span class="p">,</span> <span class="n">min_slab_size</span><span class="p">,</span> <span class="n">min_vacuum_size</span><span class="p">)</span>
+
+    <span class="n">bonds_dic</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="p">(</span><span class="s1">&#39;Al4+&#39;</span><span class="p">,</span> <span class="s1">&#39;O2-&#39;</span><span class="p">)</span> <span class="p">:</span> <span class="mf">1.8</span><span class="p">,</span>
+        <span class="p">(</span><span class="s1">&#39;Al&#39;</span><span class="p">,</span> <span class="s1">&#39;O&#39;</span><span class="p">):</span> <span class="mf">1.8</span><span class="p">,</span>
+        <span class="p">(</span><span class="s1">&#39;Si4+&#39;</span><span class="p">,</span> <span class="s1">&#39;O2-&#39;</span><span class="p">)</span> <span class="p">:</span> <span class="mf">1.8</span><span class="p">,</span>
+        <span class="p">(</span><span class="s1">&#39;Si&#39;</span><span class="p">,</span> <span class="s1">&#39;O&#39;</span><span class="p">)</span> <span class="p">:</span> <span class="mf">1.8</span><span class="p">,</span>
+        <span class="p">(</span><span class="s1">&#39;C4+&#39;</span><span class="p">,</span> <span class="s1">&#39;O2-&#39;</span><span class="p">)</span> <span class="p">:</span> <span class="mf">1.4</span><span class="p">,</span>
+        <span class="p">(</span><span class="s1">&#39;C&#39;</span><span class="p">,</span> <span class="s1">&#39;O&#39;</span><span class="p">)</span> <span class="p">:</span> <span class="mf">1.4</span><span class="p">,</span> 
+        <span class="p">(</span><span class="s1">&#39;H+&#39;</span><span class="p">,</span> <span class="s1">&#39;O2-&#39;</span><span class="p">)</span> <span class="p">:</span> <span class="mf">1.1</span><span class="p">,</span>
+        <span class="p">(</span><span class="s1">&#39;H&#39;</span><span class="p">,</span> <span class="s1">&#39;O&#39;</span><span class="p">)</span> <span class="p">:</span> <span class="mf">1.1</span>
+    <span class="p">}</span>
+
+    <span class="c1"># Finding the minimum number of broken links</span>
+    <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">slabs_list_pmg</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">while</span> <span class="nb">len</span><span class="p">(</span><span class="n">slabs_list_pmg</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="mi">20</span><span class="p">:</span>
+        <span class="n">slabs_list_pmg</span> <span class="o">=</span> <span class="n">slabgen</span><span class="o">.</span><span class="n">get_slabs</span><span class="p">(</span><span class="n">bonds</span><span class="o">=</span><span class="n">bonds_dic</span><span class="p">,</span> 
+                                       <span class="n">max_broken_bonds</span><span class="o">=</span><span class="n">i</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">slabs_list_pmg</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">actual_broken</span> <span class="o">=</span> <span class="n">i</span>
+            <span class="k">break</span>
+        <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+    
+    <span class="n">dipole_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">shift_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">slab</span> <span class="ow">in</span> <span class="n">slabs_list_pmg</span><span class="p">:</span>
+        <span class="n">dipole_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">slab</span><span class="o">.</span><span class="n">dipole</span><span class="p">[</span><span class="mi">2</span><span class="p">]))</span>
+        <span class="n">shift_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">slab</span><span class="o">.</span><span class="n">shift</span><span class="p">)</span>
+
+    <span class="n">slabs_list_as</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">raw_slab</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">slabs_list_pmg</span><span class="p">):</span>
+        <span class="n">analyzer</span> <span class="o">=</span> <span class="n">SpacegroupAnalyzer</span><span class="p">(</span><span class="n">raw_slab</span><span class="p">)</span>
+        <span class="n">slab</span> <span class="o">=</span> <span class="n">analyzer</span><span class="o">.</span><span class="n">get_refined_structure</span><span class="p">()</span>
+        <span class="n">slabs_list_as</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">AtomicSystem</span><span class="o">.</span><span class="n">from_pmg</span><span class="p">(</span><span class="n">slab</span><span class="p">))</span>
+    
+    <span class="k">return</span> <span class="n">slabs_list_as</span><span class="p">,</span> <span class="n">shift_list</span><span class="p">,</span> <span class="n">dipole_list</span><span class="p">,</span> <span class="n">actual_broken</span></div>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">explore_surfaces</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">AtomicSystem</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AtomicSystem</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Interactive surface explorer.&quot;&quot;&quot;</span>
+
+    <span class="n">_</span> <span class="o">=</span> <span class="n">_validate_for_surface</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    
+    <span class="c1"># Miller indices input</span>
+    <span class="n">miller_str</span> <span class="o">=</span> <span class="n">questionary</span><span class="o">.</span><span class="n">text</span><span class="p">(</span>
+        <span class="s2">&quot;Enter Miller indices (e.g. 1 0 0):&quot;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="s2">&quot;1 0 0&quot;</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">ask</span><span class="p">()</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">miller_str</span><span class="p">:</span> <span class="k">return</span> <span class="kc">None</span>
+    <span class="n">miller</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">miller_str</span><span class="o">.</span><span class="n">split</span><span class="p">()]</span>
+
+    <span class="n">min_slab</span> <span class="o">=</span> <span class="n">questionary</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="s2">&quot;Min slab size (Å):&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s2">&quot;25.0&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">ask</span><span class="p">()</span>
+    <span class="n">min_vac</span>  <span class="o">=</span> <span class="n">questionary</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="s2">&quot;Min vacuum size (Å):&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s2">&quot;15.0&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">ask</span><span class="p">()</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Generating (</span><span class="si">{</span><span class="n">miller</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}{</span><span class="n">miller</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}{</span><span class="n">miller</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="si">}</span><span class="s2">) surfaces...&quot;</span><span class="p">)</span>
+    <span class="n">slabs</span><span class="p">,</span> <span class="n">shifts</span><span class="p">,</span> <span class="n">dipoles</span><span class="p">,</span> <span class="n">n_broken</span> <span class="o">=</span> <span class="n">build_surfaces</span><span class="p">(</span>
+        <span class="n">data</span><span class="p">,</span> <span class="n">miller</span><span class="p">,</span>
+        <span class="n">min_slab_size</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">min_slab</span><span class="p">),</span>
+        <span class="n">min_vacuum_size</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">min_vac</span><span class="p">)</span>
+    <span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">slabs</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;No surfaces generated.&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="c1"># Format display</span>
+    <span class="n">HEADER_FORMAT</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{cursor}</span><span class="s2"> </span><span class="si">{idx:&gt;4}</span><span class="s2"> | </span><span class="si">{shift:&gt;10}</span><span class="s2"> | </span><span class="si">{dipole:&gt;12}</span><span class="s2"> | </span><span class="si">{natoms:&gt;8}</span><span class="s2">&quot;</span>
+    <span class="n">ROW_FORMAT</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{cursor}</span><span class="s2"> </span><span class="si">{idx:&gt;4}</span><span class="s2"> | </span><span class="si">{shift:&gt;10.4f}</span><span class="s2"> | </span><span class="si">{dipole:&gt;12.4f}</span><span class="s2"> | </span><span class="si">{natoms:&gt;8}</span><span class="s2">&quot;</span>
+    <span class="n">index</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">render</span><span class="p">():</span>
+        <span class="n">header</span> <span class="o">=</span> <span class="n">HEADER_FORMAT</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="n">cursor</span><span class="o">=</span><span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="n">idx</span><span class="o">=</span><span class="s2">&quot;#&quot;</span><span class="p">,</span> <span class="n">shift</span><span class="o">=</span><span class="s2">&quot;Shift&quot;</span><span class="p">,</span> 
+            <span class="n">dipole</span><span class="o">=</span><span class="s2">&quot;Dipole (D)&quot;</span><span class="p">,</span> <span class="n">natoms</span><span class="o">=</span><span class="s2">&quot;N atoms&quot;</span>
+        <span class="p">)</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="sa">f</span><span class="s2">&quot;Generated </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">slabs</span><span class="p">)</span><span class="si">}</span><span class="s2"> surfaces — </span><span class="si">{</span><span class="n">n_broken</span><span class="si">}</span><span class="s2"> broken bonds&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;↑↓ Move   [Enter] Select   [q] Quit&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;&quot;</span><span class="p">,</span>
+            <span class="n">header</span><span class="p">,</span> <span class="s2">&quot;-&quot;</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">header</span><span class="p">)</span>
+        <span class="p">]</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">slab</span><span class="p">,</span> <span class="n">shift</span><span class="p">,</span> <span class="n">dipole</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">slabs</span><span class="p">,</span> <span class="n">shifts</span><span class="p">,</span> <span class="n">dipoles</span><span class="p">)):</span>
+            <span class="n">cursor</span> <span class="o">=</span> <span class="s2">&quot;➜&quot;</span> <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="n">index</span> <span class="k">else</span> <span class="s2">&quot; &quot;</span>
+            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ROW_FORMAT</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="n">cursor</span><span class="o">=</span><span class="n">cursor</span><span class="p">,</span>
+                <span class="n">idx</span><span class="o">=</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span>
+                <span class="n">shift</span><span class="o">=</span><span class="n">shift</span><span class="p">,</span>
+                <span class="n">dipole</span><span class="o">=</span><span class="n">dipole</span><span class="p">,</span>
+                <span class="n">natoms</span><span class="o">=</span><span class="n">slab</span><span class="o">.</span><span class="n">num_atoms</span>
+            <span class="p">))</span>
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
+
+    <span class="c1"># Même pattern que explore_pubchem</span>
+    <span class="n">selected_idx</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">kb</span> <span class="o">=</span> <span class="n">KeyBindings</span><span class="p">()</span>
+
+    <span class="nd">@kb</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">&quot;up&quot;</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_</span><span class="p">(</span><span class="n">e</span><span class="p">):</span>
+        <span class="k">nonlocal</span> <span class="n">index</span>
+        <span class="k">if</span> <span class="n">index</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span> <span class="n">index</span> <span class="o">-=</span> <span class="mi">1</span>
+        <span class="n">e</span><span class="o">.</span><span class="n">app</span><span class="o">.</span><span class="n">invalidate</span><span class="p">()</span>
+
+    <span class="nd">@kb</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">&quot;down&quot;</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_</span><span class="p">(</span><span class="n">e</span><span class="p">):</span>
+        <span class="k">nonlocal</span> <span class="n">index</span>
+        <span class="k">if</span> <span class="n">index</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">slabs</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span> <span class="n">index</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="n">e</span><span class="o">.</span><span class="n">app</span><span class="o">.</span><span class="n">invalidate</span><span class="p">()</span>
+
+    <span class="nd">@kb</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">&quot;enter&quot;</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_</span><span class="p">(</span><span class="n">e</span><span class="p">):</span>
+        <span class="n">selected_idx</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">index</span>
+        <span class="n">e</span><span class="o">.</span><span class="n">app</span><span class="o">.</span><span class="n">exit</span><span class="p">()</span>
+
+    <span class="nd">@kb</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">&quot;q&quot;</span><span class="p">)</span>
+    <span class="nd">@kb</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">&quot;escape&quot;</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_</span><span class="p">(</span><span class="n">e</span><span class="p">):</span> <span class="n">e</span><span class="o">.</span><span class="n">app</span><span class="o">.</span><span class="n">exit</span><span class="p">()</span>
+
+    <span class="n">window</span> <span class="o">=</span> <span class="n">Window</span><span class="p">(</span>
+        <span class="n">content</span><span class="o">=</span><span class="n">FormattedTextControl</span><span class="p">(</span><span class="n">render</span><span class="p">),</span>
+        <span class="n">always_hide_cursor</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">Application</span><span class="p">(</span><span class="n">layout</span><span class="o">=</span><span class="n">Layout</span><span class="p">(</span><span class="n">HSplit</span><span class="p">([</span><span class="n">window</span><span class="p">])),</span> <span class="n">key_bindings</span><span class="o">=</span><span class="n">kb</span><span class="p">)</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="n">slabs</span><span class="p">[</span><span class="n">selected_idx</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+
+<div class="viewcode-block" id="build_solution">
+<a class="viewcode-back" href="../../../api/generated/cemd.build.build_solution.html#cemd.build.build_solution">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">build_solution</span><span class="p">(</span><span class="n">box</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="p">[</span><span class="mi">30</span><span class="p">,</span><span class="mi">30</span><span class="p">,</span><span class="mi">30</span><span class="p">],</span> 
+                  <span class="n">density</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> 
+                  <span class="n">solutes_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">:</span> <span class="nb">int</span><span class="p">]</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                  <span class="n">structures_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">:</span> <span class="n">AtomicSystem</span><span class="p">]</span><span class="o">=</span><span class="kc">None</span>
+                  <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AtomicSystem</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generate an AtomicSystem representing a liquid solution using Packmol.</span>
+
+<span class="sd">    This function automatically determines the number of solvent molecules (H2O) required to reach the target density, accounting for the mass of all </span>
+<span class="sd">    provided solutes.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    box</span>
+<span class="sd">        Dimensions of the simulation box in Angstroms [a, b, c]. </span>
+<span class="sd">        Defaults to [30, 30, 30].</span>
+<span class="sd">    density</span>
+<span class="sd">        Target density of the solution in g/cm³. Defaults to 1.0.</span>
+<span class="sd">    solutes_dict</span>
+<span class="sd">        Dictionary mapping solute names (keys) to their respective counts (values). </span>
+<span class="sd">        Keys must match either known monatomic ions or entries in structures_dict.</span>
+<span class="sd">    structures_dict</span>
+<span class="sd">        Dictionary mapping solute names to their corresponding AtomicSystem objects for complex molecules or custom structures.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    AtomicSystem</span>
+<span class="sd">        The final system geometry generated by Packmol, with configured </span>
+<span class="sd">        box parameters and topology.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        If a solute key is neither a known ion nor found in structures_dict, </span>
+<span class="sd">        or if the total mass of solutes exceeds the total mass allowed by </span>
+<span class="sd">        the target density and box volume.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    The function currently assumes water (H2O) as the default solvent. </span>
+<span class="sd">    Packmol constraints are applied using a 5% safety margin on the box dimensions.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">require_program</span><span class="p">(</span><span class="s1">&#39;packmol&#39;</span><span class="p">)</span>
+
+    <span class="n">boxa</span><span class="p">,</span> <span class="n">boxb</span><span class="p">,</span> <span class="n">boxc</span> <span class="o">=</span> <span class="n">box</span><span class="p">[:</span><span class="mi">3</span><span class="p">]</span>
+    <span class="n">vol</span> <span class="o">=</span> <span class="n">boxa</span> <span class="o">*</span> <span class="n">boxb</span> <span class="o">*</span> <span class="n">boxc</span>
+
+    <span class="n">mass_solutes_total_uma</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">if</span> <span class="n">solutes_dict</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">num</span> <span class="ow">in</span> <span class="n">solutes_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">structures_dict</span> <span class="ow">and</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">structures_dict</span><span class="p">:</span>
+                <span class="n">mass_solutes_total_uma</span> <span class="o">+=</span> <span class="n">num</span> <span class="o">*</span> <span class="n">structures_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">total_mass</span>
+            <span class="k">elif</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">MASSES_DICT</span><span class="p">:</span>
+                <span class="n">mass_solutes_total_uma</span> <span class="o">+=</span> <span class="n">num</span> <span class="o">*</span> <span class="n">MASSES_DICT</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The structure &#39;</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">&#39; is neither a known ion nor an open tab.&quot;</span><span class="p">)</span>
+            
+    <span class="c1"># calculate the target total mass</span>
+    <span class="n">mass_total_target_g</span> <span class="o">=</span> <span class="n">density</span> <span class="o">*</span> <span class="n">vol</span> <span class="o">*</span> <span class="mf">1e-24</span> 
+    
+    <span class="c1"># Convert mass of ions to grams</span>
+    <span class="n">mass_ions_g</span> <span class="o">=</span> <span class="p">(</span><span class="n">mass_solutes_total_uma</span> <span class="o">/</span> <span class="n">cst</span><span class="o">.</span><span class="n">Avogadro</span><span class="p">)</span>
+    
+    <span class="c1"># Deduce the remaining mass of water</span>
+    <span class="n">mass_water_g</span> <span class="o">=</span> <span class="n">mass_total_target_g</span> <span class="o">-</span> <span class="n">mass_ions_g</span>
+    
+    <span class="k">if</span> <span class="n">mass_water_g</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The density or volume is too low to hold all these ions!&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Number of water molecules</span>
+    <span class="n">water_molarmass</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">MASSES_DICT</span><span class="p">[</span><span class="s1">&#39;H&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">MASSES_DICT</span><span class="p">[</span><span class="s1">&#39;O&#39;</span><span class="p">]</span>
+    <span class="n">num_water</span> <span class="o">=</span> <span class="nb">round</span><span class="p">((</span><span class="n">mass_water_g</span> <span class="o">*</span> <span class="n">cst</span><span class="o">.</span><span class="n">Avogadro</span><span class="p">)</span> <span class="o">/</span> <span class="n">water_molarmass</span><span class="p">)</span>
+
+    <span class="k">with</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">TemporaryDirectory</span><span class="p">(</span><span class="nb">dir</span><span class="o">=</span><span class="s1">&#39;.&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">tmp</span><span class="p">:</span>
+        <span class="c1"># write packmol input</span>
+        <span class="n">structures</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="n">h2o_path</span> <span class="o">=</span> <span class="n">get_structure_path</span><span class="p">(</span><span class="s1">&#39;H2O&#39;</span><span class="p">,</span> <span class="n">tmp</span><span class="p">)</span>
+        <span class="n">structures</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">add_packmol_structure</span><span class="p">(</span>
+            <span class="n">h2o_path</span><span class="p">,</span> <span class="n">num_water</span><span class="p">,</span> 
+             <span class="p">(</span><span class="sa">f</span><span class="s2">&quot;inside box 0 0 0 </span><span class="si">{</span><span class="n">boxa</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">0.95</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">boxb</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">0.95</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2"> &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">boxc</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">0.95</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)))</span>
+
+        <span class="k">if</span> <span class="n">solutes_dict</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">num</span> <span class="ow">in</span> <span class="n">solutes_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">structures_dict</span> <span class="ow">and</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">structures_dict</span><span class="p">:</span>
+                    <span class="n">safe_path</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;custom_</span><span class="si">{</span><span class="nb">id</span><span class="p">(</span><span class="n">structures_dict</span><span class="p">[</span><span class="n">key</span><span class="p">])</span><span class="si">}</span><span class="s2">.pdb&quot;</span>
+                    <span class="n">struct_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmp</span><span class="p">,</span> <span class="n">safe_path</span><span class="p">)</span>
+                    <span class="n">structures_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">struct_path</span><span class="p">)</span>
+
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">struct_path</span> <span class="o">=</span> <span class="n">get_structure_path</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">tmp</span><span class="p">)</span>
+
+                <span class="n">struct_path</span> <span class="o">=</span> <span class="n">_sanitize_path</span><span class="p">(</span><span class="n">struct_path</span><span class="p">)</span>
+                <span class="n">structures</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">add_packmol_structure</span><span class="p">(</span>
+                    <span class="n">struct_path</span><span class="p">,</span> <span class="n">num</span><span class="p">,</span>
+                        <span class="s2">&quot;center&quot;</span><span class="p">,</span>
+                        <span class="p">(</span><span class="sa">f</span><span class="s2">&quot;inside box 0 0 0 </span><span class="si">{</span><span class="n">boxa</span><span class="o">*</span><span class="mf">0.95</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">boxb</span><span class="o">*</span><span class="mf">0.95</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2"> &quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">boxc</span><span class="o">*</span><span class="mf">0.95</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)))</span>
+
+        <span class="n">data</span> <span class="o">=</span> <span class="n">run_packmol</span><span class="p">(</span><span class="n">structures</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">solutes_dict</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">num</span> <span class="ow">in</span> <span class="n">solutes_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">num</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">box</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="n">box</span> <span class="o">=</span> <span class="n">box</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+
+    <span class="n">data</span><span class="o">.</span><span class="n">set_box</span><span class="p">(</span><span class="n">box</span> <span class="o">+</span> <span class="p">[</span><span class="mi">90</span><span class="p">,</span> <span class="mi">90</span><span class="p">,</span> <span class="mi">90</span><span class="p">])</span>
+
+    <span class="k">return</span> <span class="n">data</span></div>
+
+
+<div class="viewcode-block" id="build_glass">
+<a class="viewcode-back" href="../../../api/generated/cemd.build.build_glass.html#cemd.build.build_glass">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">build_glass</span><span class="p">(</span><span class="n">box</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> 
+               <span class="n">density</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> 
+               <span class="n">stoichiometry_dic</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">AtomicSystem</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create an atomic system of glass from a composition of oxides or molecules.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    box : Sequence[float] or np.ndarray</span>
+<span class="sd">        Box dimensions.</span>
+<span class="sd">    density : float</span>
+<span class="sd">        Target density in g/cm³.</span>
+<span class="sd">    stoichiometry_dic : dict[str, float]</span>
+<span class="sd">        Dictionary mapping formula strings to their coefficients.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    AtomicSystem</span>
+<span class="sd">        The generated glass structure.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">require_program</span><span class="p">(</span><span class="s1">&#39;packmol&#39;</span><span class="p">)</span>
+    
+    <span class="n">boxa</span><span class="p">,</span> <span class="n">boxb</span><span class="p">,</span> <span class="n">boxc</span> <span class="o">=</span> <span class="n">box</span>
+    <span class="n">vol</span> <span class="o">=</span> <span class="n">boxa</span> <span class="o">*</span> <span class="n">boxb</span> <span class="o">*</span> <span class="n">boxc</span>
+
+    <span class="n">total_pattern_mass</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="n">atomic_composition</span> <span class="o">=</span> <span class="p">{}</span> 
+
+    <span class="k">for</span> <span class="n">formula</span><span class="p">,</span> <span class="n">coeff</span> <span class="ow">in</span> <span class="n">stoichiometry_dic</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+
+        <span class="n">pdb_molecule</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">STRUCTURES_DIR</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">formula</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="si">}</span><span class="s2">.pdb&quot;</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">pdb_molecule</span><span class="p">):</span>
+            <span class="c1"># calculate the mass of the molecule via Pymatgen for the density</span>
+            <span class="n">comp</span> <span class="o">=</span> <span class="n">Composition</span><span class="p">(</span><span class="n">formula</span><span class="p">)</span>
+            <span class="n">m_part</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">MASSES_DICT</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">el</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">*</span> <span class="n">amt</span> <span class="k">for</span> <span class="n">el</span><span class="p">,</span> <span class="n">amt</span> <span class="ow">in</span> <span class="n">comp</span><span class="o">.</span><span class="n">get_el_amt_dict</span><span class="p">()</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
+            
+            <span class="n">atomic_composition</span><span class="p">[</span><span class="n">formula</span><span class="p">]</span> <span class="o">=</span> <span class="n">atomic_composition</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">formula</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="n">coeff</span>
+            <span class="n">total_pattern_mass</span> <span class="o">+=</span> <span class="n">m_part</span> <span class="o">*</span> <span class="n">coeff</span>
+            
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># No global PDB, we decompose (e.g.: SiO2, Al2O3)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">breakdown</span> <span class="o">=</span> <span class="n">Composition</span><span class="p">(</span><span class="n">formula</span><span class="p">)</span><span class="o">.</span><span class="n">as_dict</span><span class="p">()</span>
+                <span class="n">m_part</span> <span class="o">=</span> <span class="mf">0.0</span>
+                <span class="k">for</span> <span class="n">element</span><span class="p">,</span> <span class="n">amount</span> <span class="ow">in</span> <span class="n">breakdown</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                    <span class="k">if</span> <span class="n">element</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">MASSES_DICT</span><span class="p">:</span>
+                       <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Missing mass for: </span><span class="si">{</span><span class="n">element</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    
+                    <span class="n">m_part</span> <span class="o">+=</span> <span class="n">amount</span> <span class="o">*</span> <span class="n">MASSES_DICT</span><span class="p">[</span><span class="n">element</span><span class="p">]</span>
+
+                    <span class="n">atomic_composition</span><span class="p">[</span><span class="n">element</span><span class="p">]</span> <span class="o">=</span> <span class="n">atomic_composition</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">amount</span> <span class="o">*</span> <span class="n">coeff</span><span class="p">)</span>
+                
+                <span class="n">total_pattern_mass</span> <span class="o">+=</span> <span class="n">m_part</span> <span class="o">*</span> <span class="n">coeff</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Component &#39;</span><span class="si">{</span><span class="n">formula</span><span class="si">}</span><span class="s2">&#39; not found (no PDB or valid formula)&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Calculation of the number of units for the target density</span>
+    <span class="c1"># n = (rho *V *Na) /M</span>
+    <span class="n">num_units</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">((</span><span class="n">density</span> <span class="o">*</span> <span class="n">vol</span> <span class="o">*</span> <span class="mf">1e-24</span> <span class="o">*</span> <span class="n">cst</span><span class="o">.</span><span class="n">Avogadro</span><span class="p">)</span> <span class="o">/</span> <span class="n">total_pattern_mass</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">num_units</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="n">num_units</span> <span class="o">=</span> <span class="mi">1</span>
+
+    <span class="n">rho_real</span> <span class="o">=</span> <span class="p">(</span><span class="n">num_units</span> <span class="o">*</span> <span class="n">total_pattern_mass</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">cst</span><span class="o">.</span><span class="n">Avogadro</span> <span class="o">*</span> <span class="n">vol</span> <span class="o">*</span> <span class="mf">1e-24</span><span class="p">)</span>
+    <span class="n">err</span> <span class="o">=</span> <span class="p">(</span><span class="n">rho_real</span> <span class="o">-</span> <span class="n">density</span><span class="p">)</span> <span class="o">/</span> <span class="n">density</span>
+
+    <span class="c1"># Calling Packmol via temporary directory</span>
+    <span class="k">with</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">TemporaryDirectory</span><span class="p">(</span><span class="nb">dir</span><span class="o">=</span><span class="s1">&#39;.&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">tmp</span><span class="p">:</span>
+
+        <span class="c1"># Packmol config</span>
+        <span class="n">structures</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">comp</span><span class="p">,</span> <span class="n">coeff_in_motif</span> <span class="ow">in</span> <span class="n">atomic_composition</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">count</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">coeff_in_motif</span> <span class="o">*</span> <span class="n">num_units</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">count</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span> <span class="k">continue</span>
+            
+            <span class="n">path2structure</span> <span class="o">=</span> <span class="n">get_structure_path</span><span class="p">(</span><span class="n">comp</span><span class="p">,</span> <span class="n">tmp</span><span class="p">)</span>
+            
+            <span class="n">structures</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">add_packmol_structure</span><span class="p">(</span>
+                <span class="n">path2structure</span><span class="p">,</span> <span class="n">count</span><span class="p">,</span>
+                <span class="s2">&quot;center&quot;</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s2">&quot;inside box 1 1 1 </span><span class="si">{</span><span class="n">boxa</span><span class="o">-</span><span class="mi">1</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">boxb</span><span class="o">-</span><span class="mi">1</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">boxc</span><span class="o">-</span><span class="mi">1</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="p">))</span>
+
+        <span class="n">data</span> <span class="o">=</span> <span class="n">run_packmol</span><span class="p">(</span><span class="n">structures</span><span class="p">)</span>
+        
+    <span class="c1"># Finalization</span>
+    <span class="n">data</span><span class="o">.</span><span class="n">set_box</span><span class="p">(</span><span class="n">box</span> <span class="o">+</span> <span class="p">[</span><span class="mi">90</span><span class="p">,</span> <span class="mi">90</span><span class="p">,</span> <span class="mi">90</span><span class="p">])</span>
+
+    <span class="k">return</span> <span class="n">data</span></div>
+
+
+<div class="viewcode-block" id="add_droplet">
+<a class="viewcode-back" href="../../../api/generated/cemd.build.add_droplet.html#cemd.build.add_droplet">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">add_droplet</span><span class="p">(</span><span class="n">solid_system</span><span class="p">:</span> <span class="n">AtomicSystem</span><span class="p">,</span> 
+                <span class="n">radius</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> 
+                <span class="n">density</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
+                <span class="n">distance</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">2.0</span><span class="p">,</span>
+                <span class="n">solutes_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> 
+                <span class="n">structures_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">AtomicSystem</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="n">vacuum</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">10.0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AtomicSystem</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Add a hemispherical liquid droplet onto a solid surface.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    solid_system : AtomicSystem</span>
+<span class="sd">        The substrate system.</span>
+<span class="sd">    radius : float</span>
+<span class="sd">        Radius of the hemispherical droplet.</span>
+<span class="sd">    density : float, optional</span>
+<span class="sd">        Target liquid density.</span>
+<span class="sd">    distance : float, optional</span>
+<span class="sd">        Distance between the droplet and the surface.</span>
+<span class="sd">    solutes_dict : dict, optional</span>
+<span class="sd">        Dictionary of solutes in the droplet.</span>
+<span class="sd">    structures_dict : dict, optional</span>
+<span class="sd">        Dictionary of custom structures for solutes.</span>
+<span class="sd">    vacuum : float, optional</span>
+<span class="sd">        Vacuum space added to the system.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    AtomicSystem</span>
+<span class="sd">        The system with the added droplet.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">require_program</span><span class="p">(</span><span class="s1">&#39;packmol&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">solid_system</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">solid_system</span> <span class="o">=</span> <span class="n">AtomicSystem</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="n">solid_system</span><span class="p">)</span>
+
+    <span class="n">vol</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">radius</span><span class="o">**</span><span class="mi">3</span> <span class="o">/</span> <span class="mi">3</span>
+
+    <span class="n">mass_solutes_total_uma</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">if</span> <span class="n">solutes_dict</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">num</span> <span class="ow">in</span> <span class="n">solutes_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">structures_dict</span> <span class="ow">and</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">structures_dict</span><span class="p">:</span>
+                <span class="n">mass_solutes_total_uma</span> <span class="o">+=</span> <span class="n">num</span> <span class="o">*</span> <span class="n">structures_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">total_mass</span>
+            <span class="k">elif</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">MASSES_DICT</span><span class="p">:</span>
+                <span class="n">mass_solutes_total_uma</span> <span class="o">+=</span> <span class="n">num</span> <span class="o">*</span> <span class="n">MASSES_DICT</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Structure &#39;</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">&#39; mass unknown.&quot;</span><span class="p">)</span>
+
+    <span class="n">mass_total_target_g</span> <span class="o">=</span> <span class="n">density</span> <span class="o">*</span> <span class="n">vol</span> <span class="o">*</span> <span class="mf">1e-24</span> 
+    <span class="n">mass_solutes_g</span> <span class="o">=</span> <span class="p">(</span><span class="n">mass_solutes_total_uma</span> <span class="o">/</span> <span class="n">cst</span><span class="o">.</span><span class="n">Avogadro</span><span class="p">)</span>
+    <span class="n">mass_water_g</span> <span class="o">=</span> <span class="n">mass_total_target_g</span> <span class="o">-</span> <span class="n">mass_solutes_g</span>
+    
+    <span class="k">if</span> <span class="n">mass_water_g</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Density or volume too low for these ions/solutes!&quot;</span><span class="p">)</span>
+
+    <span class="n">water_molarmass</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">MASSES_DICT</span><span class="p">[</span><span class="s1">&#39;H&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">MASSES_DICT</span><span class="p">[</span><span class="s1">&#39;O&#39;</span><span class="p">]</span>
+    <span class="n">num_water</span> <span class="o">=</span> <span class="nb">round</span><span class="p">((</span><span class="n">mass_water_g</span> <span class="o">*</span> <span class="n">cst</span><span class="o">.</span><span class="n">Avogadro</span><span class="p">)</span> <span class="o">/</span> <span class="n">water_molarmass</span><span class="p">)</span>
+
+    <span class="k">with</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">TemporaryDirectory</span><span class="p">(</span><span class="nb">dir</span><span class="o">=</span><span class="s1">&#39;.&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">tmp</span><span class="p">:</span>
+        <span class="n">structures</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">h2o_path</span> <span class="o">=</span> <span class="n">get_structure_path</span><span class="p">(</span><span class="s2">&quot;H2O&quot;</span><span class="p">,</span> <span class="n">tmp</span><span class="p">)</span>
+        
+        <span class="n">structures</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">add_packmol_structure</span><span class="p">(</span><span class="n">h2o_path</span><span class="p">,</span> <span class="n">num_water</span><span class="p">,</span> 
+            <span class="sa">f</span><span class="s2">&quot;inside sphere 0. 0. 0. </span><span class="si">{</span><span class="n">radius</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;over plane 0. 0. 1. 0.&quot;</span>
+        <span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">solutes_dict</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">num</span> <span class="ow">in</span> <span class="n">solutes_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">structures_dict</span> <span class="ow">and</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">structures_dict</span><span class="p">:</span>
+                    <span class="n">struct_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmp</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;custom_</span><span class="si">{</span><span class="nb">id</span><span class="p">(</span><span class="n">structures_dict</span><span class="p">[</span><span class="n">key</span><span class="p">])</span><span class="si">}</span><span class="s2">.pdb&quot;</span><span class="p">)</span>
+                    <span class="n">structures_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">struct_path</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">struct_path</span> <span class="o">=</span> <span class="n">get_structure_path</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">tmp</span><span class="p">)</span>
+
+                <span class="n">struct_path</span> <span class="o">=</span> <span class="n">_sanitize_path</span><span class="p">(</span><span class="n">struct_path</span><span class="p">)</span>
+                <span class="n">structures</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">add_packmol_structure</span><span class="p">(</span><span class="n">struct_path</span><span class="p">,</span> <span class="n">num</span><span class="p">,</span> 
+                        <span class="sa">f</span><span class="s2">&quot;inside sphere 0. 0. 0. </span><span class="si">{</span><span class="n">radius</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;over plane 0. 0. 1. 0.&quot;</span>
+                    <span class="p">))</span>
+
+        <span class="n">liquid_data</span> <span class="o">=</span> <span class="n">run_packmol</span><span class="p">(</span><span class="n">structures</span><span class="p">)</span>
+
+    <span class="n">data</span> <span class="o">=</span> <span class="n">add_structure</span><span class="p">(</span>
+        <span class="n">solid_system</span><span class="o">=</span><span class="n">solid_system</span><span class="p">,</span> 
+        <span class="n">structure_to_add</span><span class="o">=</span><span class="n">liquid_data</span><span class="p">,</span> 
+        <span class="n">distance</span><span class="o">=</span><span class="n">distance</span><span class="p">,</span> 
+        <span class="n">axis</span><span class="o">=</span><span class="s1">&#39;z&#39;</span><span class="p">,</span> 
+        <span class="n">vacuum</span><span class="o">=</span><span class="n">vacuum</span>
+    <span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">data</span></div>
+
+
+<div class="viewcode-block" id="add_structure">
+<a class="viewcode-back" href="../../../api/generated/cemd.build.add_structure.html#cemd.build.add_structure">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">add_structure</span><span class="p">(</span><span class="n">solid_system</span><span class="p">:</span> <span class="n">AtomicSystem</span><span class="p">,</span> 
+                  <span class="n">structure_to_add</span><span class="p">:</span> <span class="n">AtomicSystem</span><span class="p">,</span> 
+                  <span class="n">distance</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">2.0</span><span class="p">,</span> 
+                  <span class="n">axis</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;z&#39;</span><span class="p">,</span>
+                  <span class="n">vacuum</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">10.0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AtomicSystem</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Add a structure to a solid surface at a given distance.</span>
+
+<span class="sd">    Aligns Centers of Mass (COM) on the transverse axes.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    solid_system : AtomicSystem</span>
+<span class="sd">        The base solid surface.</span>
+<span class="sd">    structure_to_add : AtomicSystem</span>
+<span class="sd">        The structure to add (e.g., droplet, liquid).</span>
+<span class="sd">    distance : float, optional</span>
+<span class="sd">        Distance between the surface and the new structure.</span>
+<span class="sd">    axis : str, optional</span>
+<span class="sd">        Axis along which the addition is performed (&#39;x&#39;, &#39;y&#39;, &#39;z&#39;).</span>
+<span class="sd">    vacuum : float, optional</span>
+<span class="sd">        Empty space added after the new structure.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    AtomicSystem</span>
+<span class="sd">        The final combined system.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="kn">from</span><span class="w"> </span><span class="nn">..core.atomic_system</span><span class="w"> </span><span class="kn">import</span> <span class="n">AtomicSystem</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">solid_system</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">solid_system</span> <span class="o">=</span> <span class="n">AtomicSystem</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="n">solid_system</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">structure_to_add</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">structure_to_add</span> <span class="o">=</span> <span class="n">AtomicSystem</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="n">structure_to_add</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">structure_to_add</span> <span class="o">=</span> <span class="n">structure_to_add</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="n">axis_map</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;z&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">}</span>
+    <span class="n">axis_names</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="s1">&#39;z&#39;</span><span class="p">]</span>
+    <span class="n">idx</span> <span class="o">=</span> <span class="n">axis_map</span><span class="p">[</span><span class="n">axis</span><span class="o">.</span><span class="n">lower</span><span class="p">()]</span>
+    <span class="n">axis_name</span> <span class="o">=</span> <span class="n">axis_names</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+    
+    <span class="n">trans_indices</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span> <span class="k">if</span> <span class="n">i</span> <span class="o">!=</span> <span class="n">idx</span><span class="p">]</span>
+    <span class="n">com_solid</span> <span class="o">=</span> <span class="n">solid_system</span><span class="o">.</span><span class="n">get_center_of_mass</span><span class="p">()</span>
+    <span class="n">com_struct</span> <span class="o">=</span> <span class="n">structure_to_add</span><span class="o">.</span><span class="n">get_center_of_mass</span><span class="p">()</span>
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">trans_indices</span><span class="p">:</span>
+        <span class="n">t_name</span> <span class="o">=</span> <span class="n">axis_names</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="n">shift_trans</span> <span class="o">=</span> <span class="n">com_solid</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="n">com_struct</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="n">structure_to_add</span><span class="o">.</span><span class="n">atoms</span><span class="p">[</span><span class="n">t_name</span><span class="p">]</span> <span class="o">+=</span> <span class="n">shift_trans</span>
+
+    <span class="n">solid_surface</span> <span class="o">=</span> <span class="n">solid_system</span><span class="o">.</span><span class="n">atoms</span><span class="p">[</span><span class="n">axis_name</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+    <span class="n">struct_base</span> <span class="o">=</span> <span class="n">structure_to_add</span><span class="o">.</span><span class="n">atoms</span><span class="p">[</span><span class="n">axis_name</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
+    
+    <span class="n">shift_main</span> <span class="o">=</span> <span class="p">(</span><span class="n">solid_surface</span> <span class="o">-</span> <span class="n">struct_base</span><span class="p">)</span> <span class="o">+</span> <span class="n">distance</span>
+    <span class="n">structure_to_add</span><span class="o">.</span><span class="n">atoms</span><span class="p">[</span><span class="n">axis_name</span><span class="p">]</span> <span class="o">+=</span> <span class="n">shift_main</span>
+
+    <span class="n">new_box</span> <span class="o">=</span> <span class="n">solid_system</span><span class="o">.</span><span class="n">box</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">solid_min</span> <span class="o">=</span> <span class="n">solid_system</span><span class="o">.</span><span class="n">atoms</span><span class="p">[</span><span class="n">axis_name</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
+    <span class="n">struct_top</span> <span class="o">=</span> <span class="n">structure_to_add</span><span class="o">.</span><span class="n">atoms</span><span class="p">[</span><span class="n">axis_name</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+    
+    <span class="n">new_box</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">struct_top</span> <span class="o">-</span> <span class="n">solid_min</span><span class="p">)</span> <span class="o">+</span> <span class="n">vacuum</span> <span class="o">+</span> <span class="n">distance</span>
+
+    <span class="n">data</span> <span class="o">=</span> <span class="n">merge</span><span class="p">(</span><span class="n">solid_system</span><span class="p">,</span> <span class="n">structure_to_add</span><span class="p">,</span> <span class="n">new_box</span><span class="p">)</span>
+    <span class="n">data</span><span class="o">.</span><span class="n">wrap</span><span class="p">()</span>
+    
+    <span class="k">return</span> <span class="n">data</span></div>
+
+
+<div class="viewcode-block" id="add_liquid">
+<a class="viewcode-back" href="../../../api/generated/cemd.build.add_liquid.html#cemd.build.add_liquid">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">add_liquid</span><span class="p">(</span><span class="n">solid_system</span><span class="p">:</span> <span class="n">AtomicSystem</span><span class="p">,</span> 
+               <span class="n">thickness</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> 
+               <span class="n">density</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
+               <span class="n">distance</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">2.0</span><span class="p">,</span>
+               <span class="n">solutes_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+               <span class="n">structures_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">AtomicSystem</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+               <span class="n">vacuum</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span> 
+               <span class="n">axis</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;z&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AtomicSystem</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a solid/liquid interface by generating a liquid block.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    solid_system : AtomicSystem</span>
+<span class="sd">        The solid system.</span>
+<span class="sd">    thickness : float</span>
+<span class="sd">        Thickness of the liquid layer.</span>
+<span class="sd">    density : float, optional</span>
+<span class="sd">        Liquid density.</span>
+<span class="sd">    distance : float, optional</span>
+<span class="sd">        Gap between liquid and solid.</span>
+<span class="sd">    solutes_dict : dict, optional</span>
+<span class="sd">        Solutes in the liquid.</span>
+<span class="sd">    structures_dict : dict, optional</span>
+<span class="sd">        Custom solute structures.</span>
+<span class="sd">    vacuum : float, optional</span>
+<span class="sd">        Added vacuum space.</span>
+<span class="sd">    axis : str, optional</span>
+<span class="sd">        Interface axis.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    AtomicSystem</span>
+<span class="sd">        The solid/liquid system.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="kn">from</span><span class="w"> </span><span class="nn">..core.atomic_system</span><span class="w"> </span><span class="kn">import</span> <span class="n">AtomicSystem</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">solid_system</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">solid_system</span> <span class="o">=</span> <span class="n">AtomicSystem</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="n">solid_system</span><span class="p">)</span>
+
+    <span class="n">axis_map</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;z&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">}</span>
+    <span class="n">idx</span> <span class="o">=</span> <span class="n">axis_map</span><span class="p">[</span><span class="n">axis</span><span class="o">.</span><span class="n">lower</span><span class="p">()]</span>
+    <span class="n">transverse_indices</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span> <span class="k">if</span> <span class="n">i</span> <span class="o">!=</span> <span class="n">idx</span><span class="p">]</span>
+
+    <span class="n">boxv_solid</span> <span class="o">=</span> <span class="n">lattice2vectors</span><span class="p">(</span><span class="n">solid_system</span><span class="o">.</span><span class="n">box</span><span class="p">)</span>
+    <span class="n">dim_transverse_1</span> <span class="o">=</span> <span class="n">boxv_solid</span><span class="p">[</span><span class="n">transverse_indices</span><span class="p">[</span><span class="mi">0</span><span class="p">]][</span><span class="n">transverse_indices</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+    <span class="n">dim_transverse_2</span> <span class="o">=</span> <span class="n">boxv_solid</span><span class="p">[</span><span class="n">transverse_indices</span><span class="p">[</span><span class="mi">1</span><span class="p">]][</span><span class="n">transverse_indices</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span>
+
+    <span class="n">liquid_dims</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+    <span class="n">liquid_dims</span><span class="p">[</span><span class="n">transverse_indices</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="n">dim_transverse_1</span>
+    <span class="n">liquid_dims</span><span class="p">[</span><span class="n">transverse_indices</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="n">dim_transverse_2</span>
+    <span class="n">liquid_dims</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">thickness</span>
+    
+    <span class="n">liquid_data</span> <span class="o">=</span> <span class="n">build_solution</span><span class="p">(</span>
+        <span class="n">box</span><span class="o">=</span><span class="p">[</span><span class="n">liquid_dims</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">liquid_dims</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">liquid_dims</span><span class="p">[</span><span class="mi">2</span><span class="p">]],</span> 
+        <span class="n">density</span><span class="o">=</span><span class="n">density</span><span class="p">,</span> 
+        <span class="n">solutes_dict</span><span class="o">=</span><span class="n">solutes_dict</span><span class="p">,</span> 
+        <span class="n">structures_dict</span><span class="o">=</span><span class="n">structures_dict</span>
+    <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">add_structure</span><span class="p">(</span>
+        <span class="n">solid_system</span><span class="o">=</span><span class="n">solid_system</span><span class="p">,</span> 
+        <span class="n">structure_to_add</span><span class="o">=</span><span class="n">liquid_data</span><span class="p">,</span> 
+        <span class="n">distance</span><span class="o">=</span><span class="n">distance</span><span class="p">,</span> 
+        <span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">,</span> 
+        <span class="n">vacuum</span><span class="o">=</span><span class="n">vacuum</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="split">
+<a class="viewcode-back" href="../../../api/generated/cemd.build.split.html#cemd.build.split">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">split</span><span class="p">(</span><span class="n">solid_system</span><span class="p">:</span> <span class="n">AtomicSystem</span><span class="p">,</span> 
+                 <span class="n">axis</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span>
+                 <span class="n">coordinate</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">gap_size</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">20.0</span><span class="p">,</span>
+                 <span class="n">add_solution</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> 
+                 <span class="n">density</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
+                 <span class="n">solutes_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">structures_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">AtomicSystem</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AtomicSystem</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Split an AtomicSystem into two parts along a specified axis.</span>
+
+<span class="sd">    If no position is provided, the system is split at the center of the </span>
+<span class="sd">    simulation box along the chosen axis.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    data : AtomicSystem</span>
+<span class="sd">        The system to be split.</span>
+<span class="sd">    axis : str, optional</span>
+<span class="sd">        The axis along which to perform the split (&#39;x&#39;, &#39;y&#39;, or &#39;z&#39;). </span>
+<span class="sd">        Defaults to &#39;z&#39;.</span>
+<span class="sd">    position : float, optional</span>
+<span class="sd">        The coordinate value along the axis at which to perform the split. </span>
+<span class="sd">        If None, uses the geometric center of the box.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    part_a : AtomicSystem</span>
+<span class="sd">        The first portion of the system (atoms with coordinate &lt; position).</span>
+<span class="sd">    part_b : AtomicSystem</span>
+<span class="sd">        The second portion of the system (atoms with coordinate &gt;= position).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># PREPARATION</span>
+    <span class="n">vec_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">lattice2vectors</span><span class="p">(</span><span class="n">solid_system</span><span class="o">.</span><span class="n">box</span><span class="p">))</span>
+    <span class="n">target_vec</span> <span class="o">=</span> <span class="n">vec_list</span><span class="p">[</span><span class="n">axis</span><span class="p">]</span>
+    <span class="n">unit_norm</span> <span class="o">=</span> <span class="n">target_vec</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">target_vec</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="n">coordinate</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">coordinate</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">target_vec</span><span class="p">)</span> <span class="o">/</span> <span class="mf">2.0</span>
+    
+    <span class="c1"># work on positions directly via the system</span>
+    <span class="c1"># (assuming solid_system allows access to positions)</span>
+    <span class="n">universe</span> <span class="o">=</span> <span class="n">solid_system</span><span class="o">.</span><span class="n">to_mda</span><span class="p">()</span>
+    <span class="n">pos</span> <span class="o">=</span> <span class="n">universe</span><span class="o">.</span><span class="n">atoms</span><span class="o">.</span><span class="n">positions</span>
+    
+    <span class="c1"># MOVING FRAGMENTS</span>
+    <span class="c1"># identify the atoms located after the cutting coordinate</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">pos</span><span class="p">,</span> <span class="n">unit_norm</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">coordinate</span>
+    <span class="n">shift_vector</span> <span class="o">=</span> <span class="n">unit_norm</span> <span class="o">*</span> <span class="n">gap_size</span>
+    <span class="n">pos</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span> <span class="o">+=</span> <span class="n">shift_vector</span>
+    
+    <span class="c1"># Updating positions in the system</span>
+    <span class="n">universe</span><span class="o">.</span><span class="n">atoms</span><span class="o">.</span><span class="n">positions</span> <span class="o">=</span> <span class="n">pos</span>
+    
+    <span class="c1"># BOX UPDATE</span>
+    <span class="n">vec_list</span><span class="p">[</span><span class="n">axis</span><span class="p">]</span> <span class="o">=</span> <span class="n">target_vec</span> <span class="o">+</span> <span class="n">shift_vector</span>
+    <span class="n">solid_system</span><span class="o">.</span><span class="n">set_box</span><span class="p">(</span><span class="n">vectors2lattice</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">vec_list</span><span class="p">)))</span>
+    
+    <span class="k">if</span> <span class="n">add_solution</span><span class="p">:</span>
+        <span class="c1"># Simplified logic for inserting the liquid into the center of the gap</span>
+        <span class="n">liquid_data</span> <span class="o">=</span> <span class="n">build_solution</span><span class="p">([</span><span class="n">vec_list</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">vec_list</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">gap_size</span><span class="p">],</span> <span class="n">density</span><span class="p">,</span> <span class="n">solutes_dict</span><span class="p">,</span> <span class="n">structures_dict</span><span class="p">)</span>
+        <span class="c1"># (Add your centering logic specific to your tool here)</span>
+        <span class="n">solid_system</span> <span class="o">=</span> <span class="n">merge</span><span class="p">(</span><span class="n">solid_system</span><span class="p">,</span> <span class="n">liquid_data</span><span class="p">)</span>
+        
+    <span class="k">return</span> <span class="n">solid_system</span></div>
+
+
+
+<div class="viewcode-block" id="merge">
+<a class="viewcode-back" href="../../../api/generated/cemd.build.merge.html#cemd.build.merge">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">merge</span><span class="p">(</span><span class="n">lmp_data_a</span><span class="p">:</span> <span class="n">AtomicSystem</span><span class="p">,</span> 
+          <span class="n">lmp_data_b</span><span class="p">:</span> <span class="n">AtomicSystem</span><span class="p">,</span> 
+          <span class="n">box</span><span class="p">:</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span><span class="o">=</span><span class="kc">None</span>
+          <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AtomicSystem</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Merge two AtomicSystem objects and handle topology updates.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    lmp_data_a : AtomicSystem</span>
+<span class="sd">        First system.</span>
+<span class="sd">    lmp_data_b : AtomicSystem</span>
+<span class="sd">        Second system.</span>
+<span class="sd">    box : np.ndarray or Sequence[float], optional</span>
+<span class="sd">        New box parameters for the merged system.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    AtomicSystem</span>
+<span class="sd">        The merged AtomicSystem.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="kn">from</span><span class="w"> </span><span class="nn">..core.atomic_system</span><span class="w"> </span><span class="kn">import</span> <span class="n">AtomicSystem</span>
+
+    <span class="n">output_topology</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="c1"># Set box</span>
+    <span class="k">if</span> <span class="n">box</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">output_topology</span><span class="p">[</span><span class="s1">&#39;lmp_box&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">lmp_data_a</span><span class="o">.</span><span class="n">_lmp_box</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">output_topology</span><span class="p">[</span><span class="s1">&#39;lmp_box&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">lattice2lammps</span><span class="p">(</span><span class="n">box</span><span class="p">)</span>
+    
+    <span class="c1"># Merge atoms</span>
+    <span class="n">indices_a</span> <span class="o">=</span> <span class="n">lmp_data_a</span><span class="o">.</span><span class="n">atoms</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">()</span>
+    <span class="n">indices_b</span> <span class="o">=</span> <span class="n">lmp_data_b</span><span class="o">.</span><span class="n">atoms</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">()</span> <span class="o">+</span> <span class="n">lmp_data_a</span><span class="o">.</span><span class="n">num_atoms</span>
+    <span class="n">merged_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">indices_a</span><span class="p">,</span> <span class="n">indices_b</span><span class="p">])</span>
+    <span class="n">merged_atoms_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">lmp_data_a</span><span class="o">.</span><span class="n">atoms</span><span class="p">,</span> <span class="n">lmp_data_b</span><span class="o">.</span><span class="n">atoms</span><span class="p">],</span> <span class="n">ignore_index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">merged_atoms_df</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">merged_indices</span>
+    <span class="n">output_topology</span><span class="p">[</span><span class="s1">&#39;atoms&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">merged_atoms_df</span>
+
+    <span class="k">if</span> <span class="n">lmp_data_a</span><span class="o">.</span><span class="n">velocities</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">lmp_data_b</span><span class="o">.</span><span class="n">velocities</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">merged_velocities_df</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">lmp_data_a</span><span class="o">.</span><span class="n">velocities</span><span class="p">,</span> <span class="n">lmp_data_b</span><span class="o">.</span><span class="n">velocities</span><span class="p">])</span>
+        <span class="n">merged_velocities_df</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">merged_indices</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">output_topology</span><span class="p">[</span><span class="s1">&#39;velocities&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="c1"># Merge masses</span>
+    <span class="n">masses_dict_a</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">masses_dict_b</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">for</span> <span class="n">t</span><span class="p">,</span> <span class="n">m</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">lmp_data_a</span><span class="o">.</span><span class="n">atom_types</span><span class="p">,</span> <span class="n">lmp_data_a</span><span class="o">.</span><span class="n">masses</span><span class="p">):</span>
+        <span class="n">masses_dict_a</span><span class="p">[</span><span class="n">t</span><span class="p">]</span> <span class="o">=</span> <span class="n">m</span>
+    <span class="k">for</span> <span class="n">t</span><span class="p">,</span> <span class="n">m</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">lmp_data_b</span><span class="o">.</span><span class="n">atom_types</span><span class="p">,</span> <span class="n">lmp_data_b</span><span class="o">.</span><span class="n">masses</span><span class="p">):</span>
+        <span class="n">masses_dict_b</span><span class="p">[</span><span class="n">t</span><span class="p">]</span> <span class="o">=</span> <span class="n">m</span>
+
+    <span class="n">masses_dict_a</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">masses_dict_b</span><span class="p">)</span>
+    <span class="n">sorted_masses_dict_a</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">masses_dict_a</span><span class="o">.</span><span class="n">items</span><span class="p">()))</span>
+    <span class="n">output_topology</span><span class="p">[</span><span class="s1">&#39;masses&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">sorted_masses_dict_a</span>
+
+    <span class="c1"># Merge charges</span>
+    <span class="n">charges_dict_a</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">charges_dict_b</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">for</span> <span class="n">t</span><span class="p">,</span> <span class="n">m</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">lmp_data_a</span><span class="o">.</span><span class="n">atom_types</span><span class="p">,</span> <span class="n">lmp_data_a</span><span class="o">.</span><span class="n">charges</span><span class="p">):</span>
+        <span class="n">charges_dict_a</span><span class="p">[</span><span class="n">t</span><span class="p">]</span> <span class="o">=</span> <span class="n">m</span>
+    <span class="k">for</span> <span class="n">t</span><span class="p">,</span> <span class="n">m</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">lmp_data_b</span><span class="o">.</span><span class="n">atom_types</span><span class="p">,</span> <span class="n">lmp_data_b</span><span class="o">.</span><span class="n">charges</span><span class="p">):</span>
+        <span class="n">charges_dict_b</span><span class="p">[</span><span class="n">t</span><span class="p">]</span> <span class="o">=</span> <span class="n">m</span>
+
+    <span class="n">charges_dict_a</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">masses_dict_b</span><span class="p">)</span>
+    <span class="n">sorted_charges_dict_a</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">charges_dict_a</span><span class="o">.</span><span class="n">items</span><span class="p">()))</span>
+    <span class="n">output_topology</span><span class="p">[</span><span class="s1">&#39;charges&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">sorted_charges_dict_a</span>
+
+    <span class="n">output_topology</span><span class="p">[</span><span class="s1">&#39;atom_types&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">sorted_masses_dict_a</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+
+    <span class="c1"># Get topology info</span>
+    <span class="n">connectivity_keys</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;bonds&#39;</span><span class="p">,</span> <span class="s1">&#39;angles&#39;</span><span class="p">,</span> <span class="s1">&#39;dihedrals&#39;</span><span class="p">,</span> <span class="s1">&#39;impropers&#39;</span><span class="p">]</span>
+    <span class="n">a_connectivity_dic</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;bonds&#39;</span><span class="p">:</span> <span class="n">lmp_data_a</span><span class="o">.</span><span class="n">bonds</span><span class="p">,</span>
+        <span class="s1">&#39;angles&#39;</span><span class="p">:</span> <span class="n">lmp_data_a</span><span class="o">.</span><span class="n">angles</span><span class="p">,</span>
+        <span class="s1">&#39;dihedrals&#39;</span><span class="p">:</span> <span class="n">lmp_data_a</span><span class="o">.</span><span class="n">dihedrals</span><span class="p">,</span>
+        <span class="s1">&#39;impropers&#39;</span><span class="p">:</span> <span class="n">lmp_data_a</span><span class="o">.</span><span class="n">impropers</span>
+    <span class="p">}</span>
+    <span class="n">b_connectivity_dic</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;bonds&#39;</span><span class="p">:</span> <span class="n">lmp_data_b</span><span class="o">.</span><span class="n">bonds</span><span class="p">,</span>
+        <span class="s1">&#39;angles&#39;</span><span class="p">:</span> <span class="n">lmp_data_b</span><span class="o">.</span><span class="n">angles</span><span class="p">,</span>
+        <span class="s1">&#39;dihedrals&#39;</span><span class="p">:</span> <span class="n">lmp_data_b</span><span class="o">.</span><span class="n">dihedrals</span><span class="p">,</span>
+        <span class="s1">&#39;impropers&#39;</span><span class="p">:</span> <span class="n">lmp_data_b</span><span class="o">.</span><span class="n">impropers</span>
+    <span class="p">}</span>
+
+    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">connectivity_keys</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">b_connectivity_dic</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">b_connectivity_dic</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span><span class="mi">1</span><span class="p">:]</span> <span class="o">=</span> <span class="n">b_connectivity_dic</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span><span class="mi">1</span><span class="p">:]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span> <span class="o">+</span> <span class="n">lmp_data_a</span><span class="o">.</span><span class="n">num_atoms</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">b_connectivity_dic</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
+
+    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">connectivity_keys</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">a_connectivity_dic</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">a_connectivity_dic</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
+
+    <span class="c1"># Set new topology</span>
+    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">connectivity_keys</span><span class="p">:</span>
+        <span class="n">df_merged</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">a_connectivity_dic</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="n">b_connectivity_dic</span><span class="p">[</span><span class="n">key</span><span class="p">]],</span> <span class="n">ignore_index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="s1">&#39;bonds&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">df_merged</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">output_topology</span><span class="p">[</span><span class="s1">&#39;bonds&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df_merged</span>
+                <span class="n">output_topology</span><span class="p">[</span><span class="s1">&#39;bonds&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">df_merged</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">output_topology</span><span class="p">[</span><span class="s1">&#39;bonds&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+            
+        <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="s1">&#39;angles&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">df_merged</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">output_topology</span><span class="p">[</span><span class="s1">&#39;angles&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df_merged</span>
+                <span class="n">output_topology</span><span class="p">[</span><span class="s1">&#39;angles&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">df_merged</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">output_topology</span><span class="p">[</span><span class="s1">&#39;angles&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="s1">&#39;dihedrals&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">df_merged</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">output_topology</span><span class="p">[</span><span class="s1">&#39;dihedrals&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df_merged</span>
+                <span class="n">output_topology</span><span class="p">[</span><span class="s1">&#39;dihedrals&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">df_merged</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">output_topology</span><span class="p">[</span><span class="s1">&#39;dihedrals&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="s1">&#39;impropers&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">df_merged</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">output_topology</span><span class="p">[</span><span class="s1">&#39;impropers&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df_merged</span>
+                <span class="n">output_topology</span><span class="p">[</span><span class="s1">&#39;impropers&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">df_merged</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">output_topology</span><span class="p">[</span><span class="s1">&#39;impropers&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">return</span> <span class="n">AtomicSystem</span><span class="p">(</span><span class="n">output_topology</span><span class="p">)</span></div>
+
+
+</pre></div>
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9"></script>
+<script defer src="../../../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2022-2026, Jérôme Claverie.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.20.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>
