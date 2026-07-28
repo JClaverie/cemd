@@ -22,11 +22,6 @@ import webbrowser
 
 import numpy as np
 
-from prompt_toolkit import Application
-from prompt_toolkit.layout import Layout, HSplit, Window
-from prompt_toolkit.layout.controls import FormattedTextControl
-from prompt_toolkit.key_binding import KeyBindings
-
 from .._paths import FF_DATABASE_FILE
 
 if TYPE_CHECKING:
@@ -158,8 +153,63 @@ class ForceFieldMixin:
         self._set_bond_forcefield(assignments, df_bond)
         self._set_angle_forcefield(assignments, df_angle)
 
-    def explore_ff_database(self, ff_database: str = FF_DATABASE_FILE) -> dict:
-        """Interactive Forcefield Explorer using the prompt_toolkit UI pattern."""
+    def explore_ff_database(self, ff_database: str = FF_DATABASE_FILE) -> None:
+        """
+        Interactive Forcefield Explorer using the prompt_toolkit UI pattern.
+        
+        Launches an interactive terminal user interface (TUI) that allows the user
+        to browse and select force field parameters for each element and atom type
+        present in the system. The explorer reads a force field database from an
+        Excel file and presents matching parameter sets for user selection via
+        keyboard navigation.
+        
+        Parameters
+        ----------
+        ff_database : str, optional
+            Path to the Excel file containing the force field database.
+            The file must contain a sheet named 'list' with force field parameters.
+            Defaults to FF_DATABASE_FILE (global constant).
+        
+        Returns
+        -------
+        None
+            The method updates the system's force field parameters in-place via
+            successive calls to `set_ff_from_database()` as each selection is made.
+        
+        Raises
+        ------
+        FileNotFoundError
+            If the database file does not exist.
+        ValueError
+            If required sheets are missing from the database.
+        
+        Notes
+        -----
+        The interactive UI provides:
+            - Up/Down arrows: Navigate through parameter options
+            - Enter/Space: Select the highlighted parameter
+            - Ctrl+C/Escape/q: Cancel selection and skip element
+            - p: Open the reference DOI in a web browser
+        
+        The function filters the database for parameters matching each element
+        present in the system (self.elements). For each unique element, the user is
+        presented with a list of available parameter sets to choose from.
+        
+        Examples
+        --------
+        >>> system = AtomicSystem(...)
+        >>> system.explore_ff_database('forcefield.xlsx')
+        Assigned: H -> hspc
+        Assigned: O -> ospc
+        
+        >>> # Using default database
+        >>> system.explore_ff_database()
+        """
+
+        from prompt_toolkit import Application
+        from prompt_toolkit.layout import Layout, HSplit, Window
+        from prompt_toolkit.layout.controls import FormattedTextControl
+        from prompt_toolkit.key_binding import KeyBindings
         
         try:
             df_list = pd.read_excel(ff_database, sheet_name='list')
@@ -236,8 +286,6 @@ class ForceFieldMixin:
                 break
 
             self.set_ff_from_database(assignments, ff_database)
-                
-        return assignments
 
     def set_ff_pair_param(self: AtomicSystem, 
                             atom_type: str | int, 
@@ -417,7 +465,7 @@ class ForceFieldMixin:
                 
                 if label1 == label2:
                     # LEVEL 2 CALL: Assign charge and non-bond parameters for this specific single type
-                    self.set_ff_pair_param(label1, pair_coeffs)
+                    self.set_pair_params(label1, pair_coeffs)
                 else:
                     # Custom cross-interaction (i != j) stored as a sorted label tuple key
                     sorted_key = tuple(sorted([label1, label2]))
@@ -478,7 +526,7 @@ class ForceFieldMixin:
                 coeffs = [float(row.iloc[0].iloc[2]), float(row.iloc[0].iloc[3])]
                 
                 # Applies the settings to the original system label (e.g. 'H-O')
-                self.set_ff_bond_param(bond_str, coeffs)
+                self.set_bond_params(bond_str, coeffs)
 
     def _set_angle_forcefield(
         self: AtomicSystem, 
@@ -521,6 +569,6 @@ class ForceFieldMixin:
             
             if not row.empty:
                 coeffs = [float(row.iloc[0].iloc[3]), float(row.iloc[0].iloc[4])]
-                self.set_ff_angle_param(angle_str, coeffs)
+                self.set_angle_param(angle_str, coeffs)
 
 

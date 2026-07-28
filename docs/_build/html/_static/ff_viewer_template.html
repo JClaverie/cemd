@@ -1,0 +1,582 @@
+<!-- docs/_static/ff_viewer_template.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Force Field Database Viewer</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f5f7fa; padding: 20px; }
+        .container { max-width: 1400px; margin: 0 auto; background: white; border-radius: 16px; padding: 30px; box-shadow: 0 8px 30px rgba(0,0,0,0.12); }
+        .header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 25px; padding-bottom: 20px; border-bottom: 2px solid #e9ecef; }
+        .header h1 { font-size: 24px; font-weight: 600; }
+        .header h1 small { font-weight: 400; font-size: 14px; color: #6c757d; margin-left: 10px; }
+        .stats { font-size: 14px; color: #6c757d; background: #f8f9fa; padding: 6px 14px; border-radius: 20px; }
+        .stats span { font-weight: 600; color: #1a1a2e; }
+        .controls { display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 20px; }
+        .search-box { flex: 1; min-width: 250px; padding: 10px 16px; border: 2px solid #dee2e6; border-radius: 10px; font-size: 14px; background: white; }
+        .search-box:focus { outline: none; border-color: #4a6cf7; }
+        .table-wrapper { overflow-x: auto; border-radius: 12px; border: 1px solid #e9ecef; max-height: 600px; overflow-y: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        thead { background: #f8f9fa; position: sticky; top: 0; z-index: 10; }
+        th { padding: 12px 16px; text-align: left; font-weight: 600; color: #495057; border-bottom: 2px solid #dee2e6; cursor: pointer; user-select: none; }
+        th:hover { background: #e9ecef; }
+        th .sort-icon { margin-left: 6px; opacity: 0.4; font-size: 10px; }
+        th.sorted .sort-icon { opacity: 1; }
+        td { padding: 10px 16px; border-bottom: 1px solid #f1f3f5; vertical-align: middle; }
+        tr:hover td { background: #f8f9ff; }
+        .highlight { background: #ffd43b; padding: 0 2px; border-radius: 2px; }
+        .model-link { color: #4a6cf7; cursor: pointer; text-decoration: none; font-weight: 500; }
+        .model-link:hover { text-decoration: underline; }
+        .ref-link { text-decoration: none; color: #4a6cf7; display: inline-block; }
+        .ref-link:hover { color: #1a3a8a; }
+        .empty-state { text-align: center; padding: 40px 20px; color: #6c757d; }
+        .loading { text-align: center; padding: 40px 20px; color: #6c757d; }
+        .spinner { display: inline-block; width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #4a6cf7; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 10px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .badge { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 11px; font-weight: 500; background: #e9ecef; color: #495057; margin: 2px 4px 2px 0; }
+        
+        /* ===== MODAL ===== */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 99999;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-overlay.active { display: flex !important; }
+        .modal {
+            background: white;
+            border-radius: 16px;
+            max-width: 1100px;
+            width: 95%;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: modalIn 0.3s ease;
+        }
+        @keyframes modalIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #e9ecef; }
+        .modal-header h2 { font-size: 24px; font-weight: 600; }
+        .modal-header h2 small { font-weight: 400; font-size: 14px; color: #6c757d; margin-left: 10px; }
+        .modal-close { background: none; border: none; font-size: 30px; cursor: pointer; color: #6c757d; line-height: 1; padding: 0 8px; }
+        .modal-close:hover { color: #1a1a2e; }
+        .modal-section { margin-bottom: 25px; }
+        .modal-section h3 { font-size: 16px; font-weight: 600; color: #495057; margin-bottom: 10px; padding-bottom: 5px; border-bottom: 1px solid #e9ecef; }
+        .modal-section h3 .count-badge { display: inline-block; padding: 1px 8px; border-radius: 10px; font-size: 12px; background: #e9ecef; color: #495057; margin-left: 8px; font-weight: 400; }
+        .modal-subtable { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 5px; }
+        .modal-subtable th { background: #f8f9fa; padding: 6px 10px; text-align: left; font-weight: 600; color: #495057; border-bottom: 1px solid #dee2e6; position: sticky; top: 0; }
+        .modal-subtable td { padding: 5px 10px; border-bottom: 1px solid #f1f3f5; }
+        .modal-subtable tr:hover td { background: #f8f9ff; }
+        .modal-subtable .ref { font-size: 11px; }
+        
+        @media (max-width: 768px) {
+            .container { padding: 15px; }
+            .header h1 { font-size: 18px; }
+            .controls { flex-direction: column; }
+            .search-box { min-width: 100%; }
+            td, th { padding: 8px 10px; font-size: 12px; }
+            .modal { padding: 15px; }
+            .modal-subtable { font-size: 11px; }
+            .modal-subtable th, .modal-subtable td { padding: 4px 6px; }
+        }
+        .table-wrapper::-webkit-scrollbar { height: 8px; width: 8px; }
+        .table-wrapper::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
+        .table-wrapper::-webkit-scrollbar-thumb { background: #c1c7cd; border-radius: 4px; }
+        .table-wrapper::-webkit-scrollbar-thumb:hover { background: #a8b0b8; }
+        .debug-info { margin-top: 10px; padding: 10px; background: #f8f9fa; border-radius: 8px; font-family: monospace; font-size: 12px; color: #495057; display: none; }
+        .debug-info.show { display: block; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>⚛️ Force Field Database <small>Interactive Viewer</small></h1>
+        <div class="stats">📊 <span id="entryCount">Loading...</span></div>
+    </div>
+    
+    <div class="controls">
+        <input class="search-box" id="searchInput" type="text" placeholder="🔍 Search across all fields...">
+    </div>
+    
+    <div class="table-wrapper">
+        <div id="loadingState" class="loading"><div class="spinner"></div><p>Loading force field data...</p></div>
+        <table id="dataTable" style="display:none;">
+            <thead id="tableHead"></thead>
+            <tbody id="tableBody"></tbody>
+        </table>
+        <div id="emptyState" class="empty-state" style="display:none;"><p id="emptyMessage">No entries found.</p></div>
+    </div>
+    
+    <div id="debugInfo" class="debug-info"></div>
+</div>
+
+<!-- ===== MODAL ===== -->
+<div class="modal-overlay" id="modalOverlay">
+    <div class="modal">
+        <div class="modal-header">
+            <h2 id="modalTitle">Model <small id="modalModel"></small></h2>
+            <button class="modal-close" id="modalClose">×</button>
+        </div>
+        <div id="modalBody"></div>
+    </div>
+</div>
+
+<script>
+// ============================================================
+// DONNÉES INTÉGRÉES
+// ============================================================
+
+const EMBEDDED_DATA = {};
+
+// ============================================================
+// STATE
+// ============================================================
+
+let allData = {};
+let modelParams = {};
+let searchTerm = '';
+let sortKey = '';
+let sortAsc = true;
+
+// ============================================================
+// DOM REFS
+// ============================================================
+
+const searchInput = document.getElementById('searchInput');
+const tableHead = document.getElementById('tableHead');
+const tableBody = document.getElementById('tableBody');
+const emptyState = document.getElementById('emptyState');
+const emptyMessage = document.getElementById('emptyMessage');
+const entryCount = document.getElementById('entryCount');
+const loadingState = document.getElementById('loadingState');
+const dataTable = document.getElementById('dataTable');
+const debugInfo = document.getElementById('debugInfo');
+
+// Modal
+const modalOverlay = document.getElementById('modalOverlay');
+const modalClose = document.getElementById('modalClose');
+const modalTitle = document.getElementById('modalTitle');
+const modalModel = document.getElementById('modalModel');
+const modalBody = document.getElementById('modalBody');
+
+// ============================================================
+// HELPERS
+// ============================================================
+
+function formatNumber(val) {
+    if (val === undefined || val === null || val === '') return '-';
+    const num = parseFloat(val);
+    if (isNaN(num)) return val;
+    // Réduire les chiffres significatifs
+    if (Math.abs(num) < 0.0001) {
+        return num.toExponential(2);
+    }
+    if (Number.isInteger(num)) {
+        return num.toString();
+    }
+    return num.toPrecision(4);
+}
+
+// ============================================================
+// BUILD MODEL PARAMETERS
+// ============================================================
+
+function buildModelParams(data) {
+    const models = {};
+    
+    const modelNames = new Set();
+    data.list.forEach(atom => modelNames.add(atom.model));
+    
+    modelNames.forEach(name => {
+        models[name] = {
+            name: name,
+            atom_types: [],
+            lj: [],
+            bonds: [],
+            angles: [],
+            impropers: [],
+            ref: null,
+            description: null
+        };
+    });
+    
+    data.list.forEach(atom => {
+        if (models[atom.model]) {
+            models[atom.model].atom_types.push({
+                type: atom.type,
+                element: atom.element,
+                charge: atom.charge,
+                environment: atom.environment,
+                ref: atom.ref
+            });
+            if (!models[atom.model].ref && atom.ref) {
+                models[atom.model].ref = atom.ref;
+            }
+        }
+    });
+    
+    if (data.models) {
+        Object.keys(data.models).forEach(name => {
+            if (models[name]) {
+                if (data.models[name].description) {
+                    models[name].description = data.models[name].description;
+                }
+                if (data.models[name].ref) {
+                    models[name].ref = data.models[name].ref;
+                }
+            }
+        });
+    }
+    
+    if (data['lj_12-6']) {
+        data['lj_12-6'].forEach(lj => {
+            if (models[lj.model]) {
+                models[lj.model].lj.push(lj);
+            }
+        });
+    }
+    
+    if (data.bond) {
+        data.bond.forEach(bond => {
+            if (models[bond.model]) {
+                models[bond.model].bonds.push(bond);
+            }
+        });
+    }
+    
+    if (data.angle) {
+        data.angle.forEach(angle => {
+            if (models[angle.model]) {
+                models[angle.model].angles.push(angle);
+            }
+        });
+    }
+    
+    if (data.improper) {
+        data.improper.forEach(imp => {
+            if (models[imp.model]) {
+                models[imp.model].impropers.push(imp);
+            }
+        });
+    }
+    
+    return models;
+}
+
+// ============================================================
+// RENDER
+// ============================================================
+
+function render() {
+    let data = Object.values(modelParams);
+    
+    if (searchTerm.trim()) {
+        const term = searchTerm.trim().toLowerCase();
+        data = data.filter(model => 
+            model.name.toLowerCase().includes(term) ||
+            model.atom_types.some(a => a.type.toLowerCase().includes(term)) ||
+            (model.description && model.description.toLowerCase().includes(term))
+        );
+    }
+    
+    if (sortKey) {
+        data.sort((a, b) => {
+            const va = a[sortKey] ?? '';
+            const vb = b[sortKey] ?? '';
+            return sortAsc ? String(va).localeCompare(String(vb)) : String(vb).localeCompare(String(va));
+        });
+    }
+    
+    entryCount.textContent = data.length;
+    renderTable(data);
+}
+
+function renderTable(data) {
+    if (data.length === 0) {
+        tableHead.innerHTML = '';
+        tableBody.innerHTML = '';
+        dataTable.style.display = 'none';
+        emptyState.style.display = 'block';
+        emptyMessage.textContent = searchTerm.trim() ? `No models found matching "${searchTerm}".` : 'No models found.';
+        return;
+    }
+    
+    emptyState.style.display = 'none';
+    dataTable.style.display = 'table';
+    
+    const cols = ['model', 'description', 'atom_types_count', 'ref'];
+    
+    tableHead.innerHTML = `<tr>${cols.map(col => `
+        <th data-col="${col}" class="${col === sortKey ? 'sorted' : ''}">
+            ${col === 'model' ? 'Model' : col === 'description' ? 'Description' : col === 'atom_types_count' ? '# Atom Types' : 'Reference'}
+            <span class="sort-icon">${col === sortKey ? (sortAsc ? '↑' : '↓') : '⇅'}</span>
+        </th>
+    `).join('')}</tr>`;
+    
+    tableHead.querySelectorAll('th').forEach(th => {
+        th.addEventListener('click', () => {
+            const col = th.dataset.col;
+            if (col === sortKey) { sortAsc = !sortAsc; } 
+            else { sortKey = col; sortAsc = true; }
+            render();
+        });
+    });
+    
+    tableBody.innerHTML = data.map(model => {
+        return `<tr>${cols.map(col => {
+            let val = '';
+            if (col === 'model') {
+                val = `<a class="model-link" data-model="${model.name}">${model.name}</a>`;
+            } else if (col === 'description') {
+                val = model.description || '-';
+            } else if (col === 'atom_types_count') {
+                val = model.atom_types.length;
+            } else if (col === 'ref') {
+                val = model.ref ? `<a href="${model.ref}" target="_blank" class="ref-link">📄</a>` : '-';
+            }
+            return `<td>${val}</td>`;
+        }).join('')}</tr>`;
+    }).join('');
+    
+    document.querySelectorAll('.model-link[data-model]').forEach(el => {
+        el.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const modelName = this.dataset.model;
+            if (modelParams[modelName]) {
+                openModal(modelName);
+            }
+        });
+    });
+}
+
+// ============================================================
+// MODAL
+// ============================================================
+
+function openModal(modelName) {
+    const data = modelParams[modelName];
+    if (!data) return;
+    
+    modalTitle.textContent = modelName;
+    modalModel.textContent = `${data.atom_types.length} atom types`;
+    
+    let html = '';
+    
+    // Description et référence (en dehors des tableaux)
+    html += `<div style="margin-bottom:20px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;">`;
+    if (data.description) {
+        html += `<span style="color:#6c757d;">${data.description}</span>`;
+    }
+    if (data.ref) {
+        html += `<span style="font-size:13px;">📄 <a href="${data.ref}" target="_blank">${data.ref}</a></span>`;
+    }
+    html += `</div>`;
+    
+    // ============================================================
+    // 1. Atom Types (sans colonne Ref)
+    // ============================================================
+    html += `<div class="modal-section">
+        <h3>Atom Types <span class="count-badge">${data.atom_types.length}</span></h3>
+        <table class="modal-subtable">
+            <thead><tr>
+                <th>Type</th>
+                <th>Element</th>
+                <th>Charge</th>
+                <th>Environment</th>
+            </tr></thead>
+            <tbody>`;
+    data.atom_types.forEach(atom => {
+        html += `<tr>
+            <td><strong>${atom.type}</strong></td>
+            <td>${atom.element || '-'}</td>
+            <td>${formatNumber(atom.charge)}</td>
+            <td>${atom.environment || '-'}</td>
+        </tr>`;
+    });
+    html += `</tbody></table></div>`;
+    
+    // ============================================================
+    // 2. Lennard-Jones 12-6 (sans colonne Ref)
+    // ============================================================
+    if (data.lj.length > 0) {
+        html += `<div class="modal-section">
+            <h3>Lennard-Jones 12-6 <span class="count-badge">${data.lj.length}</span></h3>
+            <table class="modal-subtable">
+                <thead><tr>
+                    <th>Type 1</th>
+                    <th>Type 2</th>
+                    <th>ε (kcal/mol)</th>
+                    <th>σ (Å)</th>
+                </tr></thead>
+                <tbody>`;
+        data.lj.forEach(lj => {
+            html += `<tr>
+                <td>${lj['type 1']}</td>
+                <td>${lj['type 2']}</td>
+                <td>${formatNumber(lj['epsilon (kcal/mol)'])}</td>
+                <td>${formatNumber(lj['sigma (A)'])}</td>
+            </tr>`;
+        });
+        html += `</tbody></table></div>`;
+    }
+    
+    // ============================================================
+    // 3. Bonds (sans colonne Ref)
+    // ============================================================
+    if (data.bonds.length > 0) {
+        html += `<div class="modal-section">
+            <h3>Bonds <span class="count-badge">${data.bonds.length}</span></h3>
+            <table class="modal-subtable">
+                <thead><tr>
+                    <th>Type 1</th>
+                    <th>Type 2</th>
+                    <th>k (kcal/(mol·Å²))</th>
+                    <th>r₀ (Å)</th>
+                </tr></thead>
+                <tbody>`;
+        data.bonds.forEach(bond => {
+            html += `<tr>
+                <td>${bond['type 1']}</td>
+                <td>${bond['type 2']}</td>
+                <td>${formatNumber(bond['k (kcal/(mol.A2)'])}</td>
+                <td>${formatNumber(bond['r (A)'])}</td>
+            </tr>`;
+        });
+        html += `</tbody></table></div>`;
+    }
+    
+    // ============================================================
+    // 4. Angles (sans colonne Ref)
+    // ============================================================
+    if (data.angles.length > 0) {
+        html += `<div class="modal-section">
+            <h3>Angles <span class="count-badge">${data.angles.length}</span></h3>
+            <table class="modal-subtable">
+                <thead><tr>
+                    <th>Type 1</th>
+                    <th>Type 2</th>
+                    <th>Type 3</th>
+                    <th>k (kcal/(mol·rad²))</th>
+                    <th>θ₀ (°)</th>
+                </tr></thead>
+                <tbody>`;
+        data.angles.forEach(angle => {
+            html += `<tr>
+                <td>${angle['type 1']}</td>
+                <td>${angle['type 2']}</td>
+                <td>${angle['type 3']}</td>
+                <td>${formatNumber(angle['k (kcal/(mol.rad2))'])}</td>
+                <td>${formatNumber(angle['theta (deg)'])}</td>
+            </tr>`;
+        });
+        html += `</tbody></table></div>`;
+    }
+    
+    // ============================================================
+    // 5. Impropers (sans colonne Ref)
+    // ============================================================
+    if (data.impropers.length > 0) {
+        html += `<div class="modal-section">
+            <h3>Impropers <span class="count-badge">${data.impropers.length}</span></h3>
+            <table class="modal-subtable">
+                <thead><tr>
+                    <th>Type 1</th>
+                    <th>Type 2</th>
+                    <th>Type 3</th>
+                    <th>Type 4</th>
+                    <th>k (kcal/(mol·rad²))</th>
+                    <th>θ₀ (°)</th>
+                </tr></thead>
+                <tbody>`;
+        data.impropers.forEach(imp => {
+            html += `<tr>
+                <td>${imp['type 1']}</td>
+                <td>${imp['type 2']}</td>
+                <td>${imp['type 3']}</td>
+                <td>${imp['type 4']}</td>
+                <td>${formatNumber(imp['k (kcal/(mol,rad2))'])}</td>
+                <td>${formatNumber(imp['theta (deg)'])}</td>
+            </tr>`;
+        });
+        html += `</tbody></table></div>`;
+    }
+    
+    modalBody.innerHTML = html;
+    modalOverlay.classList.add('active');
+}
+
+function closeModal() {
+    modalOverlay.classList.remove('active');
+}
+
+modalClose.addEventListener('click', closeModal);
+modalOverlay.addEventListener('click', (e) => {
+    if (e.target === modalOverlay) closeModal();
+});
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeModal();
+});
+
+// ============================================================
+// EVENT LISTENERS
+// ============================================================
+
+searchInput.addEventListener('input', (e) => {
+    searchTerm = e.target.value;
+    render();
+});
+
+// ============================================================
+// INIT
+// ============================================================
+
+function init() {
+    loadingState.style.display = 'block';
+    dataTable.style.display = 'none';
+    emptyState.style.display = 'none';
+    debugInfo.className = 'debug-info';
+    
+    try {
+        if (!EMBEDDED_DATA || typeof EMBEDDED_DATA !== 'object') {
+            throw new Error('EMBEDDED_DATA is not defined');
+        }
+        if (!EMBEDDED_DATA.list || EMBEDDED_DATA.list.length === 0) {
+            throw new Error('No data found');
+        }
+        
+        allData = EMBEDDED_DATA;
+        modelParams = buildModelParams(allData);
+        
+        loadingState.style.display = 'none';
+        render();
+        
+        showDebug(`✅ Loaded: ${Object.keys(modelParams).length} models`);
+        console.log('✅ Models loaded:', Object.keys(modelParams));
+        
+    } catch (error) {
+        console.error('❌ Error:', error);
+        loadingState.style.display = 'none';
+        emptyState.style.display = 'block';
+        emptyMessage.textContent = `⚠️ ${error.message}`;
+        showDebug(`❌ ${error.message}`, true);
+    }
+}
+
+function showDebug(message, isError = false) {
+    debugInfo.className = 'debug-info show';
+    debugInfo.style.color = isError ? '#dc3545' : '#28a745';
+    debugInfo.innerHTML = message;
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>

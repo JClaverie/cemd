@@ -34,7 +34,7 @@ API Reference
          :color: primary
          :click-parent:
 
-         To the build
+         To the build module
 
    .. grid-item-card:: :material-regular:`query_stats;2em` Analysis
       :link: analysis

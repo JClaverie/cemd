@@ -370,24 +370,17 @@
 <h1>cemd.core.atomic_system.AtomicSystem.set_ff_from_database<a class="headerlink" href="#cemd-core-atomic-system-atomicsystem-set-ff-from-database" title="Link to this heading">#</a></h1>
 <dl class="py method">
 <dt class="sig sig-object py" id="cemd.core.atomic_system.AtomicSystem.set_ff_from_database">
-<span class="sig-prename descclassname"><span class="pre">AtomicSystem.</span></span><span class="sig-name descname"><span class="pre">set_ff_from_database</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">assignments</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ff_database</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'/home/jerome/Documents/Recherche/Codes/cemd/cemd/db/ff_database.xls'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cemd.core.atomic_system.AtomicSystem.set_ff_from_database" title="Link to this definition">#</a></dt>
-<dd><p>Automatically loads the forcefield database and applies parameters.</p>
-<p>This method reads the Excel database, extracts the Lennard-Jones, bond,
-and angle sheets, and orchestrates the automated parameter assignment for 
-the entire atomic system based on the provided atom mapping.</p>
-<dl class="simple">
-<dt>Args:</dt><dd><dl class="simple">
-<dt>assignments (dict): Mapping between the system’s current atom types/labels</dt><dd><p>and the forcefield database types. 
-Example: {‘H’: ‘hspc’, ‘O’: ‘ospc’}</p>
+<span class="sig-prename descclassname"><span class="pre">AtomicSystem.</span></span><span class="sig-name descname"><span class="pre">set_ff_from_database</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">assignments</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ff_database_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cemd.core.atomic_system.AtomicSystem.set_ff_from_database" title="Link to this definition">#</a></dt>
+<dd><p>Apply force field parameters from the TOML database.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>assignments</strong><span class="classifier">dict</span></dt><dd><p>Mapping of system atom types to database type names.
+Example: {‘O’: ‘ospc’, ‘H’: ‘hspc’, ‘Si’: ‘st’}</p>
 </dd>
-<dt>ff_database (str, optional): Absolute or relative path to the Excel </dt><dd><p>database file (.xls/.xlsx). Defaults to FF_DATABASE_PATH.</p>
+<dt><strong>ff_database_dir</strong><span class="classifier">str, optional</span></dt><dd><p>Path to the TOML database directory.</p>
 </dd>
 </dl>
-</dd>
-<dt>Returns:</dt><dd><p>Self: The instance of the system class (allows method chaining).</p>
-</dd>
-<dt>Raises:</dt><dd><p>FileNotFoundError: If the specified database file does not exist.
-ValueError: If required sheets (‘lj_12-6’, ‘bond’, ‘angle’) are missing.</p>
 </dd>
 </dl>
 </dd></dl>

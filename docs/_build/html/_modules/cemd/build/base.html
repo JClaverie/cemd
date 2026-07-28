@@ -328,8 +328,7 @@
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">scipy.constants</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">cst</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">MDAnalysis</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">mda</span>
+
 <span class="kn">from</span><span class="w"> </span><span class="nn">pymatgen.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">Composition</span><span class="p">,</span> <span class="n">Structure</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pymatgen.core.surface</span><span class="w"> </span><span class="kn">import</span> <span class="n">SlabGenerator</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pymatgen.symmetry.analyzer</span><span class="w"> </span><span class="kn">import</span> <span class="n">SpacegroupAnalyzer</span>
@@ -340,8 +339,8 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">prompt_toolkit.layout.containers</span><span class="w"> </span><span class="kn">import</span> <span class="n">HSplit</span><span class="p">,</span> <span class="n">Window</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">prompt_toolkit.layout.controls</span><span class="w"> </span><span class="kn">import</span> <span class="n">FormattedTextControl</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">.._config</span><span class="w"> </span><span class="kn">import</span> <span class="n">STRUCTURES_DIR</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">.._constants</span><span class="w"> </span><span class="kn">import</span> <span class="n">MASSES_DICT</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.._paths</span><span class="w"> </span><span class="kn">import</span> <span class="n">STRUCTURES_DIR</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.._constants</span><span class="w"> </span><span class="kn">import</span> <span class="n">MASSES_DICT</span><span class="p">,</span> <span class="n">AVOGADRO</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.._utils</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">lattice2lammps</span><span class="p">,</span> 
     <span class="n">lattice2vectors</span><span class="p">,</span> 
@@ -357,6 +356,7 @@
 <span class="n">warnings</span><span class="o">.</span><span class="n">filterwarnings</span><span class="p">(</span><span class="s2">&quot;ignore&quot;</span><span class="p">)</span>
 
 <span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">MDAnalysis</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">mda</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">..core.atomic_system</span><span class="w"> </span><span class="kn">import</span> <span class="n">AtomicSystem</span>
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_sanitize_path</span><span class="p">(</span><span class="n">full_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
@@ -780,7 +780,7 @@
     <span class="n">mass_total_target_g</span> <span class="o">=</span> <span class="n">density</span> <span class="o">*</span> <span class="n">vol</span> <span class="o">*</span> <span class="mf">1e-24</span> 
     
     <span class="c1"># Convert mass of ions to grams</span>
-    <span class="n">mass_ions_g</span> <span class="o">=</span> <span class="p">(</span><span class="n">mass_solutes_total_uma</span> <span class="o">/</span> <span class="n">cst</span><span class="o">.</span><span class="n">Avogadro</span><span class="p">)</span>
+    <span class="n">mass_ions_g</span> <span class="o">=</span> <span class="p">(</span><span class="n">mass_solutes_total_uma</span> <span class="o">/</span> <span class="n">AVOGADRO</span><span class="p">)</span>
     
     <span class="c1"># Deduce the remaining mass of water</span>
     <span class="n">mass_water_g</span> <span class="o">=</span> <span class="n">mass_total_target_g</span> <span class="o">-</span> <span class="n">mass_ions_g</span>
@@ -790,7 +790,7 @@
 
     <span class="c1"># Number of water molecules</span>
     <span class="n">water_molarmass</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">MASSES_DICT</span><span class="p">[</span><span class="s1">&#39;H&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">MASSES_DICT</span><span class="p">[</span><span class="s1">&#39;O&#39;</span><span class="p">]</span>
-    <span class="n">num_water</span> <span class="o">=</span> <span class="nb">round</span><span class="p">((</span><span class="n">mass_water_g</span> <span class="o">*</span> <span class="n">cst</span><span class="o">.</span><span class="n">Avogadro</span><span class="p">)</span> <span class="o">/</span> <span class="n">water_molarmass</span><span class="p">)</span>
+    <span class="n">num_water</span> <span class="o">=</span> <span class="nb">round</span><span class="p">((</span><span class="n">mass_water_g</span> <span class="o">*</span> <span class="n">AVOGADRO</span><span class="p">)</span> <span class="o">/</span> <span class="n">water_molarmass</span><span class="p">)</span>
 
     <span class="k">with</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">TemporaryDirectory</span><span class="p">(</span><span class="nb">dir</span><span class="o">=</span><span class="s1">&#39;.&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">tmp</span><span class="p">:</span>
         <span class="c1"># write packmol input</span>
@@ -894,10 +894,10 @@
 
     <span class="c1"># Calculation of the number of units for the target density</span>
     <span class="c1"># n = (rho *V *Na) /M</span>
-    <span class="n">num_units</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">((</span><span class="n">density</span> <span class="o">*</span> <span class="n">vol</span> <span class="o">*</span> <span class="mf">1e-24</span> <span class="o">*</span> <span class="n">cst</span><span class="o">.</span><span class="n">Avogadro</span><span class="p">)</span> <span class="o">/</span> <span class="n">total_pattern_mass</span><span class="p">))</span>
+    <span class="n">num_units</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">((</span><span class="n">density</span> <span class="o">*</span> <span class="n">vol</span> <span class="o">*</span> <span class="mf">1e-24</span> <span class="o">*</span> <span class="n">AVOGADRO</span><span class="p">)</span> <span class="o">/</span> <span class="n">total_pattern_mass</span><span class="p">))</span>
     <span class="k">if</span> <span class="n">num_units</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="n">num_units</span> <span class="o">=</span> <span class="mi">1</span>
 
-    <span class="n">rho_real</span> <span class="o">=</span> <span class="p">(</span><span class="n">num_units</span> <span class="o">*</span> <span class="n">total_pattern_mass</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">cst</span><span class="o">.</span><span class="n">Avogadro</span> <span class="o">*</span> <span class="n">vol</span> <span class="o">*</span> <span class="mf">1e-24</span><span class="p">)</span>
+    <span class="n">rho_real</span> <span class="o">=</span> <span class="p">(</span><span class="n">num_units</span> <span class="o">*</span> <span class="n">total_pattern_mass</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">AVOGADRO</span> <span class="o">*</span> <span class="n">vol</span> <span class="o">*</span> <span class="mf">1e-24</span><span class="p">)</span>
     <span class="n">err</span> <span class="o">=</span> <span class="p">(</span><span class="n">rho_real</span> <span class="o">-</span> <span class="n">density</span><span class="p">)</span> <span class="o">/</span> <span class="n">density</span>
 
     <span class="c1"># Calling Packmol via temporary directory</span>
@@ -978,14 +978,14 @@
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Structure &#39;</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">&#39; mass unknown.&quot;</span><span class="p">)</span>
 
     <span class="n">mass_total_target_g</span> <span class="o">=</span> <span class="n">density</span> <span class="o">*</span> <span class="n">vol</span> <span class="o">*</span> <span class="mf">1e-24</span> 
-    <span class="n">mass_solutes_g</span> <span class="o">=</span> <span class="p">(</span><span class="n">mass_solutes_total_uma</span> <span class="o">/</span> <span class="n">cst</span><span class="o">.</span><span class="n">Avogadro</span><span class="p">)</span>
+    <span class="n">mass_solutes_g</span> <span class="o">=</span> <span class="p">(</span><span class="n">mass_solutes_total_uma</span> <span class="o">/</span> <span class="n">AVOGADRO</span><span class="p">)</span>
     <span class="n">mass_water_g</span> <span class="o">=</span> <span class="n">mass_total_target_g</span> <span class="o">-</span> <span class="n">mass_solutes_g</span>
     
     <span class="k">if</span> <span class="n">mass_water_g</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Density or volume too low for these ions/solutes!&quot;</span><span class="p">)</span>
 
     <span class="n">water_molarmass</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">MASSES_DICT</span><span class="p">[</span><span class="s1">&#39;H&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">MASSES_DICT</span><span class="p">[</span><span class="s1">&#39;O&#39;</span><span class="p">]</span>
-    <span class="n">num_water</span> <span class="o">=</span> <span class="nb">round</span><span class="p">((</span><span class="n">mass_water_g</span> <span class="o">*</span> <span class="n">cst</span><span class="o">.</span><span class="n">Avogadro</span><span class="p">)</span> <span class="o">/</span> <span class="n">water_molarmass</span><span class="p">)</span>
+    <span class="n">num_water</span> <span class="o">=</span> <span class="nb">round</span><span class="p">((</span><span class="n">mass_water_g</span> <span class="o">*</span> <span class="n">AVOGADRO</span><span class="p">)</span> <span class="o">/</span> <span class="n">water_molarmass</span><span class="p">)</span>
 
     <span class="k">with</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">TemporaryDirectory</span><span class="p">(</span><span class="nb">dir</span><span class="o">=</span><span class="s1">&#39;.&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">tmp</span><span class="p">:</span>
         <span class="n">structures</span> <span class="o">=</span> <span class="p">[]</span>

@@ -17,6 +17,8 @@
 
 from __future__ import annotations
 
+import tempfile
+import os
 import json
 import webbrowser
 from typing import Any, TYPE_CHECKING
@@ -114,16 +116,26 @@ def get_structure(cid: int, smiles: str = None) -> AtomicSystem | None:
 
     url = f"https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/{cid}/SDF?record_type=3d"
     response = requests.get(url, timeout=10)
-    
-    if response.status_code == 200:
-        return AtomicSystem.from_file(response.text)
 
-    if smiles:
+    if response.status_code == 200:
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.sdf', delete=False) as f:
+            f.write(response.text)
+            temp_path = f.name
+        
+        try:
+            system = AtomicSystem.from_file(temp_path)
+            os.unlink(temp_path)  # Nettoyer
+            return system
+        except Exception as e:
+            os.unlink(temp_path)
+            print(f"Error parsing SDF: {e}")
+
+    elif smiles:
         try:
             return AtomicSystem.from_smiles(smiles)
         except Exception as e:
             print(f"SMILES conversion error: {e}")
-
+    
     return None
 
 def pubchem_sdq_search(query: str, limit: int = 50) -> list[dict]:

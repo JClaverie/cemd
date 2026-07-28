@@ -28,7 +28,7 @@ from ._topology import TopologyMixin
 from ._io import IOMixin
 from ._forcefield import ForceFieldMixin
 
-from ..view.visualization_new import view
+from ..view.visualization import view
 
 from .._constants import(
     AVOGADRO,

@@ -8,3 +8,4 @@ This guide explains how to build and analyze your atomistic models.
 
    build_guide
    analysis_guide
+   ff_database

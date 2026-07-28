@@ -17,6 +17,7 @@
 
 from __future__ import annotations
 
+import warnings
 import re
 import webbrowser
 from io import StringIO
@@ -178,7 +179,9 @@ def get_structure_by_cod_id(cod_id: int) -> AtomicSystem:
         response = requests.get(url, timeout=10)
         response.raise_for_status()
         parser = CifParser(StringIO(response.text))
-        pmg_structure = parser.parse_structures()[0]
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", UserWarning)
+            pmg_structure = parser.parse_structures()[0]
         return AtomicSystem.from_pmg(pmg_structure) 
     except Exception as e:
         print(f"Error retrieving COD {cod_id}: {e}")

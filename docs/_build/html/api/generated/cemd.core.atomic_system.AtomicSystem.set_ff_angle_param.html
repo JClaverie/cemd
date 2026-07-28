@@ -377,13 +377,14 @@
 <dd class="field-odd"><dl class="simple">
 <dt><strong>angle_type</strong><span class="classifier">str</span></dt><dd><p>The identifier of the angle type (e.g., ‘H-O-H’).</p>
 </dd>
-<dt><strong>coeffs</strong><span class="classifier">list of float</span></dt><dd><p>The angle coefficients (typically [k, theta0]).</p>
+<dt><strong>coeffs</strong><span class="classifier">list of float</span></dt><dd><p>The angle coefficients [k (kcal/(mol·rad²)), theta0 (deg)].</p>
 </dd>
 </dl>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
-<dt>ValueError</dt><dd><p>If the angle_type is not initialized or does not exist.</p>
+<dt>ValueError</dt><dd><p>If the angle_type is not initialized or does not exist.
+If coeffs length is invalid.</p>
 </dd>
 </dl>
 </dd>

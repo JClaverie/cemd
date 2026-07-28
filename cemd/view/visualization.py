@@ -18,10 +18,10 @@
 import os
 import subprocess
 import tempfile
-from typing import Optional, Union
+from typing import Optional
 from pathlib import Path
 
-from ._config import (
+from .config import (
     VMD_ELEMENT_TYPES,
     VMD_ELEMENT_COLORS,
     VMD_ATOM_RADIUS,

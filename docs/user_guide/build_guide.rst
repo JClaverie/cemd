@@ -1,10 +1,15 @@
-Using the build Module
-=========================
+Building Systems
+================
 
 The **build** module is the central engine of the **cemd** package. Its primary purpose is to automate the construction of complex atomistic systems, from simple crystal bulks to intricate solid-liquid interfaces.
 
+.. contents:: Table of Contents
+   :local:
+   :depth: 2
+
 Workflow Overview
 -----------------
+
 Building a simulation-ready system generally follows these three steps:
 
 1. **Initialization**: Load an existing structure or define composition parameters.
@@ -14,8 +19,10 @@ Building a simulation-ready system generally follows these three steps:
 Construction Examples
 ---------------------
 
-### Building a Liquid Solution
-To create a water-based solution with solutes, you can use the `build_solution` function. It automatically calculates the number of solvent molecules required to reach a specific density.
+Building a Liquid Solution
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+To create a water-based solution with solutes, use `build_solution`. It automatically calculates the number of solvent molecules required to reach a specific density.
 
 .. code-block:: python
 
@@ -30,7 +37,6 @@ To create a water-based solution with solutes, you can use the `build_solution` 
 
    # --- Step 1: Calculate Particle Counts ---
    # Convert molar concentrations into integer molecule counts based on box volume.
-   # This ensures physical accuracy while adhering to the integer constraints of Packmol.
    solutes_counts, errors = concentration2count(concentrations, my_box)
 
    # --- Step 2: Build the Atomic System ---
@@ -65,64 +71,198 @@ To create a water-based solution with solutes, you can use the `build_solution` 
    Volume: 27.00 nm3
    Density: 1.04 g/cm3
 
-### Building Complex C-S-H Models
-For cementitious materials, the `hydrates` submodule provides the `pycsh` tool, which generates structures based on specific Calcium/Silicate (C/S) and Water/Silicate (W/S) ratios.
+Building a Glass Structure
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Example: Building a C-S-H model
--------------------------------
+Create a glass structure from oxide compositions:
+
+.. code-block:: python
+
+   from cemd.build import build_glass
+
+   # Define a calcium silicate glass composition
+   box = [25, 25, 25]
+   glass = build_glass(
+       box=box,
+       density=2.5,
+       stoichiometry_dic={
+           "SiO2": 0.65,
+           "CaO": 0.25,
+           "Al2O3": 0.10
+       }
+   )
+   
+   print(glass.density)  # Should be close to 2.5 g/cm³
+
+Building Complex C-S-H Models
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+For cementitious materials, the `hydrates` submodule provides tools to generate C-S-H structures based on specific Calcium/Silicate (C/S) and Water/Silicate (W/S) ratios.
+
 .. code-block:: python
 
    from cemd.build.hydrates import build_csh
 
    # Create a C-S-H model with specific Ca/Si and Water/Si ratios
-   csh_system = build_csh(cs_ratio=1.5, ws_ratio=1.5)
+   csh_system = build_csh(
+       cs_ratio=1.5,
+       ws_ratio=1.5,
+       supercell=[3, 5, 2]  # Replication factors
+   )
+
+   # Print system summary
+   print(csh_system)
+   
+   # Get actual ratios
+   n_si = csh_system.get_count("Si")
+   n_ca = csh_system.get_count("Ca") + csh_system.get_count("Cw")
+   n_h2o = (csh_system.get_count("Hw") + csh_system.get_count("Hh") + csh_system.get_count("H")) / 2
+   
+   print(f"Real C/S ratio: {n_ca/n_si:.3f}")
+   print(f"Real H/S ratio: {n_h2o/n_si:.3f}")
+
+C-A-S-H Models (Aluminum Substitution)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. code-block:: python
+
+   from cemd.build.hydrates import csh_to_cash
+
+   # Convert a C-S-H structure to C-A-S-H by substituting Si with Al
+   cash_system, actual_ratio = csh_to_cash(
+       atomic_system=csh_system,
+       as_ratio=0.10  # Target Al/Si ratio
+   )
+   
+   print(f"Al/Si ratio: {actual_ratio:.3f}")
+
+Building AFt/AFm Structures
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. code-block:: python
+
+   from cemd.build.hydrates import build_af
+
+   # Build an AFt structure (ettringite) with specific water content
+   aft_system = build_af(
+       ws_ratio=10.0,  # Water/sulfate ratio
+       supercell=[1, 1, 1]
+   )
+   
+   print(aft_system)
 
 Creating Surfaces
 -----------------
-The **build** module simplifies the generation of crystalline surfaces. The process involves cutting a bulk structure along specific crystallographic planes, defined by their Miller indices, and adding a vacuum layer to avoid interactions between periodic images.
 
-Example: Cutting a Surface
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-To create a surface, use the `build_surface` function. You need to provide the bulk structure and the Miller indices for the desired cut.
+The **build** module simplifies the generation of crystalline surfaces. The process involves cutting a bulk structure along specific crystallographic planes and adding a vacuum layer.
+
+Basic Surface Generation
+^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. code-block:: python
 
-   from cemd.build.base import build_surface
+   from cemd.build import build_surfaces, explore_surfaces
 
+   # Load a bulk structure
+   bulk = AtomicSystem.from_file("tobermorite.cif")
+   
    # Generate surfaces cut along the (0, 0, 1) plane
-   # min_slab_size ensures the thickness of the crystal layer
-   # min_vacuum_size adds empty space along the normal axis
-   surfaces, shifts, dipoles, broken_bonds = build_surface(
-       data=my_bulk_structure,
+   surfaces, shifts, dipoles, broken_bonds = build_surfaces(
+       data=bulk,
        miller_indices=[0, 0, 1],
-       min_slab_size=20.0,
-       min_vacuum_size=15.0
+       min_slab_size=25.0,  # Å
+       min_vacuum_size=15.0  # Å
    )
-
+   
    # Select the first generated surface
    my_surface = surfaces[0]
+   
+   print(f"Generated {len(surfaces)} surfaces")
+   print(f"Broken bonds: {broken_bonds}")
 
-Understanding the Parameters
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-* **Miller Indices**: These define the orientation of the cutting plane. Common cuts include [1, 0, 0], [1, 1, 0], or [1, 1, 1].
-* **min_slab_size**: Defines the minimum thickness of your material. A slab too thin might not represent the bulk properties correctly.
-* **min_vacuum_size**: This creates a "gap" in the periodic boundary conditions. This is essential for surface studies to prevent the surface from interacting with its own periodic image in the simulation.
-* **Broken Bonds**: The `build_surface` function automatically reports how many bonds were broken during the cut. This is a helpful diagnostic metric to ensure your structure is stable.
-
-Creating a Solid/Liquid interface
----------------------------------
-Once you have your solid and your liquid, you can combine them using the interface tools.
+Interactive Surface Exploration
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. code-block:: python
 
-   from cemd.build.base import add_liquid
+   # Interactive surface explorer
+   selected_surface = explore_surfaces(bulk)
+   
+   if selected_surface:
+       selected_surface.view()
 
-   # Create an interface between a solid surface and a liquid layer
+Understanding the Parameters
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- **Miller Indices**: Define the cutting plane orientation (`[1,0,0]`, `[1,1,0]`, `[1,1,1]`, etc.)
+- **min_slab_size**: Minimum thickness of the material (too thin = bulk properties not representative)
+- **min_vacuum_size**: "Gap" in PBC to prevent surface-surface interactions
+- **Broken Bonds**: Number of bonds broken during the cut (diagnostic metric)
+
+Creating Solid/Liquid Interfaces
+--------------------------------
+
+Once you have your solid and liquid, combine them using interface tools.
+
+.. code-block:: python
+
+   from cemd.build import add_liquid, add_droplet
+
+   # Create a flat liquid layer on top of a surface
    interface = add_liquid(
        solid_system=my_surface,
-       thickness=20.0,
-       density=1.0
+       thickness=20.0,  # Å
+       density=1.0,
+       distance=2.0,  # Gap between solid and liquid
+       solutes_dict={"Na": 10, "Cl": 10},  # Add ions
+       vacuum=10.0  # Vacuum above the liquid
    )
 
-.. note::
-   Many of these functions rely on **Packmol** for the placement of molecules. Ensure that Packmol is installed and correctly configured in your system's PATH.
+   # Create a droplet instead of a flat layer
+   droplet_interface = add_droplet(
+       solid_system=my_surface,
+       radius=15.0,  # Å
+       density=1.0,
+       distance=2.0,
+       solutes_dict={"Ca": 5, "OH": 10}
+   )
+
+Adding Custom Structures
+------------------------
+
+You can add any atomic system to a surface:
+
+.. code-block:: python
+
+   from cemd.build import add_structure
+
+   # Load a custom structure
+   custom = AtomicSystem.from_file("custom_molecule.pdb")
+   
+   # Add it to the surface
+   combined = add_structure(
+       solid_system=my_surface,
+       structure_to_add=custom,
+       distance=3.0,
+       axis='z',
+       vacuum=15.0
+   )
+
+Merging and Splitting Systems
+-----------------------------
+
+.. code-block:: python
+
+   from cemd.build import merge, split
+
+   # Merge two systems
+   merged = merge(system1, system2, box=[50, 30, 30, 90, 90, 90])
+   
+   # Split a system and add space
+   splitted = split(
+       solid_system=merged,
+       axis=2,  # z-axis
+       gap_size=20.0,
+       add_solution=True,  # Fill the gap with liquid
+       density=1.0
+   )

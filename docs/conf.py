@@ -3,9 +3,99 @@
 # Sphinx configuration for the cemd documentation.
 # Full reference: https://www.sphinx-doc.org/en/master/usage/configuration.html
 
+# docs/conf.py
+
 import os
 import sys
+import subprocess
+import shutil
+from pathlib import Path
+
 sys.path.insert(0, os.path.abspath('..'))
+
+# ... le reste de votre conf.py ...
+
+# ========================================================================
+# Générer les données FF au build
+# ========================================================================
+
+# docs/conf.py
+
+import os
+import sys
+import subprocess
+import shutil
+from pathlib import Path
+
+sys.path.insert(0, os.path.abspath('..'))
+
+
+def generate_ff_data(app):
+    """Run scripts to generate force field data from TOML."""
+    scripts_dir = Path(__file__).parent / "_scripts"
+    
+    # ✅ Scripts à exécuter dans l'ordre
+    scripts = [
+        "toml_to_json.py",          # Génère ff_data.json
+        "generate_ff_embedded.py",  # Génère ff_viewer.html avec données intégrées
+    ]
+    
+    for script_name in scripts:
+        script_path = scripts_dir / script_name
+        
+        if not script_path.exists():
+            print(f"⚠️ Script not found: {script_path}")
+            continue
+        
+        try:
+            print(f"🔄 Running {script_name}...")
+            result = subprocess.run(
+                [sys.executable, str(script_path)],
+                capture_output=True,
+                text=True,
+                cwd=Path(__file__).parent,
+                timeout=30
+            )
+            if result.stdout:
+                print(result.stdout)
+            if result.stderr:
+                print(f"⚠️ {result.stderr}")
+        except subprocess.TimeoutExpired:
+            print(f"⚠️ {script_name} timed out")
+        except Exception as e:
+            print(f"⚠️ Error running {script_name}: {e}")
+    
+    # ✅ Copier le JSON dans _build/html/_static/
+    src = Path(__file__).parent / "_static" / "ff_data.json"
+    dst = Path(__file__).parent / "_build" / "html" / "_static" / "ff_data.json"
+    
+    if src.exists():
+        try:
+            dst.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(src, dst)
+            print(f"✅ Copied ff_data.json to {dst}")
+        except Exception as e:
+            print(f"⚠️ Could not copy ff_data.json: {e}")
+    else:
+        print(f"⚠️ ff_data.json not found at {src}")
+    
+    # ✅ Copier le HTML embedded dans _build
+    src_html = Path(__file__).parent / "_static" / "ff_viewer.html"
+    dst_html = Path(__file__).parent / "_build" / "html" / "_static" / "ff_viewer.html"
+    
+    if src_html.exists():
+        try:
+            dst_html.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(src_html, dst_html)
+            print(f"✅ Copied ff_viewer.html to {dst_html}")
+        except Exception as e:
+            print(f"⚠️ Could not copy ff_viewer.html: {e}")
+    else:
+        print(f"⚠️ ff_viewer.html not found at {src_html}")
+
+def setup(app):
+    """Sphinx setup hook."""
+    app.connect('builder-inited', generate_ff_data)
 
 # ---------------------------------------------------------------------------
 # Project information
@@ -97,8 +187,8 @@ html_theme = 'pydata_sphinx_theme'
  
 html_theme_options = {
     'logo': {
-        'image_light': 'logo/cemd_logo.svg',
-        'image_dark':  'logo/cemd_logo_dark.svg',
+        'image_light': '_static/images/logo/cemd_logo.svg',
+        'image_dark':  '_static/images/logo/cemd_logo_dark.svg',
     },
     'navbar_end': ['theme-switcher', 'navbar-icon-links'],
 }
@@ -114,6 +204,9 @@ html_css_files = [
 
 html_sidebars = {
     "api/atomic_system": [],
+    "user_guide/build_guide": [],
+    "user_guide/analysis_guide": [],
+    "user_guide/ff_database": [],
     "installation": []
 
 }

@@ -304,11 +304,58 @@
                   
   <section id="getting-started">
 <h1>Getting Started<a class="headerlink" href="#getting-started" title="Link to this heading">#</a></h1>
+<nav class="contents local" id="table-of-contents">
+<p class="topic-title">Table of Contents</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#loading-a-system" id="id1">Loading a System</a></p></li>
+<li><p><a class="reference internal" href="#creating-a-system-from-smiles" id="id2">Creating a System from SMILES</a></p></li>
+<li><p><a class="reference internal" href="#interactive-database-exploration" id="id3">Interactive Database Exploration</a></p>
+<ul>
+<li><p><a class="reference internal" href="#crystallography-open-database-cod" id="id4">Crystallography Open Database (COD)</a></p></li>
+<li><p><a class="reference internal" href="#pubchem-database" id="id5">PubChem Database</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#inspecting-a-system" id="id6">Inspecting a System</a></p></li>
+<li><p><a class="reference internal" href="#counting-specific-atom-types" id="id7">Counting Specific Atom Types</a></p></li>
+<li><p><a class="reference internal" href="#manipulating-systems" id="id8">Manipulating Systems</a></p>
+<ul>
+<li><p><a class="reference internal" href="#adding-atoms" id="id9">Adding Atoms</a></p></li>
+<li><p><a class="reference internal" href="#removing-atoms" id="id10">Removing Atoms</a></p></li>
+<li><p><a class="reference internal" href="#setting-box-parameters" id="id11">Setting Box Parameters</a></p></li>
+<li><p><a class="reference internal" href="#replicating-the-system" id="id12">Replicating the System</a></p></li>
+<li><p><a class="reference internal" href="#wrapping-atoms-pbc" id="id13">Wrapping Atoms (PBC)</a></p></li>
+<li><p><a class="reference internal" href="#protonating-atoms" id="id14">Protonating Atoms</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#saving-a-system" id="id15">Saving a System</a></p></li>
+<li><p><a class="reference internal" href="#converting-a-system" id="id16">Converting a System</a></p>
+<ul>
+<li><p><a class="reference internal" href="#to-mdanalysis" id="id17">To MDAnalysis</a></p></li>
+<li><p><a class="reference internal" href="#to-pymatgen" id="id18">To Pymatgen</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#visualization" id="id19">Visualization</a></p></li>
+<li><p><a class="reference internal" href="#setting-force-fields" id="id20">Setting Force Fields</a></p>
+<ul>
+<li><p><a class="reference internal" href="#from-database" id="id21">From Database</a></p></li>
+<li><p><a class="reference internal" href="#manual-assignment" id="id22">Manual Assignment</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#setting-topology" id="id23">Setting Topology</a></p>
+<ul>
+<li><p><a class="reference internal" href="#automatic-detection-clayff-cshff" id="id24">Automatic Detection (ClayFF/CSHFF)</a></p></li>
+<li><p><a class="reference internal" href="#custom-rules" id="id25">Custom Rules</a></p></li>
+<li><p><a class="reference internal" href="#manual-connectivity" id="id26">Manual Connectivity</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#combining-systems" id="id27">Combining Systems</a></p></li>
+</ul>
+</nav>
 <p>The <strong>cemd</strong> package revolves around the <a class="reference internal" href="api/atomic_system.html#cemd.core.atomic_system.AtomicSystem" title="cemd.core.atomic_system.AtomicSystem"><code class="xref py py-class docutils literal notranslate"><span class="pre">AtomicSystem</span></code></a> class,
 which serves as the primary container for all atomic data: coordinates, topology, box
 parameters, masses, and force field parameters.</p>
 <section id="loading-a-system">
-<h2>Loading a System<a class="headerlink" href="#loading-a-system" title="Link to this heading">#</a></h2>
+<h2><a class="toc-backref" href="#id1" role="doc-backlink">Loading a System</a><a class="headerlink" href="#loading-a-system" title="Link to this heading">#</a></h2>
 <p>The easiest way to load a system is directly from a LAMMPS <code class="docutils literal notranslate"><span class="pre">.data</span></code> file:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">cemd</span><span class="w"> </span><span class="kn">import</span> <span class="n">AtomicSystem</span>
 
@@ -337,13 +384,78 @@ Density: 1.00 g/cm3
 </pre></div>
 </div>
 <p>Other supported formats include <code class="docutils literal notranslate"><span class="pre">.cif</span></code> and <code class="docutils literal notranslate"><span class="pre">.pdb</span></code>:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">system</span> <span class="o">=</span> <span class="n">AtomicSystem</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="s2">&quot;structure.cif&quot;</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># From CIF (crystallographic information file)</span>
+<span class="n">system</span> <span class="o">=</span> <span class="n">AtomicSystem</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="s2">&quot;structure.cif&quot;</span><span class="p">)</span>
+
+<span class="c1"># From PDB (Protein Data Bank format)</span>
 <span class="n">system</span> <span class="o">=</span> <span class="n">AtomicSystem</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="s2">&quot;molecule.pdb&quot;</span><span class="p">)</span>
+
+<span class="c1"># From SDF (structure-data file)</span>
+<span class="n">system</span> <span class="o">=</span> <span class="n">AtomicSystem</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="s2">&quot;ligand.sdf&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
+<section id="creating-a-system-from-smiles">
+<h2><a class="toc-backref" href="#id2" role="doc-backlink">Creating a System from SMILES</a><a class="headerlink" href="#creating-a-system-from-smiles" title="Link to this heading">#</a></h2>
+<p>You can also create molecules directly from their SMILES string:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create a simple molecule</span>
+<span class="n">ethanol</span> <span class="o">=</span> <span class="n">AtomicSystem</span><span class="o">.</span><span class="n">from_smiles</span><span class="p">(</span><span class="s2">&quot;CCO&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">ethanol</span><span class="p">)</span>
+
+<span class="c1"># Create a more complex molecule</span>
+<span class="n">caffeine</span> <span class="o">=</span> <span class="n">AtomicSystem</span><span class="o">.</span><span class="n">from_smiles</span><span class="p">(</span><span class="s2">&quot;CN1C=NC2=C1C(=O)N(C(=O)N2C)C&quot;</span><span class="p">)</span>
+
+<span class="c1"># Visualize the molecule</span>
+<span class="n">caffeine</span><span class="o">.</span><span class="n">view</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+<section id="interactive-database-exploration">
+<h2><a class="toc-backref" href="#id3" role="doc-backlink">Interactive Database Exploration</a><a class="headerlink" href="#interactive-database-exploration" title="Link to this heading">#</a></h2>
+<p>CEMD provides interactive interfaces to explore and load structures from open databases.</p>
+<section id="crystallography-open-database-cod">
+<h3><a class="toc-backref" href="#id4" role="doc-backlink">Crystallography Open Database (COD)</a><a class="headerlink" href="#crystallography-open-database-cod" title="Link to this heading">#</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">cemd.db</span><span class="w"> </span><span class="kn">import</span> <span class="n">explore_cod</span>
+
+<span class="c1"># Launches an interactive TUI to browse COD</span>
+<span class="n">system</span> <span class="o">=</span> <span class="n">explore_cod</span><span class="p">()</span>
+</pre></div>
+</div>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>? Search by: (Use arrow keys)
+» Mineral Name
+  Chemical Formula
+  COD ID
+</pre></div>
+</div>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>? Search by: Mineral Name
+? Enter your query: calcite
+Found 145 structures
+↑↓ Move   [Enter] Load   [d] DOI   [w] COD page   [q] Quit
+
+      ID | NAME                 | FORMULA            | LATTICE PARAMETERS                    | DOI
+----------------------------------------------------------------------------------------------------
+   1001741 | Nitrocalcite         | - Ca H8 N2 O10 -   |   6.3   9.2  14.9 |  90° 106°  90°    |  ✓
+   1001743 | Nitrocalcite         | - Ca H8 N2 O10 -   |   6.3   9.1  14.8 |  90° 106°  90°    |  -
+   1010917 | Barytocalcite        | - C2 Ba Ca O6 -    |   8.2   5.2   6.6 |  90° 106°  90°    |  -
+➜  1010928 | Calcite              | - C Ca O3 -        |   6.4   6.4   6.4 |  46°  46°  46°    |  ✓
+   1010962 | Calcite              | - C Ca O3 -        |   6.4   6.4   6.4 |  46°  46°  46°    |  -
+   1011029 | Nitratine            | - N Na O3 -        |   6.3   6.3   6.3 |  47°  47°  47°    |  ✓
+   1011228 | Rhodochrosite        | - C Mn O3 -        |   5.8   5.8   5.8 |  48°  48°  48°    |  ✓
+</pre></div>
+</div>
+</section>
+<section id="pubchem-database">
+<h3><a class="toc-backref" href="#id5" role="doc-backlink">PubChem Database</a><a class="headerlink" href="#pubchem-database" title="Link to this heading">#</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">cemd.db</span><span class="w"> </span><span class="kn">import</span> <span class="n">explore_pubchem</span>
+
+<span class="c1"># Interactive PubChem explorer</span>
+<span class="n">molecule</span> <span class="o">=</span> <span class="n">explore_pubchem</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+</section>
 <section id="inspecting-a-system">
-<h2>Inspecting a System<a class="headerlink" href="#inspecting-a-system" title="Link to this heading">#</a></h2>
+<h2><a class="toc-backref" href="#id6" role="doc-backlink">Inspecting a System</a><a class="headerlink" href="#inspecting-a-system" title="Link to this heading">#</a></h2>
 <p>Once loaded, the <code class="docutils literal notranslate"><span class="pre">AtomicSystem</span></code> object provides immediate access to physical
 properties and topology:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Basic properties</span>
@@ -364,7 +476,7 @@ Volume          : 27000.00 Å³
 </pre></div>
 </div>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Direct access to the atoms DataFrame</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">system</span><span class="o">.</span><span class="n">atoms</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">system</span><span class="o">.</span><span class="n">atoms</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">10</span><span class="p">))</span>
 </pre></div>
 </div>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>      type  charge          x          y       z
@@ -374,19 +486,96 @@ id
 3       H     0.0  15.459000  26.318001  13.954
 4       O     0.0  16.625999  16.400000  13.285
 5       H     0.0  15.970000  15.702000  12.997
-...   ...     ...        ...        ...     ...
-2705    H     0.0  27.193001  18.150999  12.969
-2706    H     0.0  28.473000  18.754000  12.153
-2707    O     0.0  19.752001   1.068000  10.500
-2708    H     0.0  18.818001   0.731000  10.623
-2709    H     0.0  20.035000   0.929000   9.552
+6       H     0.0  17.561001  16.048000  13.139
+7       O     0.0  25.382999  11.912000  19.295
+8       H     0.0  24.693001  11.469000  18.738
+9       H     0.0  26.286999  12.003000  18.814
+10      O     0.0  17.439001   3.114000  14.050
 
-[2709 rows x 5 columns]
+[10 rows x 5 columns]
 </pre></div>
 </div>
 </section>
+<section id="counting-specific-atom-types">
+<h2><a class="toc-backref" href="#id7" role="doc-backlink">Counting Specific Atom Types</a><a class="headerlink" href="#counting-specific-atom-types" title="Link to this heading">#</a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Count specific atom types</span>
+<span class="n">n_si</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">get_count</span><span class="p">(</span><span class="s2">&quot;Si&quot;</span><span class="p">)</span>
+<span class="n">n_ca</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">get_count</span><span class="p">(</span><span class="s2">&quot;Ca&quot;</span><span class="p">)</span>
+<span class="n">n_h2o</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">get_count</span><span class="p">(</span><span class="s2">&quot;O&quot;</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span>  <span class="c1"># Rough estimation for water</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Si atoms: </span><span class="si">{</span><span class="n">n_si</span><span class="si">}</span><span class="s2">, Ca atoms: </span><span class="si">{</span><span class="n">n_ca</span><span class="si">}</span><span class="s2">, H2O molecules: </span><span class="si">{</span><span class="n">n_h2o</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="manipulating-systems">
+<h2><a class="toc-backref" href="#id8" role="doc-backlink">Manipulating Systems</a><a class="headerlink" href="#manipulating-systems" title="Link to this heading">#</a></h2>
+<section id="adding-atoms">
+<h3><a class="toc-backref" href="#id9" role="doc-backlink">Adding Atoms</a><a class="headerlink" href="#adding-atoms" title="Link to this heading">#</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Add a single atom</span>
+<span class="n">system</span><span class="o">.</span><span class="n">add_atom</span><span class="p">(</span><span class="s2">&quot;Na&quot;</span><span class="p">,</span> <span class="p">[</span><span class="mf">5.0</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">],</span> <span class="n">charge</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+
+<span class="c1"># Add multiple atoms at once</span>
+<span class="n">system</span><span class="o">.</span><span class="n">add_atoms</span><span class="p">(</span>
+    <span class="n">atypes</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Na&quot;</span><span class="p">,</span> <span class="s2">&quot;Cl&quot;</span><span class="p">,</span> <span class="s2">&quot;Na&quot;</span><span class="p">],</span>
+    <span class="n">positions</span><span class="o">=</span><span class="p">[[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">20</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]],</span>
+    <span class="n">charges</span><span class="o">=</span><span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">]</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="removing-atoms">
+<h3><a class="toc-backref" href="#id10" role="doc-backlink">Removing Atoms</a><a class="headerlink" href="#removing-atoms" title="Link to this heading">#</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Remove specific atoms by index</span>
+<span class="n">system</span><span class="o">.</span><span class="n">remove_atoms</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">])</span>
+
+<span class="c1"># Remove a single atom</span>
+<span class="n">system</span><span class="o">.</span><span class="n">remove_atom</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="setting-box-parameters">
+<h3><a class="toc-backref" href="#id11" role="doc-backlink">Setting Box Parameters</a><a class="headerlink" href="#setting-box-parameters" title="Link to this heading">#</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Set a cubic box</span>
+<span class="n">system</span><span class="o">.</span><span class="n">set_box</span><span class="p">([</span><span class="mi">30</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="mi">90</span><span class="p">,</span> <span class="mi">90</span><span class="p">,</span> <span class="mi">90</span><span class="p">])</span>
+
+<span class="c1"># Set an orthorhombic box</span>
+<span class="n">system</span><span class="o">.</span><span class="n">set_box</span><span class="p">([</span><span class="mi">20</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="mi">25</span><span class="p">,</span> <span class="mi">90</span><span class="p">,</span> <span class="mi">90</span><span class="p">,</span> <span class="mi">90</span><span class="p">])</span>
+</pre></div>
+</div>
+</section>
+<section id="replicating-the-system">
+<h3><a class="toc-backref" href="#id12" role="doc-backlink">Replicating the System</a><a class="headerlink" href="#replicating-the-system" title="Link to this heading">#</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Replicate the system 2x in x, 3x in y, 1x in z</span>
+<span class="n">system</span><span class="o">.</span><span class="n">replicate</span><span class="p">([</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+</pre></div>
+</div>
+</section>
+<section id="wrapping-atoms-pbc">
+<h3><a class="toc-backref" href="#id13" role="doc-backlink">Wrapping Atoms (PBC)</a><a class="headerlink" href="#wrapping-atoms-pbc" title="Link to this heading">#</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Bring all atoms back into the box</span>
+<span class="n">system</span><span class="o">.</span><span class="n">wrap</span><span class="p">()</span>
+
+<span class="c1"># Center the system on its center of mass</span>
+<span class="n">system</span><span class="o">.</span><span class="n">center_on_com</span><span class="p">()</span>
+
+<span class="c1"># Center only specific atom types</span>
+<span class="n">system</span><span class="o">.</span><span class="n">center_on_com</span><span class="p">(</span><span class="n">atom_types</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Ca&quot;</span><span class="p">,</span> <span class="s2">&quot;Si&quot;</span><span class="p">])</span>
+</pre></div>
+</div>
+</section>
+<section id="protonating-atoms">
+<h3><a class="toc-backref" href="#id14" role="doc-backlink">Protonating Atoms</a><a class="headerlink" href="#protonating-atoms" title="Link to this heading">#</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Protonate specific atoms</span>
+<span class="n">system</span><span class="o">.</span><span class="n">protonate_atoms</span><span class="p">([</span><span class="mi">10</span><span class="p">,</span> <span class="mi">15</span><span class="p">,</span> <span class="mi">20</span><span class="p">],</span> <span class="n">bond_length</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+
+<span class="c1"># Protonate a single atom</span>
+<span class="n">system</span><span class="o">.</span><span class="n">protonate_atom</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="n">bond_length</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
 <section id="saving-a-system">
-<h2>Saving a System<a class="headerlink" href="#saving-a-system" title="Link to this heading">#</a></h2>
+<h2><a class="toc-backref" href="#id15" role="doc-backlink">Saving a System</a><a class="headerlink" href="#saving-a-system" title="Link to this heading">#</a></h2>
 <p>To write a system back to a LAMMPS <code class="docutils literal notranslate"><span class="pre">.data</span></code> file:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Save with the default atom style (preserved from the input file)</span>
 <span class="n">system</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;output.data&quot;</span><span class="p">)</span>
@@ -403,15 +592,25 @@ The system can also be exported to the <code class="docutils literal notranslate
 </div>
 </section>
 <section id="converting-a-system">
-<h2>Converting a System<a class="headerlink" href="#converting-a-system" title="Link to this heading">#</a></h2>
-<p>Another solution to save to other formats is to convert the AtomicSystem to a <a class="reference external" href="https://userguide.mdanalysis.org/stable/universe.html">MDAnalysis Universe</a>. The MDAnalysis package allow to write in <a class="reference external" href="https://userguide.mdanalysis.org/stable/formats/index.html">many formats</a>.</p>
+<h2><a class="toc-backref" href="#id16" role="doc-backlink">Converting a System</a><a class="headerlink" href="#converting-a-system" title="Link to this heading">#</a></h2>
+<section id="to-mdanalysis">
+<h3><a class="toc-backref" href="#id17" role="doc-backlink">To MDAnalysis</a><a class="headerlink" href="#to-mdanalysis" title="Link to this heading">#</a></h3>
+<p>Convert to a <a class="reference external" href="https://userguide.mdanalysis.org/stable/universe.html">MDAnalysis Universe</a> for advanced trajectory analysis:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">u</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">to_mda</span><span class="p">()</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">u</span><span class="p">)</span>
 </pre></div>
 </div>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>&lt;Universe with 2709 atoms&gt;
+
+# Access trajectory frames
+for ts in u.trajectory:
+    print(ts.frame, ts.positions.shape)
 </pre></div>
 </div>
+</section>
+<section id="to-pymatgen">
+<h3><a class="toc-backref" href="#id18" role="doc-backlink">To Pymatgen</a><a class="headerlink" href="#to-pymatgen" title="Link to this heading">#</a></h3>
+<p>Convert to a <a class="reference external" href="https://pymatgen.org/pymatgen.core.structure.html">Pymatgen Structure</a> for crystallographic analysis:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">struct</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">to_pmg</span><span class="p">()</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">struct</span><span class="p">)</span>
 </pre></div>
@@ -427,84 +626,130 @@ Sites (2709)
    0  O      0.483567   0.8719     0.473733         0
    1  H      0.466233   0.862267   0.446933         0
    2  H      0.5153     0.877267   0.465133         0
-   3  O      0.5542     0.546667   0.442833         0
-   4  H      0.532333   0.5234     0.433233         0
-   5  H      0.543333   0.5767     0.433367         0
    ...
 </pre></div>
 </div>
 </section>
-<section id="explore-structure-databases">
-<h2>Explore structure databases<a class="headerlink" href="#explore-structure-databases" title="Link to this heading">#</a></h2>
-<p>You can explore the <a class="reference external" href="https://www.crystallography.net/cod/">COD</a> and <a class="reference external" href="https://pubchem.ncbi.nlm.nih.gov/">PubChem</a> open databases to find structures and load them in an interactive way.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">cemd.db</span><span class="w"> </span><span class="kn">import</span> <span class="n">explore_cod</span>
-
-<span class="n">system</span> <span class="o">=</span> <span class="n">explore_cod</span><span class="p">()</span>
-</pre></div>
-</div>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>  ? Search by: (Use arrow keys)
-» Mineral Name
-  Chemical Formula
-  COD ID
-</pre></div>
-</div>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>? Search by: Mineral Name
-? Enter your query: calcite
-Found 145 structures
-↑↓ Move   [Enter] Load   [d] DOI   [w] COD page   [q] Quit
-
-      ID | NAME                 | FORMULA            | LATTICE PARAMETERS                    | DOI
-----------------------------------------------------------------------------------------------------
-   1001741 | Nitrocalcite         | - Ca H8 N2 O10 -   |   6.3   9.2  14.9 |  90° 106°  90°    |  ✓
-   1001743 | Nitrocalcite         | - Ca H8 N2 O10 -   |   6.3   9.1  14.8 |  90° 106°  90°    |  -
-   1010917 | Barytocalcite        | - C2 Ba Ca O6 -    |   8.2   5.2   6.6 |  90° 106°  90°    |  -
-➜  1010928 | Calcite              | - C Ca O3 -        |   6.4   6.4   6.4 |  46°  46°  46°    |  ✓
-   1010962 | Calcite              | - C Ca O3 -        |   6.4   6.4   6.4 |  46°  46°  46°    |  -
-   1011029 | Nitratine            | - N Na O3 -        |   6.3   6.3   6.3 |  47°  47°  47°    |  ✓
-   1011228 | Rhodochrosite        | - C Mn O3 -        |   5.8   5.8   5.8 |  48°  48°  48°    |  ✓
-
-...
-</pre></div>
-</div>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">system</span><span class="p">)</span>
-</pre></div>
-</div>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>&lt;AtomicSystem with 30 atoms&gt;
-
-Box
-a (Å)  b (Å)  c (Å)  α (°)  β (°)  γ (°)
-4.98  17.02   4.98  90.00 120.00  90.00
-
-Atoms
-type  number     %     mass  charge
-   C       6 20.00 12.01078     4.0
-  Ca       6 20.00 40.07840     2.0
-   O      18 60.00 15.99943    -2.0
-
-Total charge: 0.000e
-Volume: 0.37 nm3
-Density: 2.73 g/cm3
-</pre></div>
-</div>
 </section>
 <section id="visualization">
-<h2>Visualization<a class="headerlink" href="#visualization" title="Link to this heading">#</a></h2>
-<p>You can visualize your system in <a class="reference external" href="https://www.ks.uiuc.edu/Research/vmd/">VMD</a> directly from Python :</p>
+<h2><a class="toc-backref" href="#id19" role="doc-backlink">Visualization</a><a class="headerlink" href="#visualization" title="Link to this heading">#</a></h2>
+<p>You can visualize your system in <a class="reference external" href="https://www.ks.uiuc.edu/Research/vmd/">VMD</a> directly from Python:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Static view of the current configuration</span>
 <span class="n">system</span><span class="o">.</span><span class="n">view</span><span class="p">()</span>
+
+<span class="c1"># Customize the visualization</span>
+<span class="n">system</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">material</span><span class="o">=</span><span class="s2">&quot;AOEdgy&quot;</span><span class="p">,</span> <span class="n">resolution</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
 
 <span class="c1"># View with an associated MD trajectory</span>
 <span class="n">system</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">trajectory</span><span class="o">=</span><span class="s2">&quot;md_production.dcd&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
+<a class="reference internal image-reference" href="_images/waterbox.png"><img alt="Waterbox" class="align-center" src="_images/waterbox.png" style="width: 400px;" />
+</a>
 </section>
-<section id="next-steps">
-<h2>Next Steps<a class="headerlink" href="#next-steps" title="Link to this heading">#</a></h2>
-<ul class="simple">
-<li><p>Build new systems with the <code class="xref py py-mod docutils literal notranslate"><span class="pre">cemd.build</span></code> module.</p></li>
-<li><p>Compute structural and dynamic properties with the <code class="xref py py-mod docutils literal notranslate"><span class="pre">cemd.analysis</span></code> module.</p></li>
-<li><p>Apply force field topology with <a class="reference internal" href="api/generated/cemd.core.atomic_system.AtomicSystem.set_topology.html#cemd.core.atomic_system.AtomicSystem.set_topology" title="cemd.core.atomic_system.AtomicSystem.set_topology"><code class="xref py py-meth docutils literal notranslate"><span class="pre">set_topology()</span></code></a>.</p></li>
-</ul>
+<section id="setting-force-fields">
+<h2><a class="toc-backref" href="#id20" role="doc-backlink">Setting Force Fields</a><a class="headerlink" href="#setting-force-fields" title="Link to this heading">#</a></h2>
+<section id="from-database">
+<h3><a class="toc-backref" href="#id21" role="doc-backlink">From Database</a><a class="headerlink" href="#from-database" title="Link to this heading">#</a></h3>
+<p>Load force field parameters from the built-in database:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Map atom types to force field parameters</span>
+<span class="n">assignments</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;O&#39;</span><span class="p">:</span> <span class="s1">&#39;ospc&#39;</span><span class="p">,</span>   <span class="c1"># Water oxygen (SPC model)</span>
+    <span class="s1">&#39;H&#39;</span><span class="p">:</span> <span class="s1">&#39;hspc&#39;</span><span class="p">,</span>   <span class="c1"># Water hydrogen (SPC model)</span>
+    <span class="s1">&#39;Si&#39;</span><span class="p">:</span> <span class="s1">&#39;st&#39;</span><span class="p">,</span>    <span class="c1"># Tetrahedral silicon (ClayFF)</span>
+    <span class="s1">&#39;Ca&#39;</span><span class="p">:</span> <span class="s1">&#39;ca&#39;</span>     <span class="c1"># Aqueous calcium (ClayFF)</span>
+<span class="p">}</span>
+
+<span class="c1"># Apply the force field</span>
+<span class="n">system</span><span class="o">.</span><span class="n">set_ff_from_database</span><span class="p">(</span><span class="n">assignments</span><span class="p">)</span>
+
+<span class="c1"># Interactive force field explorer</span>
+<span class="n">system</span><span class="o">.</span><span class="n">explore_ff_database</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+<section id="manual-assignment">
+<h3><a class="toc-backref" href="#id22" role="doc-backlink">Manual Assignment</a><a class="headerlink" href="#manual-assignment" title="Link to this heading">#</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Set masses</span>
+<span class="n">system</span><span class="o">.</span><span class="n">set_masses</span><span class="p">({</span><span class="s1">&#39;H&#39;</span><span class="p">:</span> <span class="mf">1.008</span><span class="p">,</span> <span class="s1">&#39;O&#39;</span><span class="p">:</span> <span class="mf">15.999</span><span class="p">,</span> <span class="s1">&#39;Si&#39;</span><span class="p">:</span> <span class="mf">28.085</span><span class="p">})</span>
+
+<span class="c1"># Set charges</span>
+<span class="n">system</span><span class="o">.</span><span class="n">set_charges</span><span class="p">({</span><span class="s1">&#39;H&#39;</span><span class="p">:</span> <span class="mf">0.41</span><span class="p">,</span> <span class="s1">&#39;O&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">0.82</span><span class="p">,</span> <span class="s1">&#39;Si&#39;</span><span class="p">:</span> <span class="mf">2.1</span><span class="p">})</span>
+
+<span class="c1"># Set Lennard-Jones parameters</span>
+<span class="n">system</span><span class="o">.</span><span class="n">set_ff_pair_param</span><span class="p">(</span><span class="s1">&#39;Si&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mf">0.000184</span><span class="p">,</span> <span class="mf">3.302</span><span class="p">])</span>  <span class="c1"># [epsilon, sigma]</span>
+
+<span class="c1"># Apply mixing rules for cross-interactions</span>
+<span class="n">system</span><span class="o">.</span><span class="n">apply_pair_mixing_rules</span><span class="p">(</span><span class="n">rule</span><span class="o">=</span><span class="s1">&#39;arithmetic&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="setting-topology">
+<h2><a class="toc-backref" href="#id23" role="doc-backlink">Setting Topology</a><a class="headerlink" href="#setting-topology" title="Link to this heading">#</a></h2>
+<section id="automatic-detection-clayff-cshff">
+<h3><a class="toc-backref" href="#id24" role="doc-backlink">Automatic Detection (ClayFF/CSHFF)</a><a class="headerlink" href="#automatic-detection-clayff-cshff" title="Link to this heading">#</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Apply ClayFF topology rules</span>
+<span class="n">system</span><span class="o">.</span><span class="n">set_topology</span><span class="p">(</span><span class="s1">&#39;clayff&#39;</span><span class="p">)</span>
+
+<span class="c1"># Apply CSHFF topology rules (ClayFF + specific calcium handling)</span>
+<span class="n">system</span><span class="o">.</span><span class="n">set_topology</span><span class="p">(</span><span class="s1">&#39;cshff&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="custom-rules">
+<h3><a class="toc-backref" href="#id25" role="doc-backlink">Custom Rules</a><a class="headerlink" href="#custom-rules" title="Link to this heading">#</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Define a custom rule</span>
+<span class="n">custom_rule</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;center_sel&quot;</span><span class="p">:</span> <span class="s2">&quot;type O&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;new_type&quot;</span><span class="p">:</span> <span class="s2">&quot;Ow&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;neighbors&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span><span class="s2">&quot;sel&quot;</span><span class="p">:</span> <span class="s2">&quot;type H&quot;</span><span class="p">,</span> <span class="s2">&quot;cutoff&quot;</span><span class="p">:</span> <span class="mf">1.2</span><span class="p">,</span> <span class="s2">&quot;n&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;exact&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;new_type&quot;</span><span class="p">:</span> <span class="s2">&quot;Hw&quot;</span><span class="p">}</span>
+    <span class="p">],</span>
+    <span class="s2">&quot;create_bond&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="s2">&quot;create_angle&quot;</span><span class="p">:</span> <span class="kc">True</span>
+<span class="p">}</span>
+
+<span class="c1"># Apply the rule</span>
+<span class="n">system</span><span class="o">.</span><span class="n">set_topology</span><span class="p">(</span><span class="n">custom_rule</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="manual-connectivity">
+<h3><a class="toc-backref" href="#id26" role="doc-backlink">Manual Connectivity</a><a class="headerlink" href="#manual-connectivity" title="Link to this heading">#</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Add a bond between atoms 1 and 2</span>
+<span class="n">system</span><span class="o">.</span><span class="n">add_bond</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="s2">&quot;H-O&quot;</span><span class="p">)</span>
+
+<span class="c1"># Add an angle (atoms 1-2-3)</span>
+<span class="n">system</span><span class="o">.</span><span class="n">add_angle</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="s2">&quot;H-O-H&quot;</span><span class="p">)</span>
+
+<span class="c1"># Add a dihedral (atoms 1-2-3-4)</span>
+<span class="n">system</span><span class="o">.</span><span class="n">add_dihedral</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">],</span> <span class="s2">&quot;C-C-C-C&quot;</span><span class="p">)</span>
+
+<span class="c1"># Remove all connections</span>
+<span class="n">system</span><span class="o">.</span><span class="n">remove_all_connections</span><span class="p">()</span>
+
+<span class="c1"># Keep only specific connection types</span>
+<span class="n">system</span><span class="o">.</span><span class="n">keep_connection_types</span><span class="p">(</span>
+    <span class="n">bond_types</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;H-O&quot;</span><span class="p">,</span> <span class="s2">&quot;Si-O&quot;</span><span class="p">],</span>
+    <span class="n">angle_types</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;H-O-H&quot;</span><span class="p">]</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="combining-systems">
+<h2><a class="toc-backref" href="#id27" role="doc-backlink">Combining Systems</a><a class="headerlink" href="#combining-systems" title="Link to this heading">#</a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">cemd.build</span><span class="w"> </span><span class="kn">import</span> <span class="n">merge</span>
+
+<span class="c1"># Merge two systems with a new box</span>
+<span class="n">merged</span> <span class="o">=</span> <span class="n">merge</span><span class="p">(</span><span class="n">system1</span><span class="p">,</span> <span class="n">system2</span><span class="p">,</span> <span class="n">box</span><span class="o">=</span><span class="p">[</span><span class="mi">50</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="mi">90</span><span class="p">,</span> <span class="mi">90</span><span class="p">,</span> <span class="mi">90</span><span class="p">])</span>
+
+<span class="c1"># Split a system</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">cemd.build</span><span class="w"> </span><span class="kn">import</span> <span class="n">split</span>
+<span class="n">system</span> <span class="o">=</span> <span class="n">split</span><span class="p">(</span><span class="n">system</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">gap_size</span><span class="o">=</span><span class="mf">20.0</span><span class="p">)</span>
+</pre></div>
+</div>
 </section>
 </section>
 
@@ -538,12 +783,42 @@ Density: 2.73 g/cm3
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#loading-a-system">Loading a System</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#creating-a-system-from-smiles">Creating a System from SMILES</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#interactive-database-exploration">Interactive Database Exploration</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crystallography-open-database-cod">Crystallography Open Database (COD)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pubchem-database">PubChem Database</a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#inspecting-a-system">Inspecting a System</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#counting-specific-atom-types">Counting Specific Atom Types</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#manipulating-systems">Manipulating Systems</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#adding-atoms">Adding Atoms</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#removing-atoms">Removing Atoms</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#setting-box-parameters">Setting Box Parameters</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#replicating-the-system">Replicating the System</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#wrapping-atoms-pbc">Wrapping Atoms (PBC)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#protonating-atoms">Protonating Atoms</a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#saving-a-system">Saving a System</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#converting-a-system">Converting a System</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#explore-structure-databases">Explore structure databases</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#converting-a-system">Converting a System</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#to-mdanalysis">To MDAnalysis</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#to-pymatgen">To Pymatgen</a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#visualization">Visualization</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#next-steps">Next Steps</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#setting-force-fields">Setting Force Fields</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#from-database">From Database</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#manual-assignment">Manual Assignment</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#setting-topology">Setting Topology</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#automatic-detection-clayff-cshff">Automatic Detection (ClayFF/CSHFF)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#custom-rules">Custom Rules</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#manual-connectivity">Manual Connectivity</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#combining-systems">Combining Systems</a></li>
 </ul>
   </nav></div>
 

@@ -371,11 +371,19 @@
 <dl class="py method">
 <dt class="sig sig-object py" id="cemd.core.atomic_system.AtomicSystem.from_pubchem">
 <span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">AtomicSystem.</span></span><span class="sig-name descname"><span class="pre">from_pubchem</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cemd.core.atomic_system.AtomicSystem.from_pubchem" title="Link to this definition">#</a></dt>
-<dd><p>Creates an instance by fetching and parsing data from PubChem.</p>
-<dl class="simple">
-<dt>Returns:</dt><dd><p>Self: A new instance populated with data from PubChem.</p>
+<dd><p>Explore and load a molecule from PubChem.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt>AtomicSystem or None</dt><dd><p>The selected molecule, or None if cancelled.</p>
 </dd>
 </dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">molecule</span> <span class="o">=</span> <span class="n">AtomicSystem</span><span class="o">.</span><span class="n">from_pubchem</span><span class="p">()</span>
+</pre></div>
+</div>
 </dd></dl>
 
 </section>

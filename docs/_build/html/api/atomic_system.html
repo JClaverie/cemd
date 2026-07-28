@@ -435,28 +435,28 @@ charges.</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/cemd.core.atomic_system.AtomicSystem.from_file.html#cemd.core.atomic_system.AtomicSystem.from_file" title="cemd.core.atomic_system.AtomicSystem.from_file"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AtomicSystem.from_file</span></code></a></p></td>
-<td><p>Creates a system from a file (.pdb, .cif, .data).</p></td>
+<td><p>Create an AtomicSystem from a file.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/cemd.core.atomic_system.AtomicSystem.from_cod.html#cemd.core.atomic_system.AtomicSystem.from_cod" title="cemd.core.atomic_system.AtomicSystem.from_cod"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AtomicSystem.from_cod</span></code></a></p></td>
-<td><p>Creates an instance by exploring the Crystallography Open Database (COD).</p></td>
+<td><p>Explore and load a structure from the Crystallography Open Database.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/cemd.core.atomic_system.AtomicSystem.from_pubchem.html#cemd.core.atomic_system.AtomicSystem.from_pubchem" title="cemd.core.atomic_system.AtomicSystem.from_pubchem"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AtomicSystem.from_pubchem</span></code></a></p></td>
-<td><p>Creates an instance by fetching and parsing data from PubChem.</p></td>
+<td><p>Explore and load a molecule from PubChem.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/cemd.core.atomic_system.AtomicSystem.from_mda.html#cemd.core.atomic_system.AtomicSystem.from_mda" title="cemd.core.atomic_system.AtomicSystem.from_mda"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AtomicSystem.from_mda</span></code></a></p></td>
-<td><p>Creates a system from a MDAnalysis object.</p></td>
+<td><p>Create from MDAnalysis Universe or AtomGroup.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/cemd.core.atomic_system.AtomicSystem.from_pmg.html#cemd.core.atomic_system.AtomicSystem.from_pmg" title="cemd.core.atomic_system.AtomicSystem.from_pmg"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AtomicSystem.from_pmg</span></code></a></p></td>
-<td><p>Creates a system from a Pymatgen Structure.</p></td>
+<td><p>Create from Pymatgen Structure.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/cemd.core.atomic_system.AtomicSystem.to_mda.html#cemd.core.atomic_system.AtomicSystem.to_mda" title="cemd.core.atomic_system.AtomicSystem.to_mda"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AtomicSystem.to_mda</span></code></a></p></td>
-<td><p>Convert a LAMMPSData object to a MDAnalysis Universe.</p></td>
+<td><p>Convert to MDAnalysis Universe.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/cemd.core.atomic_system.AtomicSystem.to_pmg.html#cemd.core.atomic_system.AtomicSystem.to_pmg" title="cemd.core.atomic_system.AtomicSystem.to_pmg"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AtomicSystem.to_pmg</span></code></a></p></td>
-<td><p>Converts a topology dictionary (or an object with an .atoms attribute) into a pymatgen Structure.</p></td>
+<td><p>Convert to Pymatgen Structure.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/cemd.core.atomic_system.AtomicSystem.write.html#cemd.core.atomic_system.AtomicSystem.write" title="cemd.core.atomic_system.AtomicSystem.write"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AtomicSystem.write</span></code></a></p></td>
-<td><p>Write the system to a LAMMPS datafile.</p></td>
+<td><p>Write to a file.</p></td>
 </tr>
 </tbody>
 </table>
@@ -517,13 +517,13 @@ charges.</p>
 <td><p>Set or update the charges for the atomic system and the atoms DataFrame.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/cemd.core.atomic_system.AtomicSystem.set_ff_from_database.html#cemd.core.atomic_system.AtomicSystem.set_ff_from_database" title="cemd.core.atomic_system.AtomicSystem.set_ff_from_database"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AtomicSystem.set_ff_from_database</span></code></a></p></td>
-<td><p>Automatically loads the forcefield database and applies parameters.</p></td>
+<td><p>Apply force field parameters from the TOML database.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/cemd.core.atomic_system.AtomicSystem.explore_ff_database.html#cemd.core.atomic_system.AtomicSystem.explore_ff_database" title="cemd.core.atomic_system.AtomicSystem.explore_ff_database"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AtomicSystem.explore_ff_database</span></code></a></p></td>
 <td><p>Interactive Forcefield Explorer using the prompt_toolkit UI pattern.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/cemd.core.atomic_system.AtomicSystem.set_ff_pair_param.html#cemd.core.atomic_system.AtomicSystem.set_ff_pair_param" title="cemd.core.atomic_system.AtomicSystem.set_ff_pair_param"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AtomicSystem.set_ff_pair_param</span></code></a></p></td>
-<td><p>Assign the non-bond (Lennard-Jones) parameters for a specific atom type.</p></td>
+<td><p>Assign non-bond parameters for a pair of atom types (self or cross).</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/cemd.core.atomic_system.AtomicSystem.set_ff_bond_param.html#cemd.core.atomic_system.AtomicSystem.set_ff_bond_param" title="cemd.core.atomic_system.AtomicSystem.set_ff_bond_param"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AtomicSystem.set_ff_bond_param</span></code></a></p></td>
 <td><p>Assign structural parameters for a specific bond type.</p></td>

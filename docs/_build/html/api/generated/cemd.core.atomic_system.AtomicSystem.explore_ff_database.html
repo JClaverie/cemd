@@ -370,8 +370,62 @@
 <h1>cemd.core.atomic_system.AtomicSystem.explore_ff_database<a class="headerlink" href="#cemd-core-atomic-system-atomicsystem-explore-ff-database" title="Link to this heading">#</a></h1>
 <dl class="py method">
 <dt class="sig sig-object py" id="cemd.core.atomic_system.AtomicSystem.explore_ff_database">
-<span class="sig-prename descclassname"><span class="pre">AtomicSystem.</span></span><span class="sig-name descname"><span class="pre">explore_ff_database</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ff_database</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'/home/jerome/Documents/Recherche/Codes/cemd/cemd/db/ff_database.xls'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cemd.core.atomic_system.AtomicSystem.explore_ff_database" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">AtomicSystem.</span></span><span class="sig-name descname"><span class="pre">explore_ff_database</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ff_database_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cemd.core.atomic_system.AtomicSystem.explore_ff_database" title="Link to this definition">#</a></dt>
 <dd><p>Interactive Forcefield Explorer using the prompt_toolkit UI pattern.</p>
+<p>Launches an interactive terminal user interface (TUI) that allows the user
+to browse and select force field parameters for each element and atom type
+present in the system. The explorer reads a force field database from an
+TOML files and presents matching parameter sets for user selection via
+keyboard navigation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>ff_database_dir</strong><span class="classifier">str, optional</span></dt><dd><p>Path to the directory containing the force field database.
+The file must contain a sheet named ‘list’ with force field parameters.
+Defaults to FF_DATABASE_DIR (global constant).</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>None</dt><dd><p>The method updates the system’s force field parameters in-place via
+successive calls to <cite>set_ff_from_database()</cite> as each selection is made.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt>FileNotFoundError</dt><dd><p>If the database file does not exist.</p>
+</dd>
+<dt>ValueError</dt><dd><p>If required sheets are missing from the database.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<dl class="simple">
+<dt>The interactive UI provides:</dt><dd><ul class="simple">
+<li><p>Up/Down arrows: Navigate through parameter options</p></li>
+<li><p>Enter/Space: Select the highlighted parameter</p></li>
+<li><p>Ctrl+C/Escape/q: Cancel selection and skip element</p></li>
+<li><p>p: Open the reference DOI in a web browser</p></li>
+</ul>
+</dd>
+</dl>
+<p>The function filters the database for parameters matching each element
+present in the system (self.elements). For each unique element, the user is
+presented with a list of available parameter sets to choose from.</p>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">system</span> <span class="o">=</span> <span class="n">AtomicSystem</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">system</span><span class="o">.</span><span class="n">explore_ff_database</span><span class="p">(</span><span class="s1">&#39;forcefield.xlsx&#39;</span><span class="p">)</span>
+<span class="go">Assigned: H -&gt; hspc</span>
+<span class="go">Assigned: O -&gt; ospc</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Using default database</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">system</span><span class="o">.</span><span class="n">explore_ff_database</span><span class="p">()</span>
+</pre></div>
+</div>
 </dd></dl>
 
 </section>

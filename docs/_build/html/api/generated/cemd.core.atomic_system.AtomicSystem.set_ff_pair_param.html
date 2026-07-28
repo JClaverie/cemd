@@ -370,20 +370,26 @@
 <h1>cemd.core.atomic_system.AtomicSystem.set_ff_pair_param<a class="headerlink" href="#cemd-core-atomic-system-atomicsystem-set-ff-pair-param" title="Link to this heading">#</a></h1>
 <dl class="py method">
 <dt class="sig sig-object py" id="cemd.core.atomic_system.AtomicSystem.set_ff_pair_param">
-<span class="sig-prename descclassname"><span class="pre">AtomicSystem.</span></span><span class="sig-name descname"><span class="pre">set_ff_pair_param</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atom_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coeffs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cemd.core.atomic_system.AtomicSystem.set_ff_pair_param" title="Link to this definition">#</a></dt>
-<dd><p>Assign the non-bond (Lennard-Jones) parameters for a specific atom type.</p>
+<span class="sig-prename descclassname"><span class="pre">AtomicSystem.</span></span><span class="sig-name descname"><span class="pre">set_ff_pair_param</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atom_type1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">atom_type2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coeffs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">potential_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'lj'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cemd.core.atomic_system.AtomicSystem.set_ff_pair_param" title="Link to this definition">#</a></dt>
+<dd><p>Assign non-bond parameters for a pair of atom types (self or cross).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>atom_type</strong><span class="classifier">str or int</span></dt><dd><p>The identifier of the atom type.</p>
+<dt><strong>atom_type1</strong><span class="classifier">str or int</span></dt><dd><p>The identifier of the first atom type.</p>
 </dd>
-<dt><strong>coeffs</strong><span class="classifier">list of float</span></dt><dd><p>The L-J coefficients (typically [epsilon, sigma]).</p>
+<dt><strong>atom_type2</strong><span class="classifier">str or int, optional</span></dt><dd><p>The identifier of the second atom type. If None, assumes self-interaction.</p>
+</dd>
+<dt><strong>coeffs</strong><span class="classifier">list of float</span></dt><dd><p>The potential coefficients.
+- LJ: [epsilon (kcal/mol), sigma (Å)]
+- Buckingham: [A (kcal/mol), rho (Å), C (kcal/mol·Å⁶)]</p>
+</dd>
+<dt><strong>potential_type</strong><span class="classifier">str, optional</span></dt><dd><p>Type of potential: ‘lj’ (Lennard-Jones) or ‘buckingham’. Default is ‘lj’.</p>
 </dd>
 </dl>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
-<dt>ValueError</dt><dd><p>If the atom_type is not present in the system’s current atoms.</p>
+<dt>ValueError</dt><dd><p>If the atom types are not present in the system or coeffs length is invalid.</p>
 </dd>
 </dl>
 </dd>

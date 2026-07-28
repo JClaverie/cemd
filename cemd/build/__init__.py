@@ -39,7 +39,7 @@ __all__ = [
     "build_glass",
     "add_liquid",
     "add_droplet",
-    'add_structure'
+    'add_structure',
     "merge",
     "split",
     "concentration2count"
