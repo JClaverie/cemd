@@ -1,5 +1,7 @@
-﻿cemd.core.atomic\_system.AtomicSystem.unskew
-============================================
+﻿:html_theme.sidebar_secondary.remove:
+
+AtomicSystem.unskew
+===================
 
 .. currentmodule:: cemd.core.atomic_system
 

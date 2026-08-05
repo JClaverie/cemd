@@ -15,6 +15,6 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-from .mixin import IOMixin
+from .io_mixin import IOMixin
 
 __all__ = ['IOMixin']

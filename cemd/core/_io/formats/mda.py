@@ -141,7 +141,6 @@ class MdaReader(BaseReader):
             else:
                 bonds = universe.bonds.indices + 1
 
-            # ✅ Utiliser la nouvelle méthode
             bond_types = cls._get_connection_types(universe.bonds, 'bonds', numerical_types)
 
             columns = ['id', 'type', 'atom_1', 'atom_2']
@@ -160,14 +159,13 @@ class MdaReader(BaseReader):
             else:
                 angles = universe.angles.indices + 1
 
-            # ✅ Utiliser la nouvelle méthode
             angle_types = cls._get_connection_types(universe.angles, 'angles', numerical_types)
 
             columns = ['id', 'type', 'atom_1', 'atom_2', 'atom_3']
             ids_conn = np.arange(1, len(angles) + 1)
             stacked_arrays = np.column_stack((ids_conn, angle_types, angles))
             df_angles = pd.DataFrame(stacked_arrays, columns=columns)
-            df_angles['id'] = df_bonds['id'].astype(int)
+            df_angles['id'] = df_angles['id'].astype(int)
             df_angles.set_index('id', inplace=True)
         else:
             df_angles = None
@@ -179,14 +177,13 @@ class MdaReader(BaseReader):
             else:
                 dihedrals = universe.dihedrals.indices + 1
 
-            # ✅ Utiliser la nouvelle méthode
             dihedral_types = cls._get_connection_types(universe.dihedrals, 'dihedrals', numerical_types)
 
             columns = ['id', 'type', 'atom_1', 'atom_2', 'atom_3', 'atom_4']
             ids_conn = np.arange(1, len(dihedrals) + 1)
             stacked_arrays = np.column_stack((ids_conn, dihedral_types, dihedrals))
             df_dihedrals = pd.DataFrame(stacked_arrays, columns=columns)
-            df_dihedrals['id'] = df_bonds['id'].astype(int)
+            df_dihedrals['id'] = df_dihedrals['id'].astype(int)
             df_dihedrals.set_index('id', inplace=True)
         else:
             df_dihedrals = None
@@ -198,14 +195,13 @@ class MdaReader(BaseReader):
             else:
                 impropers = universe.impropers.indices + 1
 
-            # ✅ Utiliser la nouvelle méthode
             improper_types = cls._get_connection_types(universe.impropers, 'impropers', numerical_types)
 
             columns = ['id', 'type', 'atom_1', 'atom_2', 'atom_3', 'atom_4']
             ids_conn = np.arange(1, len(impropers) + 1)
             stacked_arrays = np.column_stack((ids_conn, improper_types, impropers))
             df_impropers = pd.DataFrame(stacked_arrays, columns=columns)
-            df_impropers['id'] = df_bonds['id'].astype(int)
+            df_impropers['id'] = df_impropers['id'].astype(int)
             df_impropers.set_index('id', inplace=True)
         else:
             df_impropers = None

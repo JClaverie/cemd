@@ -1,4 +1,5 @@
-- défilement dans les fonctions explore
+- améliorer/rendre plus clean les builders
+- Implémentation de TO_CASH
 
 
 cd /home/jerome/Documents/Recherche/Codes/cemd

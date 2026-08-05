@@ -1,5 +1,7 @@
-﻿cemd.core.atomic\_system.AtomicSystem.set\_box
-==============================================
+﻿:html_theme.sidebar_secondary.remove:
+
+AtomicSystem.set\_box
+=====================
 
 .. currentmodule:: cemd.core.atomic_system
 

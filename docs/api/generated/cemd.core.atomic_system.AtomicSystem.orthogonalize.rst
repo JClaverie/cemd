@@ -1,5 +1,7 @@
-﻿cemd.core.atomic\_system.AtomicSystem.orthogonalize
-===================================================
+﻿:html_theme.sidebar_secondary.remove:
+
+AtomicSystem.orthogonalize
+==========================
 
 .. currentmodule:: cemd.core.atomic_system
 

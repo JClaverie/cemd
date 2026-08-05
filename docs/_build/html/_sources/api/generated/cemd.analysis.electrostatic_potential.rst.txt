@@ -1,5 +1,7 @@
-﻿cemd.analysis.electrostatic\_potential
-======================================
+﻿:html_theme.sidebar_secondary.remove:
+
+electrostatic\_potential
+========================
 
 .. currentmodule:: cemd.analysis
 

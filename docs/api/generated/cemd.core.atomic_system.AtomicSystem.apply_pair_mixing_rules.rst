@@ -1,5 +1,7 @@
-﻿cemd.core.atomic\_system.AtomicSystem.apply\_pair\_mixing\_rules
-================================================================
+﻿:html_theme.sidebar_secondary.remove:
+
+AtomicSystem.apply\_pair\_mixing\_rules
+=======================================
 
 .. currentmodule:: cemd.core.atomic_system
 

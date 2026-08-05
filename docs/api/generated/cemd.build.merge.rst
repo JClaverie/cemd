@@ -1,5 +1,7 @@
-﻿cemd.build.merge
-================
+﻿:html_theme.sidebar_secondary.remove:
+
+merge
+=====
 
 .. currentmodule:: cemd.build
 

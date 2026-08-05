@@ -98,7 +98,7 @@ Crystallography Open Database (COD)
 
    ? Search by: Mineral Name
    ? Enter your query: calcite
-   Found 145 structures
+   Found 145 structures  [20/145]
    ↑↓ Move   [Enter] Load   [d] DOI   [w] COD page   [q] Quit
 
          ID | NAME                 | FORMULA            | LATTICE PARAMETERS                    | DOI
@@ -110,7 +110,10 @@ Crystallography Open Database (COD)
       1010962 | Calcite              | - C Ca O3 -        |   6.4   6.4   6.4 |  46°  46°  46°    |  -
       1011029 | Nitratine            | - N Na O3 -        |   6.3   6.3   6.3 |  47°  47°  47°    |  ✓
       1011228 | Rhodochrosite        | - C Mn O3 -        |   5.8   5.8   5.8 |  48°  48°  48°    |  ✓
+      ...     | ...                  | ...                | ...                                       | ...
 
+     ↕ 1-20 of 145
+     
 PubChem Database
 ^^^^^^^^^^^^^^^^
 
@@ -334,7 +337,7 @@ You can visualize your system in `VMD <https://www.ks.uiuc.edu/Research/vmd/>`_ 
    # View with an associated MD trajectory
    system.view(trajectory="md_production.dcd")
 
-.. image:: _static/images/waterbox.png
+.. image:: /_static/images/waterbox.png
    :alt: Waterbox
    :align: center
    :width: 400px
@@ -383,7 +386,7 @@ Manual Assignment
 Setting Topology
 ----------------
 
-Automatic Detection (ClayFF/CSHFF)
+Automatic Detection
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. code-block:: python

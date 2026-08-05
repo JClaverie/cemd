@@ -50,6 +50,8 @@
     <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="AtomicSystem.box" href="generated/cemd.core.atomic_system.AtomicSystem.box.html" />
+    <link rel="prev" title="API Reference" href="index.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="0.1.0" />
@@ -140,6 +142,33 @@
 <nav>
   <ul class="bd-navbar-elements navbar-nav">
     
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../getting_started.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../user_guide/index.html">
+    User Guide
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
+    API Reference
+  </a>
+</li>
+
   </ul>
 </nav></div>
       
@@ -173,6 +202,21 @@
     <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
   </ul>
 </div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/JClaverie/cemd" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
       
     </div>
     
@@ -220,6 +264,33 @@
 <nav>
   <ul class="bd-navbar-elements navbar-nav">
     
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../getting_started.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../user_guide/index.html">
+    User Guide
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
+    API Reference
+  </a>
+</li>
+
   </ul>
 </nav></div>
           
@@ -244,6 +315,21 @@
     <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
   </ul>
 </div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/JClaverie/cemd" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
         
       </div>
     
@@ -284,6 +370,9 @@
         <i class="fa-solid fa-home"></i>
       </a>
     </li>
+    
+    <li class="breadcrumb-item"><a href="index.html" class="nav-link">API Reference</a></li>
+    
     <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">AtomicSystem</span></li>
   </ul>
 </nav>
@@ -314,12 +403,88 @@ parameters, atomic masses and charges, and force field parameters.</p>
 <p>It is designed to represent the content of a LAMMPS data file and
 provides utilities for editing, analysing and exporting atomistic
 systems.</p>
-<dl class="field-list simple">
+<dl class="field-list">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>topology</strong><span class="classifier">dict[str, Any]</span></dt><dd><p>Dictionary containing the system data. Required keys include
-atomic coordinates, box information, atom types, masses and
-charges.</p>
+<dd class="field-odd"><dl>
+<dt><strong>topology</strong><span class="classifier">dict[str, Any]</span></dt><dd><p>Dictionary containing the complete system data.</p>
+<dl class="simple">
+<dt>Required keys:</dt><dd><ul class="simple">
+<li><dl class="simple">
+<dt>coordinates<span class="classifier">np.ndarray</span></dt><dd><p>Atomic coordinates (N, 3)</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>box<span class="classifier">np.ndarray</span></dt><dd><p>Simulation box dimensions (3,)</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>atom_types<span class="classifier">list or np.ndarray</span></dt><dd><p>Atom type indices</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>masses<span class="classifier">list or np.ndarray</span></dt><dd><p>Atomic masses</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>charges<span class="classifier">list or np.ndarray</span></dt><dd><p>Atomic charges</p>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+<dt>Optional keys:</dt><dd><ul class="simple">
+<li><dl class="simple">
+<dt>bonds<span class="classifier">np.ndarray</span></dt><dd><p>Bond connectivity (N_bonds, 2)</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>angles<span class="classifier">np.ndarray</span></dt><dd><p>Angle connectivity (N_angles, 3)</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>dihedrals<span class="classifier">np.ndarray</span></dt><dd><p>Dihedral connectivity (N_dihedrals, 4)</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>impropers<span class="classifier">np.ndarray</span></dt><dd><p>Improper connectivity (N_impropers, 4)</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>velocities<span class="classifier">np.ndarray</span></dt><dd><p>Atomic velocities (N, 3)</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>bond_params<span class="classifier">dict</span></dt><dd><p>Bond force field parameters</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>angle_params<span class="classifier">dict</span></dt><dd><p>Angle force field parameters</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>dihedral_params<span class="classifier">dict</span></dt><dd><p>Dihedral force field parameters</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>improper_params<span class="classifier">dict</span></dt><dd><p>Improper force field parameters</p>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
 </dd>
 </dl>
 </dd>
@@ -369,61 +534,61 @@ charges.</p>
 <h2>Properties<a class="headerlink" href="#properties" title="Link to this heading">#</a></h2>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">AtomicSystem.box</span></code></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/cemd.core.atomic_system.AtomicSystem.box.html#cemd.core.atomic_system.AtomicSystem.box" title="cemd.core.atomic_system.AtomicSystem.box"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AtomicSystem.box</span></code></a></p></td>
 <td><p>Return the lattice parameters.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">AtomicSystem.volume</span></code></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/cemd.core.atomic_system.AtomicSystem.volume.html#cemd.core.atomic_system.AtomicSystem.volume" title="cemd.core.atomic_system.AtomicSystem.volume"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AtomicSystem.volume</span></code></a></p></td>
 <td><p>Return the volume of the simulation box.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">AtomicSystem.density</span></code></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/cemd.core.atomic_system.AtomicSystem.density.html#cemd.core.atomic_system.AtomicSystem.density" title="cemd.core.atomic_system.AtomicSystem.density"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AtomicSystem.density</span></code></a></p></td>
 <td><p>Return the system density.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">AtomicSystem.total_charge</span></code></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/cemd.core.atomic_system.AtomicSystem.total_charge.html#cemd.core.atomic_system.AtomicSystem.total_charge" title="cemd.core.atomic_system.AtomicSystem.total_charge"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AtomicSystem.total_charge</span></code></a></p></td>
 <td><p>Return the total system charge.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">AtomicSystem.total_mass</span></code></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/cemd.core.atomic_system.AtomicSystem.total_mass.html#cemd.core.atomic_system.AtomicSystem.total_mass" title="cemd.core.atomic_system.AtomicSystem.total_mass"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AtomicSystem.total_mass</span></code></a></p></td>
 <td><p>Return the total system mass.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">AtomicSystem.density</span></code></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/cemd.core.atomic_system.AtomicSystem.density.html#cemd.core.atomic_system.AtomicSystem.density" title="cemd.core.atomic_system.AtomicSystem.density"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AtomicSystem.density</span></code></a></p></td>
 <td><p>Return the system density.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">AtomicSystem.masses</span></code></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/cemd.core.atomic_system.AtomicSystem.masses.html#cemd.core.atomic_system.AtomicSystem.masses" title="cemd.core.atomic_system.AtomicSystem.masses"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AtomicSystem.masses</span></code></a></p></td>
 <td><p>Return atomic masses associated with atom types.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">AtomicSystem.charges</span></code></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/cemd.core.atomic_system.AtomicSystem.charges.html#cemd.core.atomic_system.AtomicSystem.charges" title="cemd.core.atomic_system.AtomicSystem.charges"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AtomicSystem.charges</span></code></a></p></td>
 <td><p>Return charges associated with atom types.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">AtomicSystem.elements</span></code></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/cemd.core.atomic_system.AtomicSystem.elements.html#cemd.core.atomic_system.AtomicSystem.elements" title="cemd.core.atomic_system.AtomicSystem.elements"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AtomicSystem.elements</span></code></a></p></td>
 <td><p>Return a mapping of atom types to their elemental symbols.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">AtomicSystem.num_atoms</span></code></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/cemd.core.atomic_system.AtomicSystem.num_atoms.html#cemd.core.atomic_system.AtomicSystem.num_atoms" title="cemd.core.atomic_system.AtomicSystem.num_atoms"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AtomicSystem.num_atoms</span></code></a></p></td>
 <td><p>Return the number of atoms.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">AtomicSystem.num_bonds</span></code></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/cemd.core.atomic_system.AtomicSystem.num_bonds.html#cemd.core.atomic_system.AtomicSystem.num_bonds" title="cemd.core.atomic_system.AtomicSystem.num_bonds"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AtomicSystem.num_bonds</span></code></a></p></td>
 <td><p>Return the number of bonds.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">AtomicSystem.num_angles</span></code></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/cemd.core.atomic_system.AtomicSystem.num_angles.html#cemd.core.atomic_system.AtomicSystem.num_angles" title="cemd.core.atomic_system.AtomicSystem.num_angles"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AtomicSystem.num_angles</span></code></a></p></td>
 <td><p>Return the number of angles.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">AtomicSystem.num_dihedrals</span></code></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/cemd.core.atomic_system.AtomicSystem.num_dihedrals.html#cemd.core.atomic_system.AtomicSystem.num_dihedrals" title="cemd.core.atomic_system.AtomicSystem.num_dihedrals"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AtomicSystem.num_dihedrals</span></code></a></p></td>
 <td><p>Return the number of dihedrals.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">AtomicSystem.num_impropers</span></code></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/cemd.core.atomic_system.AtomicSystem.num_impropers.html#cemd.core.atomic_system.AtomicSystem.num_impropers" title="cemd.core.atomic_system.AtomicSystem.num_impropers"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AtomicSystem.num_impropers</span></code></a></p></td>
 <td><p>Return the number of impropers.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">AtomicSystem.atom_types</span></code></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/cemd.core.atomic_system.AtomicSystem.atom_types.html#cemd.core.atomic_system.AtomicSystem.atom_types" title="cemd.core.atomic_system.AtomicSystem.atom_types"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AtomicSystem.atom_types</span></code></a></p></td>
 <td><p>Return the list of unique atom types.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">AtomicSystem.bond_types</span></code></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/cemd.core.atomic_system.AtomicSystem.bond_types.html#cemd.core.atomic_system.AtomicSystem.bond_types" title="cemd.core.atomic_system.AtomicSystem.bond_types"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AtomicSystem.bond_types</span></code></a></p></td>
 <td><p>Return the list of unique bond types.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">AtomicSystem.angle_types</span></code></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/cemd.core.atomic_system.AtomicSystem.angle_types.html#cemd.core.atomic_system.AtomicSystem.angle_types" title="cemd.core.atomic_system.AtomicSystem.angle_types"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AtomicSystem.angle_types</span></code></a></p></td>
 <td><p>Return the list of unique angle types.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">AtomicSystem.dihedral_types</span></code></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/cemd.core.atomic_system.AtomicSystem.dihedral_types.html#cemd.core.atomic_system.AtomicSystem.dihedral_types" title="cemd.core.atomic_system.AtomicSystem.dihedral_types"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AtomicSystem.dihedral_types</span></code></a></p></td>
 <td><p>Return the list of unique dihedral types.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">AtomicSystem.improper_types</span></code></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/cemd.core.atomic_system.AtomicSystem.improper_types.html#cemd.core.atomic_system.AtomicSystem.improper_types" title="cemd.core.atomic_system.AtomicSystem.improper_types"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AtomicSystem.improper_types</span></code></a></p></td>
 <td><p>Return the list of unique improper types.</p></td>
 </tr>
 </tbody>
@@ -435,7 +600,7 @@ charges.</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/cemd.core.atomic_system.AtomicSystem.from_file.html#cemd.core.atomic_system.AtomicSystem.from_file" title="cemd.core.atomic_system.AtomicSystem.from_file"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AtomicSystem.from_file</span></code></a></p></td>
-<td><p>Create an AtomicSystem from a file.</p></td>
+<td><p>Load a system from a file.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/cemd.core.atomic_system.AtomicSystem.from_cod.html#cemd.core.atomic_system.AtomicSystem.from_cod" title="cemd.core.atomic_system.AtomicSystem.from_cod"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AtomicSystem.from_cod</span></code></a></p></td>
 <td><p>Explore and load a structure from the Crystallography Open Database.</p></td>
@@ -522,13 +687,13 @@ charges.</p>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/cemd.core.atomic_system.AtomicSystem.explore_ff_database.html#cemd.core.atomic_system.AtomicSystem.explore_ff_database" title="cemd.core.atomic_system.AtomicSystem.explore_ff_database"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AtomicSystem.explore_ff_database</span></code></a></p></td>
 <td><p>Interactive Forcefield Explorer using the prompt_toolkit UI pattern.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="generated/cemd.core.atomic_system.AtomicSystem.set_ff_pair_param.html#cemd.core.atomic_system.AtomicSystem.set_ff_pair_param" title="cemd.core.atomic_system.AtomicSystem.set_ff_pair_param"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AtomicSystem.set_ff_pair_param</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/cemd.core.atomic_system.AtomicSystem.set_pair_params.html#cemd.core.atomic_system.AtomicSystem.set_pair_params" title="cemd.core.atomic_system.AtomicSystem.set_pair_params"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AtomicSystem.set_pair_params</span></code></a></p></td>
 <td><p>Assign non-bond parameters for a pair of atom types (self or cross).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="generated/cemd.core.atomic_system.AtomicSystem.set_ff_bond_param.html#cemd.core.atomic_system.AtomicSystem.set_ff_bond_param" title="cemd.core.atomic_system.AtomicSystem.set_ff_bond_param"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AtomicSystem.set_ff_bond_param</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/cemd.core.atomic_system.AtomicSystem.set_bond_params.html#cemd.core.atomic_system.AtomicSystem.set_bond_params" title="cemd.core.atomic_system.AtomicSystem.set_bond_params"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AtomicSystem.set_bond_params</span></code></a></p></td>
 <td><p>Assign structural parameters for a specific bond type.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="generated/cemd.core.atomic_system.AtomicSystem.set_ff_angle_param.html#cemd.core.atomic_system.AtomicSystem.set_ff_angle_param" title="cemd.core.atomic_system.AtomicSystem.set_ff_angle_param"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AtomicSystem.set_ff_angle_param</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/cemd.core.atomic_system.AtomicSystem.set_angle_params.html#cemd.core.atomic_system.AtomicSystem.set_angle_params" title="cemd.core.atomic_system.AtomicSystem.set_angle_params"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AtomicSystem.set_angle_params</span></code></a></p></td>
 <td><p>Assign structural parameters for a specific angle type.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/cemd.core.atomic_system.AtomicSystem.apply_pair_mixing_rules.html#cemd.core.atomic_system.AtomicSystem.apply_pair_mixing_rules" title="cemd.core.atomic_system.AtomicSystem.apply_pair_mixing_rules"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AtomicSystem.apply_pair_mixing_rules</span></code></a></p></td>
@@ -597,6 +762,24 @@ charges.</p>
                 <footer class="prev-next-footer d-print-none">
                   
 <div class="prev-next-area">
+    <a class="left-prev"
+       href="index.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">API Reference</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="generated/cemd.core.atomic_system.AtomicSystem.box.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">AtomicSystem.box</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
 </div>
                 </footer>
               

@@ -18,7 +18,7 @@
 from __future__ import annotations
 
 import copy
-from typing import Sequence, Any, Self
+from typing import Sequence, Any, Self, TYPE_CHECKING
 
 import numpy as np
 import pandas as pd
@@ -28,7 +28,7 @@ from ._topology import TopologyMixin
 from ._io import IOMixin
 from ._forcefield import ForceFieldMixin
 
-from ..view.visualization import view
+from ._view import view
 
 from .._constants import(
     AVOGADRO,
@@ -40,6 +40,10 @@ from .._utils import (
     lammps2lattice, 
     lattice2vectors, 
 )
+
+if TYPE_CHECKING:
+    from ..build import SolutionBuilder
+
 
 class AtomicSystem(EditMixin, IOMixin, TopologyMixin, ForceFieldMixin):
     """
@@ -56,9 +60,39 @@ class AtomicSystem(EditMixin, IOMixin, TopologyMixin, ForceFieldMixin):
     Parameters
     ----------
     topology : dict[str, Any]
-        Dictionary containing the system data. Required keys include
-        atomic coordinates, box information, atom types, masses and
-        charges.
+        Dictionary containing the complete system data.
+        
+        Required keys:
+            - coordinates : np.ndarray
+                Atomic coordinates (N, 3)
+            - box : np.ndarray
+                Simulation box dimensions (3,)
+            - atom_types : list or np.ndarray
+                Atom type indices
+            - masses : list or np.ndarray
+                Atomic masses
+            - charges : list or np.ndarray
+                Atomic charges
+        
+        Optional keys:
+            - bonds : np.ndarray
+                Bond connectivity (N_bonds, 2)
+            - angles : np.ndarray
+                Angle connectivity (N_angles, 3)
+            - dihedrals : np.ndarray
+                Dihedral connectivity (N_dihedrals, 4)
+            - impropers : np.ndarray
+                Improper connectivity (N_impropers, 4)
+            - velocities : np.ndarray
+                Atomic velocities (N, 3)
+            - bond_params : dict
+                Bond force field parameters
+            - angle_params : dict
+                Angle force field parameters
+            - dihedral_params : dict
+                Dihedral force field parameters
+            - improper_params : dict
+                Improper force field parameters
 
     Attributes
     ----------
@@ -219,7 +253,7 @@ class AtomicSystem(EditMixin, IOMixin, TopologyMixin, ForceFieldMixin):
             'dihedrals': self.dihedrals.copy() if self.dihedrals is not None else None,
             'impropers': self.impropers.copy() if self.impropers is not None else None,
             'velocities':self.velocities.copy()if self.velocities is not None else None,
-            'lmp_box':   self.lmp_box,
+            'lmp_box':   self._lmp_box,
             'atom_types': list(self._types),
             'masses':    dict(self._masses_storage),
             'charges':   dict(self._charges_storage),
@@ -668,6 +702,168 @@ class AtomicSystem(EditMixin, IOMixin, TopologyMixin, ForceFieldMixin):
             Equivalent to __repr__.
         """
         return self.__repr__()
+
+    def add_structure(self, 
+                      structure_to_add: AtomicSystem,
+                      distance: float = 2.0, 
+                      axis: str = 'z',
+                      vacuum: float = 10.0) -> Self:
+        """
+        Add a structure on top of this system.
+
+        This method adds any structure (droplet, liquid layer, molecule, etc.)
+        on top of the current system along the specified axis. The structure is
+        aligned by center of mass in the transverse directions and placed at the
+        specified distance from the surface.
+
+        Parameters
+        ----------
+        structure_to_add : AtomicSystem or str
+            The structure to add. Can be an AtomicSystem object or a path to a
+            file that can be loaded by AtomicSystem.from_file().
+        distance : float, default=2.0
+            Distance between the current system surface and the structure
+            in Ångströms.
+        axis : str, default='z'
+            Axis along which to add the structure ('x', 'y', or 'z').
+        vacuum : float, default=10.0
+            Vacuum space added above the structure in Ångströms.
+
+        Returns
+        -------
+        Self
+            The updated system with the structure added.
+
+        Examples
+        --------
+        >>> from cemd import AtomicSystem
+        >>> 
+        >>> # Add a droplet from a file
+        >>> surface = AtomicSystem.from_file("surface.lmp")
+        >>> droplet = AtomicSystem.from_file("droplet.lmp")
+        >>> system = surface.add_structure(droplet, distance=2.0, vacuum=10.0)
+        >>> 
+        >>> # Add a structure from a file path (auto-loads)
+        >>> system = surface.add_structure("droplet.lmp", distance=2.0)
+        >>> 
+        >>> # Add a custom structure with different axis
+        >>> system = surface.add_structure(molecule, axis='y', distance=3.0)
+        """
+        from ..build import add_structure
+        
+        new_system = add_structure(
+            solid_system=self,
+            structure_to_add=structure_to_add,
+            distance=distance,
+            axis=axis,
+            vacuum=vacuum
+        )
+        self._replace_internals(new_system)
+        
+        return self
+
+    def add_layer(self, blueprint: SolutionBuilder, thickness: float,
+                  distance: float = 2.0, vacuum: float = 10.0, axis: str = 'z') -> Self:
+        """
+        Add a liquid layer on top of this system.
+
+        This method creates a liquid layer with the composition defined by the
+        blueprint and places it on top of the current system along the specified
+        axis. The layer is aligned to match the transverse dimensions of the
+        current system.
+
+        Parameters
+        ----------
+        blueprint : SolutionBuilder
+            Solution blueprint defining the liquid composition (density,
+            solutes, etc.).
+        thickness : float
+            Thickness of the liquid layer in Ångströms.
+        distance : float, default=2.0
+            Distance between the current system surface and the liquid layer
+            in Ångströms.
+        vacuum : float, default=10.0
+            Vacuum space added above the liquid layer in Ångströms.
+        axis : str, default='z'
+            Axis along which to add the layer ('x', 'y', or 'z').
+
+        Returns
+        -------
+        Self
+            The updated system with the liquid layer added.
+
+        Examples
+        --------
+        >>> from cemd import AtomicSystem
+        >>> from cemd.builders import SolutionBuilder
+        >>> 
+        >>> surface = AtomicSystem.from_file("surface.lmp")
+        >>> blueprint = SolutionBuilder.from_molarities(
+        ...     density=1.0,
+        ...     molarities={'NaCl': 0.1}
+        ... )
+        >>> 
+        >>> # Add a 30 Å water layer on the surface
+        >>> system = surface.add_layer(blueprint, thickness=30.0, distance=2.0)
+        """
+        from ..build import add_liquid_layer
+        new_system = add_liquid_layer(
+            self, blueprint, thickness, distance, vacuum, axis
+        )
+        self._replace_internals(new_system)
+
+        return self
+    
+    def add_droplet(self, blueprint: SolutionBuilder, radius: float,
+                    distance: float = 2.0, vacuum: float = 10.0, axis: str = 'z') -> Self:
+        """
+        Add a hemispherical liquid droplet on top of this system.
+
+        This method creates a hemispherical droplet with the composition defined
+        by the blueprint and places it on top of the current system along the
+        specified axis. The droplet sits on the surface with a flat bottom.
+
+        Parameters
+        ----------
+        blueprint : SolutionBuilder
+            Solution blueprint defining the droplet composition (density,
+            solutes, etc.).
+        radius : float
+            Radius of the hemispherical droplet in Ångströms.
+        distance : float, default=2.0
+            Distance between the current system surface and the droplet
+            in Ångströms.
+        vacuum : float, default=10.0
+            Vacuum space added above the droplet in Ångströms.
+        axis : str, default='z'
+            Axis along which the droplet sits ('x', 'y', or 'z').
+
+        Returns
+        -------
+        Self
+            The updated system with the droplet added.
+
+        Examples
+        --------
+        >>> from cemd import AtomicSystem
+        >>> from cemd.builders import SolutionBuilder
+        >>> 
+        >>> surface = AtomicSystem.from_file("surface.lmp")
+        >>> blueprint = SolutionBuilder.from_molarities(
+        ...     density=1.0,
+        ...     molarities={'NaCl': 0.1}
+        ... )
+        >>> 
+        >>> # Add a 15 Å radius water droplet on the surface
+        >>> system = surface.add_droplet(blueprint, radius=15.0, distance=2.0)
+        """
+        from ..build import add_droplet
+        new_system = add_droplet(
+            self, blueprint, radius, distance, vacuum, axis
+        )
+        self._replace_internals(new_system)
+
+        return self
     
     def get_count(self, symbol: str | int) -> int:
         """

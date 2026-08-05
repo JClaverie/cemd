@@ -34,7 +34,7 @@ def generate_ff_data(app):
     """Run scripts to generate force field data from TOML."""
     scripts_dir = Path(__file__).parent / "_scripts"
     
-    # ✅ Scripts à exécuter dans l'ordre
+    # Scripts à exécuter dans l'ordre
     scripts = [
         "toml_to_json.py",          # Génère ff_data.json
         "generate_ff_embedded.py",  # Génère ff_viewer.html avec données intégrées
@@ -65,7 +65,7 @@ def generate_ff_data(app):
         except Exception as e:
             print(f"⚠️ Error running {script_name}: {e}")
     
-    # ✅ Copier le JSON dans _build/html/_static/
+    # Copier le JSON dans _build/html/_static/
     src = Path(__file__).parent / "_static" / "ff_data.json"
     dst = Path(__file__).parent / "_build" / "html" / "_static" / "ff_data.json"
     
@@ -73,13 +73,13 @@ def generate_ff_data(app):
         try:
             dst.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(src, dst)
-            print(f"✅ Copied ff_data.json to {dst}")
+            print(f"Copied ff_data.json to {dst}")
         except Exception as e:
             print(f"⚠️ Could not copy ff_data.json: {e}")
     else:
         print(f"⚠️ ff_data.json not found at {src}")
     
-    # ✅ Copier le HTML embedded dans _build
+    # Copier le HTML embedded dans _build
     src_html = Path(__file__).parent / "_static" / "ff_viewer.html"
     dst_html = Path(__file__).parent / "_build" / "html" / "_static" / "ff_viewer.html"
     
@@ -87,7 +87,7 @@ def generate_ff_data(app):
         try:
             dst_html.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(src_html, dst_html)
-            print(f"✅ Copied ff_viewer.html to {dst_html}")
+            print(f"Copied ff_viewer.html to {dst_html}")
         except Exception as e:
             print(f"⚠️ Could not copy ff_viewer.html: {e}")
     else:
@@ -191,6 +191,14 @@ html_theme_options = {
         'image_dark':  '_static/images/logo/cemd_logo_dark.svg',
     },
     'navbar_end': ['theme-switcher', 'navbar-icon-links'],
+    'icon_links': [
+        {
+            'name': 'GitHub',
+            'url': 'https://github.com/JClaverie/cemd',
+            'icon': 'fa-brands fa-github',
+            'type': 'fontawesome',
+        },
+    ],
 }
 
 html_show_sourcelink = False
@@ -203,7 +211,9 @@ html_css_files = [
 ]
 
 html_sidebars = {
+    "api/index": [],
     "api/atomic_system": [],
+    "user_guide/index": [],
     "user_guide/build_guide": [],
     "user_guide/analysis_guide": [],
     "user_guide/ff_database": [],

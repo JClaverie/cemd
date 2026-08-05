@@ -19,6 +19,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Sequence
 from itertools import combinations
+from dataclasses import dataclass, field
 
 import numpy as np
 
@@ -28,133 +29,278 @@ if TYPE_CHECKING:
     import MDAnalysis as mda
     from .atomic_system import AtomicSystem
 
-def _build_rule(center: str,
-                neighbors: list[tuple],
-                new_type: str = None,
-                bonds: bool = False,
-                angles: bool = False,
-                impropers: bool = False) -> dict:
+@dataclass
+class NeighborCriterion:
     """
-    Build a connectivity rule dictionary.
+    Defines a neighbor requirement for a topology rule.
     
     Parameters
     ----------
-    neighbors: List of tuples (sel, cutoff, n, exact, new_type=None)
-        - exact: True (exact count) or False (at least n)
-    """
-    neighbor_dicts = []
+    selection : str
+        MDAnalysis selection string for neighbor atoms.
+    cutoff : float
+        Maximum distance from center atom in Å.
+    count : int
+        Exact number of neighbors required.
+    new_type : str, optional
+        New type to assign to matching neighbors.
     
-    for n in neighbors:
-        # On décompose le tuple avec la nouvelle position de 'exact'
-        sel, cutoff, n_val, exact = n[0], n[1], n[2], n[3]
-        new_n_type = n[4] if len(n) > 4 else None
-        
-        neighbor_dicts.append({
-            "sel":      sel,
-            "cutoff":   cutoff,
-            "n":        n_val,
-            "exact":    exact,
-            "new_type": new_n_type,
-        })
-        
-    return {
-        "center_sel":      center,
-        "new_type":        new_type,
-        "neighbors":       neighbor_dicts,
-        "create_bond":     bonds,
-        "create_angle":    angles,
-        "create_improper": impropers,
-    }
+    Examples
+    --------
+    >>> NeighborCriterion("type Si", 1.85, 2)
+    >>> NeighborCriterion("type H", 1.2, 2, "Hw")
+    """
+    selection: str
+    cutoff: float
+    count: int
+    new_type: str | None = None
+    
+    def __post_init__(self):
+        """Validate the criterion."""
+        if not self.selection:
+            raise ValueError("selection cannot be empty")
+        if self.cutoff <= 0:
+            raise ValueError(f"cutoff must be positive, got {self.cutoff}")
+        if self.count < 0:
+            raise ValueError(f"count must be non-negative, got {self.count}")
+    
+    def to_dict(self) -> dict:
+        """Convert to internal dict format."""
+        return {
+            "sel": self.selection,
+            "cutoff": self.cutoff,
+            "n": self.count,
+            "new_type": self.new_type,
+        }
+    
+    def __repr__(self):
+        return f"NeighborCriterion({self.selection!r}, cutoff={self.cutoff}, n={self.count})"
 
-CLAYFF_RULES: list[dict] = [
- 
-    # ---Silicate oxygens ---
-    _build_rule("type O", [("type Si", 1.85, 2, True)],               new_type="Ob"),   # bridging Si-O-Si
-    _build_rule("type O", [("type Si", 1.85, 1, True),
-                      ("type Al", 1.85, 1, True)],               new_type="Obs"),  # bridging Si-O-Al
-    _build_rule("type O",   [("type Si", 1.85, 1, True)],               new_type="Osi"),
-    # ---Aluminate oxygens ---
-    _build_rule("type O",   [("type Al", 1.85, 1, True)],               new_type="Oa"),
- 
-    # ---Water molecules (O bonded to exactly 2 H) ---
-    _build_rule("type O Oa Osi",
-         [("type H", 1.2, 2, False, "Hw")],
-         new_type="Ow", bonds=True, angles=True),
- 
-    # ---Si-O-H silanols ---
-    _build_rule("type Osi", [("type H", 1.2, 1, True, "Hsi")],         new_type="Osih",  bonds=True),
- 
-    # ---Al-O-H aluminols ---
-    _build_rule("type Oa",  [("type H", 1.2, 1, True, "Ha")],          new_type="Oah",   bonds=True),
- 
-    # ---Hydroxide (generic O-H) ---
-    _build_rule("type O",   [("type H", 1.2, 1, True, "Hh")],          new_type="Oh",    bonds=True),
- 
-    # ---Carbonate oxygens ---
-    _build_rule("type O",   [("type C", 1.6, 1, True)],                 new_type="Oc"),
- 
-    # ---Sulfate oxygens ---
-    _build_rule("type O",   [("type S", 1.6, 1, True)],                 new_type="Os"),
+
+@dataclass
+class TopologyRule:
+    """
+    Defines a geometry-based connectivity rule.
+    
+    Parameters
+    ----------
+    center : str
+        MDAnalysis selection for the central atom.
+    neighbors : list of NeighborCriterion
+        Neighbor requirements.
+    new_type : str, optional
+        New type for the central atom if the rule matches.
+    bonds : bool, default=False
+        Create bonds between center and neighbors.
+    angles : bool, default=False
+        Create angles between neighbor pairs.
+    impropers : bool, default=False
+        Create impropers (center as central atom).
+    
+    Examples
+    --------
+    >>> # Bridging oxygen (Si-O-Si)
+    >>> rule = TopologyRule(
+    ...     center="type O",
+    ...     neighbors=[NeighborCriterion("type Si", 1.85, 2)],
+    ...     new_type="Ob"
+    ... )
+    >>> 
+    >>> # Water molecule
+    >>> water = TopologyRule(
+    ...     center="type O",
+    ...     neighbors=[NeighborCriterion("type H", 1.2, 2, "Hw")],
+    ...     new_type="Ow",
+    ...     bonds=True,
+    ...     angles=True,
+    ... )
+    """
+    center: str
+    neighbors: list[NeighborCriterion] | NeighborCriterion = field(default_factory=list)
+    new_type: str | None = None
+    bonds: bool = False
+    angles: bool = False
+    impropers: bool = False
+    
+    def __post_init__(self):
+        """Validate the rule."""
+        if not self.center:
+            raise ValueError("center cannot be empty")
+        if isinstance(self.neighbors, NeighborCriterion):
+            self.neighbors = [self.neighbors]
+        elif not isinstance(self.neighbors, list):
+            raise TypeError(
+                f"neighbors must be a NeighborCriterion or list of NeighborCriterion, "
+                f"got {type(self.neighbors)}"
+            )
+        
+        for n in self.neighbors:
+            if not isinstance(n, NeighborCriterion):
+                raise TypeError(f"Expected NeighborCriterion, got {type(n)}")
+    
+    def add_neighbor(self, selection: str, cutoff: float, 
+                     count: int, new_type: str | None = None) -> TopologyRule:
+        """
+        Add a neighbor criterion — chainable.
+        
+        Returns
+        -------
+        TopologyRule
+            Self for method chaining.
+        """
+        self.neighbors.append(
+            NeighborCriterion(selection, cutoff, count, new_type)
+        )
+        return self
+    
+    def to_dict(self) -> dict:
+        """Convert to internal dict format."""
+        return {
+            "center_sel": self.center,
+            "new_type": self.new_type,
+            "neighbors": [n.to_dict() for n in self.neighbors],
+            "create_bond": self.bonds,
+            "create_angle": self.angles,
+            "create_improper": self.impropers,
+        }
+    
+    def __repr__(self):
+        return (
+            f"TopologyRule({self.center!r} → {self.new_type!r}, "
+            f"{len(self.neighbors)} neighbor(s))"
+        )
+
+
+# =============================================================================
+# CLAYFF RULES (using the new dataclass syntax)
+# =============================================================================
+
+CLAYFF_RULES: list[TopologyRule] = [
+    # --- Silicate oxygens ---
+    # Bridging Si-O-Si (exactly 2 Si)
+    TopologyRule("type O",
+         NeighborCriterion("type Si", 1.85, 2),
+         new_type="Ob"),
+    
+    # Bridging Si-O-Al (exactly 1 Si and 1 Al)
+    TopologyRule("type O",
+         [
+             NeighborCriterion("type Si", 1.85, 1),
+             NeighborCriterion("type Al", 1.85, 1)
+         ],
+         new_type="Obs"),
+    
+    # Non-bridging Si-OH (exactly 1 Si)
+    TopologyRule("type O",
+         NeighborCriterion("type Si", 1.85, 1),
+         new_type="Osi"),
+    
+    # --- Aluminate oxygens ---
+    # Non-bridging Al-OH (exactly 1 Al)
+    TopologyRule("type O",
+         NeighborCriterion("type Al", 1.85, 1),
+         new_type="Oa"),
+    
+    # --- Water molecules (O bonded to exactly 2 H) ---
+    TopologyRule("type O Oa Osi",
+         NeighborCriterion("type H", 1.2, 2, "Hw"),
+         new_type="Ow",
+         bonds=True,
+         angles=True),
+    
+    # --- Si-O-H silanols ---
+    TopologyRule("type Osi",
+         NeighborCriterion("type H", 1.2, 1, "Hsi"),
+         new_type="Osih",
+         bonds=True),
+    
+    # --- Al-O-H aluminols ---
+    TopologyRule("type Oa",
+         NeighborCriterion("type H", 1.2, 1, "Ha"),
+         new_type="Oah",
+         bonds=True),
+    
+    # --- Hydroxide (generic O-H) ---
+    TopologyRule("type O",
+         NeighborCriterion("type H", 1.2, 1, "Hh"),
+         new_type="Oh",
+         bonds=True),
+    
+    # --- Carbonate oxygens ---
+    TopologyRule("type O",
+         NeighborCriterion("type C", 1.6, 1),
+         new_type="Oc"),
+    
+    # --- Sulfate oxygens ---
+    TopologyRule("type O",
+         NeighborCriterion("type S", 1.6, 1),
+         new_type="Os"),
 ]
 
+# Convert to dict format for the internal engine
+CLAYFF_RULES_DICT: list[dict] = [r.to_dict() for r in CLAYFF_RULES]
+
+
 def _apply_single_rule_to_mda(universe: mda.Universe, r: dict) -> mda.Universe:
-    """Applies a single geometry-based connectivity rule in-place on a MDAnalysis Universe.
+    """
+    Applies a single geometry-based connectivity rule in-place on a MDAnalysis Universe.
     
     This function avoids converting back and forth to AtomicSystem.
     """
     center_atoms = universe.select_atoms(r["center_sel"])
-
-    new_bonds     = []
-    new_angles    = []
+    
+    new_bonds = []
+    new_angles = []
     new_impropers = []
-
+    
     for c in center_atoms:
-        matched_neighbors = []   
-        neighbor_type_tasks = [] 
+        matched_neighbors = []
+        neighbor_type_tasks = []
         is_valid = True
-
+        
         for n_rule in r["neighbors"]:
             found = universe.select_atoms(
                 f"({n_rule['sel']}) and "
                 f"(around {n_rule['cutoff']} index {c.index}) and "
                 f"not index {c.index}"
             )
-
-            if n_rule.get("exact", True):
-                if len(found) != n_rule["n"]:
-                    is_valid = False
-                    break
-            else:
-                if len(found) < n_rule["n"]: # "Au moins n"
-                    is_valid = False
-                    break
-
+            
+            # Exact count only (as requested)
+            if len(found) != n_rule["n"]:
+                is_valid = False
+                break
+            
             matched_neighbors.extend(list(found))
-
+            
             if n_rule.get("new_type") is not None:
                 neighbor_type_tasks.append((found, n_rule["new_type"]))
-
+        
         if not is_valid:
             continue
-
+        
+        # Apply new type to center
         if r.get("new_type") is not None:
             c.type = r["new_type"]
-
+        
+        # Apply new types to neighbors
         for atoms, n_type in neighbor_type_tasks:
             atoms.types = n_type
-
+        
+        # Create bonds
         if r.get("create_bond"):
             for n in matched_neighbors:
                 new_bonds.append(tuple(sorted((c.index, n.index))))
-
+        
+        # Create angles
         if r.get("create_angle") and len(matched_neighbors) >= 2:
             for n1, n2 in combinations(matched_neighbors, 2):
                 new_angles.append((n1.index, c.index, n2.index))
-
+        
+        # Create impropers
         if r.get("create_improper") and len(matched_neighbors) >= 3:
             for n1, n2, n3 in combinations(matched_neighbors, 3):
                 new_impropers.append((c.index, n1.index, n2.index, n3.index))
-
+    
     # Updating the MDAnalysis topology
     def _update_topo(univ, attr, new_entries):
         if not new_entries:
@@ -164,32 +310,32 @@ def _apply_single_rule_to_mda(universe: mda.Universe, r: dict) -> mda.Universe:
         if hasattr(univ, attr):
             univ.del_TopologyAttr(attr)
         univ.add_TopologyAttr(attr, combined)
-
-    _update_topo(universe, "bonds",     new_bonds)
-    _update_topo(universe, "angles",    new_angles)
+    
+    _update_topo(universe, "bonds", new_bonds)
+    _update_topo(universe, "angles", new_angles)
     _update_topo(universe, "impropers", new_impropers)
-
+    
     return universe
 
+
 def _apply_clayff_rules(universe: mda.Universe) -> tuple[mda.Universe, dict]:
-    """Applies ClayFF to the universe and flips the universe + no secondary actions."""
-    for rule in CLAYFF_RULES:
-        universe = _apply_single_rule_to_mda(universe, rule)
+    """Applies ClayFF to the universe."""
+    for rule_dict in CLAYFF_RULES_DICT:
+        universe = _apply_single_rule_to_mda(universe, rule_dict)
     return universe, {}
+
 
 def _apply_cshff_rules(universe: mda.Universe) -> tuple[mda.Universe, dict]:
     """Applies CSHFF to the universe and returns the calcium indices to modify."""
-
-    from ..build._silicate_helpers import get_interlayer_ca_indices
-
+    from ..build_old._silicate_helpers import get_interlayer_ca_indices
+    
     universe, _ = _apply_clayff_rules(universe)
-    
     list_ids_cw = get_interlayer_ca_indices(universe)
-    
     actions = {"rename_atoms": (list_ids_cw, "Cw")}
     return universe, actions
 
-RULE_SETS: dict[str, list[dict]] = {
+
+RULE_SETS: dict[str, callable] = {
     "clayff": _apply_clayff_rules,
     "cshff": _apply_cshff_rules,
 }
@@ -664,5 +810,3 @@ class TopologyMixin:
     # Aliases
     set_topo = set_topology
     reset_topo = reset_topology
-    
-    

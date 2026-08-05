@@ -1,5 +1,7 @@
-﻿cemd.analysis.density\_profile
-==============================
+﻿:html_theme.sidebar_secondary.remove:
+
+density\_profile
+================
 
 .. currentmodule:: cemd.analysis
 

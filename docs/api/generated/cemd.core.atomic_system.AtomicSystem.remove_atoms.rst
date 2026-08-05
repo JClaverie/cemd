@@ -1,5 +1,7 @@
-﻿cemd.core.atomic\_system.AtomicSystem.remove\_atoms
-===================================================
+﻿:html_theme.sidebar_secondary.remove:
+
+AtomicSystem.remove\_atoms
+==========================
 
 .. currentmodule:: cemd.core.atomic_system
 

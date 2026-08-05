@@ -1,5 +1,7 @@
-﻿cemd.core.atomic\_system.AtomicSystem.wrap
-==========================================
+﻿:html_theme.sidebar_secondary.remove:
+
+AtomicSystem.wrap
+=================
 
 .. currentmodule:: cemd.core.atomic_system
 

@@ -30,7 +30,7 @@ if TYPE_CHECKING:
 
 from ui.base_dialog import BaseBuilderDialog
 
-from ...db.cod import (
+from ...core._io.sources.cod import (
     cod_search_by_elements,
     cod_search_by_id,
     cod_search_by_name,

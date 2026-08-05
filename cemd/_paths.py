@@ -19,8 +19,6 @@ import os
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-FF_DATABASE_FILE = os.path.join(BASE_DIR, "db", "ff_database.xls")
-FF_DATABASE_DIR = os.path.join(BASE_DIR, "db", "toml")
-STRUCTURES_DIR = os.path.join(BASE_DIR, "structures")
+FF_DATABASE_DIR = os.path.join(BASE_DIR, "_data", "forcefields")
+STRUCTURES_DIR = os.path.join(BASE_DIR, "_data", "structures")
 PYCSH_DIR = os.path.join(BASE_DIR, "build", "pyCSH-main")
-VMD_VIEW_PATH = os.path.join(BASE_DIR, "view", "view.tcl")

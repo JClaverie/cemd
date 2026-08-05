@@ -137,7 +137,7 @@ class RDFDialog(BaseBuilderDialog):
         self.ax.clear()
 
         # 1. Récupération des données pures calculées par le backend
-        res = self.rdf_results
+        res, rho_target, rho0 = self.rdf_results
         r = res.index
         dr = self.spin_dr.value()
         
@@ -161,7 +161,7 @@ class RDFDialog(BaseBuilderDialog):
         # --- Onglet 1 : G(r) - Reduced ---
         elif tab_idx == 1: 
             # On recalcule la version lissée à partir du g(r) lissé et de rho0 du backend
-            Gr_smooth = 4 * np.pi * r * res["rho0"] * (gr_smooth - 1)
+            Gr_smooth = 4 * np.pi * r * rho0 * (gr_smooth - 1)
             
             self.ax.plot(r, res["G_r"], color='gray', alpha=0.2, label="Raw")
             self.ax.plot(r, Gr_smooth, color='#1976D2', lw=1.5, label="G(r)")
@@ -171,7 +171,7 @@ class RDFDialog(BaseBuilderDialog):
         # --- Onglet 2 : n(r) - Coordination ---
         elif tab_idx == 2: 
             # On recalcule l'intégration cumulative à partir du g(r) lissé et de rho_target
-            nr_smooth = np.cumsum(4 * np.pi * r**2 * res["rho_target"] * gr_smooth * dr)
+            nr_smooth = np.cumsum(4 * np.pi * r**2 * rho_target * gr_smooth * dr)
             
             self.ax.plot(r, res["n_r"], color='gray', alpha=0.2, label="Raw")
             self.ax.plot(r, nr_smooth, color='#388E3C', lw=1.5, label="n(r)")

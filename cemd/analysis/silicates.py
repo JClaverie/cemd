@@ -33,6 +33,32 @@ TYPES_PRESET = {
     "ca_types": "Ca Cw",
 }
 
+def _check_elements(source: AtomicSystem) -> None:
+    """
+    Check if the system contains Silicon and Oxygen.
+    
+    Raises
+    ------
+    ValueError
+        If the system does not contain both Silicon and Oxygen.
+    """
+    elements = source.elements
+    
+    has_si = any('Si' in elem for elem in elements)
+    has_o = any('O' in elem for elem in elements)
+    
+    if not has_si:
+        raise ValueError(
+            f"System does not contain Silicon (Si). "
+            f"Found elements: {elements}"
+        )
+    
+    if not has_o:
+        raise ValueError(
+            f"System does not contain Oxygen (O). "
+            f"Found elements: {elements}"
+        )
+
 def _process_analyze(source, si_types, o_types, al_types, ca_types, cutoff):
     """Perform the core silicate network analysis.
 
@@ -154,6 +180,7 @@ def analyze_silicates(source, types_map: dict = None, cutoff: float = 1.85) -> d
 
 @analyze_silicates.register(AtomicSystem)
 def _(source: AtomicSystem, config=None, cutoff: float = 1.85) -> dict[str, Any]:
+    _check_elements(source)
     # Use TYPES_PRESET if no dictionary is provided
     config = config if config is not None else TYPES_PRESET
     u = source.to_mda()

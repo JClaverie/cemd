@@ -1,5 +1,7 @@
-﻿cemd.core.atomic\_system.AtomicSystem.replicate
-===============================================
+﻿:html_theme.sidebar_secondary.remove:
+
+AtomicSystem.replicate
+======================
 
 .. currentmodule:: cemd.core.atomic_system
 

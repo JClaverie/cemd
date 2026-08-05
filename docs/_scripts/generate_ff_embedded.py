@@ -36,7 +36,7 @@ def generate_embedded_html():
     with open(OUTPUT_PATH, 'w', encoding='utf-8') as f:
         f.write(html)
     
-    print(f"✅ Generated: {OUTPUT_PATH}")
+    print(f"Generated: {OUTPUT_PATH}")
     print(f"   Size: {OUTPUT_PATH.stat().st_size / 1024:.1f} KB")
 
 if __name__ == "__main__":

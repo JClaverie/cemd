@@ -5,39 +5,178 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Force Field Database Viewer</title>
+    <!-- Google Fonts pour les icônes -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=article,search" />
     <style>
+        /* ============================================================
+           Reset & Base - S'intègre au thème PyData
+           ============================================================ */
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Segoe UI', sans-serif; background: #f5f7fa; padding: 20px; }
-        .container { max-width: 1400px; margin: 0 auto; background: white; border-radius: 16px; padding: 30px; box-shadow: 0 8px 30px rgba(0,0,0,0.12); }
-        .header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 25px; padding-bottom: 20px; border-bottom: 2px solid #e9ecef; }
-        .header h1 { font-size: 24px; font-weight: 600; }
-        .header h1 small { font-weight: 400; font-size: 14px; color: #6c757d; margin-left: 10px; }
-        .stats { font-size: 14px; color: #6c757d; background: #f8f9fa; padding: 6px 14px; border-radius: 20px; }
-        .stats span { font-weight: 600; color: #1a1a2e; }
-        .controls { display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 20px; }
-        .search-box { flex: 1; min-width: 250px; padding: 10px 16px; border: 2px solid #dee2e6; border-radius: 10px; font-size: 14px; background: white; }
-        .search-box:focus { outline: none; border-color: #4a6cf7; }
-        .table-wrapper { overflow-x: auto; border-radius: 12px; border: 1px solid #e9ecef; max-height: 600px; overflow-y: auto; }
-        table { width: 100%; border-collapse: collapse; font-size: 13px; }
-        thead { background: #f8f9fa; position: sticky; top: 0; z-index: 10; }
-        th { padding: 12px 16px; text-align: left; font-weight: 600; color: #495057; border-bottom: 2px solid #dee2e6; cursor: pointer; user-select: none; }
-        th:hover { background: #e9ecef; }
-        th .sort-icon { margin-left: 6px; opacity: 0.4; font-size: 10px; }
-        th.sorted .sort-icon { opacity: 1; }
-        td { padding: 10px 16px; border-bottom: 1px solid #f1f3f5; vertical-align: middle; }
-        tr:hover td { background: #f8f9ff; }
-        .highlight { background: #ffd43b; padding: 0 2px; border-radius: 2px; }
-        .model-link { color: #4a6cf7; cursor: pointer; text-decoration: none; font-weight: 500; }
-        .model-link:hover { text-decoration: underline; }
-        .ref-link { text-decoration: none; color: #4a6cf7; display: inline-block; }
-        .ref-link:hover { color: #1a3a8a; }
-        .empty-state { text-align: center; padding: 40px 20px; color: #6c757d; }
-        .loading { text-align: center; padding: 40px 20px; color: #6c757d; }
-        .spinner { display: inline-block; width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #4a6cf7; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 10px; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .badge { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 11px; font-weight: 500; background: #e9ecef; color: #495057; margin: 2px 4px 2px 0; }
+        body {
+            font-family: var(--pst-font-family-base, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif);
+            background: transparent;
+            color: var(--pst-color-text-base, #1a1a2e);
+            padding: 0;
+        }
         
-        /* ===== MODAL ===== */
+        /* ============================================================
+           Container - Reprend les couleurs du thème
+           ============================================================ */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: var(--pst-color-background, white);
+            border-radius: 8px;
+            padding: 20px;
+        }
+        
+        /* ============================================================
+           Controls - Style PyData
+           ============================================================ */
+        .controls {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+        .search-box {
+            flex: 1;
+            min-width: 250px;
+            padding: 8px 14px;
+            border: 1px solid var(--pst-color-border, #dee2e6);
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: var(--pst-font-family-base, 'Segoe UI', sans-serif);
+            background: var(--pst-color-background, white);
+            color: var(--pst-color-text-base, #1a1a2e);
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .search-box:focus {
+            outline: none;
+            border-color: var(--pst-color-link, #4a6cf7);
+            box-shadow: 0 0 0 3px rgba(74, 108, 247, 0.15);
+        }
+        .search-box::placeholder {
+            color: var(--pst-color-text-muted, #6c757d);
+        }
+        
+        /* ============================================================
+           Table - Style PyData
+           ============================================================ */
+        .table-wrapper {
+            overflow-x: auto;
+            border-radius: 6px;
+            border: 1px solid var(--pst-color-border, #e9ecef);
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            font-family: var(--pst-font-family-base, 'Segoe UI', sans-serif);
+        }
+        thead {
+            background: var(--pst-color-surface, #f8f9fa);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        th {
+            padding: 10px 14px;
+            text-align: left;
+            font-weight: 600;
+            color: var(--pst-color-heading, #495057);
+            border-bottom: 2px solid var(--pst-color-border, #dee2e6);
+            white-space: nowrap;
+            cursor: pointer;
+            user-select: none;
+            transition: background 0.15s;
+            font-size: 12px;
+            /* text-transform: uppercase; */
+            letter-spacing: 0.5px;
+        }
+        th:hover { background: var(--pst-color-surface-hover, #e9ecef); }
+        th .sort-icon {
+            margin-left: 6px;
+            opacity: 0.4;
+            font-size: 10px;
+        }
+        th.sorted .sort-icon { opacity: 1; }
+        td {
+            padding: 8px 14px;
+            border-bottom: 1px solid var(--pst-color-border, #f1f3f5);
+            vertical-align: middle;
+            max-width: 300px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            color: var(--pst-color-text-base, #1a1a2e);
+        }
+        tr:hover td { background: var(--pst-color-surface-hover, #f8f9ff); }
+        
+        .highlight {
+            background: #ffd43b;
+            padding: 0 2px;
+            border-radius: 2px;
+        }
+        
+        .type-link {
+            color: var(--pst-color-link, #4a6cf7);
+            cursor: pointer;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+        .type-link:hover {
+            color: var(--pst-color-link-hover, #1a3a8a);
+            text-decoration: underline;
+        }
+        .ref-link {
+            text-decoration: none;
+            color: var(--pst-color-link, #4a6cf7);
+            display: inline-block;
+            transition: transform 0.15s, color 0.15s;
+        }
+        .ref-link:hover {
+            color: var(--pst-color-link-hover, #1a3a8a);
+            transform: scale(1.1);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20;
+            vertical-align: middle;
+            font-size: 18px;
+        }
+        
+        /* ============================================================
+           Empty & Loading States
+           ============================================================ */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--pst-color-text-muted, #6c757d);
+        }
+        .empty-state .icon { font-size: 40px; margin-bottom: 10px; }
+        .loading {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--pst-color-text-muted, #6c757d);
+        }
+        .spinner {
+            display: inline-block;
+            width: 36px;
+            height: 36px;
+            border: 3px solid var(--pst-color-border, #f3f3f3);
+            border-top: 3px solid var(--pst-color-link, #4a6cf7);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 10px;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        /* ============================================================
+           Modal - Style PyData
+           ============================================================ */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -52,58 +191,161 @@
         }
         .modal-overlay.active { display: flex !important; }
         .modal {
-            background: white;
-            border-radius: 16px;
-            max-width: 1100px;
+            background: var(--pst-color-background, white);
+            border-radius: 8px;
+            max-width: 1000px;
             width: 95%;
-            max-height: 90vh;
+            max-height: 85vh;
             overflow-y: auto;
             padding: 30px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            animation: modalIn 0.3s ease;
+            animation: modalIn 0.25s ease;
         }
         @keyframes modalIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #e9ecef; }
-        .modal-header h2 { font-size: 24px; font-weight: 600; }
-        .modal-header h2 small { font-weight: 400; font-size: 14px; color: #6c757d; margin-left: 10px; }
-        .modal-close { background: none; border: none; font-size: 30px; cursor: pointer; color: #6c757d; line-height: 1; padding: 0 8px; }
-        .modal-close:hover { color: #1a1a2e; }
-        .modal-section { margin-bottom: 25px; }
-        .modal-section h3 { font-size: 16px; font-weight: 600; color: #495057; margin-bottom: 10px; padding-bottom: 5px; border-bottom: 1px solid #e9ecef; }
-        .modal-section h3 .count-badge { display: inline-block; padding: 1px 8px; border-radius: 10px; font-size: 12px; background: #e9ecef; color: #495057; margin-left: 8px; font-weight: 400; }
-        .modal-subtable { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 5px; }
-        .modal-subtable th { background: #f8f9fa; padding: 6px 10px; text-align: left; font-weight: 600; color: #495057; border-bottom: 1px solid #dee2e6; position: sticky; top: 0; }
-        .modal-subtable td { padding: 5px 10px; border-bottom: 1px solid #f1f3f5; }
-        .modal-subtable tr:hover td { background: #f8f9ff; }
-        .modal-subtable .ref { font-size: 11px; }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--pst-color-border, #e9ecef);
+        }
+        .modal-header h2 {
+            font-size: 22px;
+            font-weight: 600;
+            color: var(--pst-color-heading, #1a1a2e);
+            margin: 0;
+        }
+        .modal-header h2 small {
+            font-weight: 400;
+            font-size: 14px;
+            color: var(--pst-color-text-muted, #6c757d);
+            margin-left: 10px;
+        }
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            color: var(--pst-color-text-muted, #6c757d);
+            line-height: 1;
+            padding: 0 8px;
+            transition: color 0.2s;
+        }
+        .modal-close:hover { color: var(--pst-color-text-base, #1a1a2e); }
+        .modal-section { margin-bottom: 24px; }
+        .modal-section h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--pst-color-heading, #495057);
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid var(--pst-color-border, #e9ecef);
+        }
+        .modal-section h3 .count-badge {
+            display: inline-block;
+            padding: 1px 8px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 400;
+            background: var(--pst-color-surface, #e9ecef);
+            color: var(--pst-color-text-muted, #495057);
+            margin-left: 8px;
+        }
+        .modal-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px 20px;
+        }
+        .modal-grid .label {
+            color: var(--pst-color-text-muted, #6c757d);
+            font-size: 12px;
+            font-weight: 500;
+            /* text-transform: uppercase; */
+            letter-spacing: 0.5px;
+        }
+        .modal-grid .value { font-weight: 500; }
+        .modal-subtable {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+        .modal-subtable th {
+            background: var(--pst-color-surface, #f8f9fa);
+            padding: 5px 10px;
+            text-align: left;
+            font-weight: 600;
+            color: var(--pst-color-heading, #495057);
+            border-bottom: 1px solid var(--pst-color-border, #dee2e6);
+            position: sticky;
+            top: 0;
+            font-size: 11px;
+            /* text-transform: uppercase; */
+            letter-spacing: 0.5px;
+        }
+        .modal-subtable td {
+            padding: 4px 10px;
+            border-bottom: 1px solid var(--pst-color-border, #f1f3f5);
+        }
+        .modal-subtable tr:hover td { background: var(--pst-color-surface-hover, #f8f9ff); }
+        .badge {
+            display: inline-block;
+            padding: 1px 10px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 500;
+            background: var(--pst-color-surface, #e9ecef);
+            color: var(--pst-color-text-muted, #495057);
+            margin: 2px 4px 2px 0;
+            /* text-transform: uppercase; */
+            letter-spacing: 0.3px;
+        }
+        .badge-blue { background: #dbeafe; color: #1a3a8a; }
+        .badge-green { background: #d1fae5; color: #065f46; }
+        .badge-orange { background: #fef3c7; color: #92400e; }
+        .badge-gray { background: var(--pst-color-surface, #e9ecef); color: var(--pst-color-text-muted, #495057); }
         
+        /* ============================================================
+           Responsive
+           ============================================================ */
         @media (max-width: 768px) {
-            .container { padding: 15px; }
-            .header h1 { font-size: 18px; }
+            .container { padding: 12px; }
             .controls { flex-direction: column; }
             .search-box { min-width: 100%; }
-            td, th { padding: 8px 10px; font-size: 12px; }
-            .modal { padding: 15px; }
+            td, th { padding: 6px 10px; font-size: 12px; }
+            .modal-grid { grid-template-columns: 1fr; }
+            .modal { padding: 16px; }
             .modal-subtable { font-size: 11px; }
-            .modal-subtable th, .modal-subtable td { padding: 4px 6px; }
+            .modal-subtable th, .modal-subtable td { padding: 3px 6px; }
         }
+        
+        /* ============================================================
+           Scrollbar
+           ============================================================ */
         .table-wrapper::-webkit-scrollbar { height: 8px; width: 8px; }
-        .table-wrapper::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
-        .table-wrapper::-webkit-scrollbar-thumb { background: #c1c7cd; border-radius: 4px; }
-        .table-wrapper::-webkit-scrollbar-thumb:hover { background: #a8b0b8; }
-        .debug-info { margin-top: 10px; padding: 10px; background: #f8f9fa; border-radius: 8px; font-family: monospace; font-size: 12px; color: #495057; display: none; }
+        .table-wrapper::-webkit-scrollbar-track { background: var(--pst-color-surface, #f1f1f1); border-radius: 4px; }
+        .table-wrapper::-webkit-scrollbar-thumb { background: var(--pst-color-border, #c1c7cd); border-radius: 4px; }
+        .table-wrapper::-webkit-scrollbar-thumb:hover { background: var(--pst-color-text-muted, #a8b0b8); }
+        
+        .debug-info {
+            margin-top: 10px;
+            padding: 10px;
+            background: var(--pst-color-surface, #f8f9fa);
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 12px;
+            color: var(--pst-color-text-muted, #495057);
+            display: none;
+            border: 1px solid var(--pst-color-border, #e9ecef);
+        }
         .debug-info.show { display: block; }
     </style>
 </head>
 <body>
 <div class="container">
-    <div class="header">
-        <h1>⚛️ Force Field Database <small>Interactive Viewer</small></h1>
-        <div class="stats">📊 <span id="entryCount">Loading...</span></div>
-    </div>
-    
     <div class="controls">
-        <input class="search-box" id="searchInput" type="text" placeholder="🔍 Search across all fields...">
+        <input class="search-box" id="searchInput" type="text" placeholder="Search across all fields...">
     </div>
     
     <div class="table-wrapper">
@@ -112,13 +354,15 @@
             <thead id="tableHead"></thead>
             <tbody id="tableBody"></tbody>
         </table>
-        <div id="emptyState" class="empty-state" style="display:none;"><p id="emptyMessage">No entries found.</p></div>
+        <div id="emptyState" class="empty-state" style="display:none;"><div class="icon">🔍</div><p id="emptyMessage">No entries found.</p></div>
     </div>
     
     <div id="debugInfo" class="debug-info"></div>
 </div>
 
-<!-- ===== MODAL ===== -->
+<!-- ========================================================== -->
+<!-- MODAL -->
+<!-- ========================================================== -->
 <div class="modal-overlay" id="modalOverlay">
     <div class="modal">
         <div class="modal-header">
@@ -131,7 +375,7 @@
 
 <script>
 // ============================================================
-// DONNÉES INTÉGRÉES
+// DONNÉES INTÉGRÉES (remplacées par generate_ff_embedded.py)
 // ============================================================
 
 const EMBEDDED_DATA = {};
@@ -147,6 +391,23 @@ let sortKey = '';
 let sortAsc = true;
 
 // ============================================================
+// HELPERS
+// ============================================================
+
+function formatNumber(val) {
+    if (val === undefined || val === null || val === '') return '-';
+    const num = parseFloat(val);
+    if (isNaN(num)) return val;
+    if (Math.abs(num) < 0.0001) {
+        return num.toExponential(2);
+    }
+    if (Number.isInteger(num)) {
+        return num.toString();
+    }
+    return num.toPrecision(4);
+}
+
+// ============================================================
 // DOM REFS
 // ============================================================
 
@@ -155,7 +416,6 @@ const tableHead = document.getElementById('tableHead');
 const tableBody = document.getElementById('tableBody');
 const emptyState = document.getElementById('emptyState');
 const emptyMessage = document.getElementById('emptyMessage');
-const entryCount = document.getElementById('entryCount');
 const loadingState = document.getElementById('loadingState');
 const dataTable = document.getElementById('dataTable');
 const debugInfo = document.getElementById('debugInfo');
@@ -168,25 +428,11 @@ const modalModel = document.getElementById('modalModel');
 const modalBody = document.getElementById('modalBody');
 
 // ============================================================
-// HELPERS
-// ============================================================
-
-function formatNumber(val) {
-    if (val === undefined || val === null || val === '') return '-';
-    const num = parseFloat(val);
-    if (isNaN(num)) return val;
-    // Réduire les chiffres significatifs
-    if (Math.abs(num) < 0.0001) {
-        return num.toExponential(2);
-    }
-    if (Number.isInteger(num)) {
-        return num.toString();
-    }
-    return num.toPrecision(4);
-}
-
-// ============================================================
 // BUILD MODEL PARAMETERS
+// ============================================================
+
+// ============================================================
+// BUILD MODEL PARAMETERS - avec Buckingham
 // ============================================================
 
 function buildModelParams(data) {
@@ -200,6 +446,7 @@ function buildModelParams(data) {
             name: name,
             atom_types: [],
             lj: [],
+            buckingham: [],
             bonds: [],
             angles: [],
             impropers: [],
@@ -236,6 +483,7 @@ function buildModelParams(data) {
         });
     }
     
+    // LJ
     if (data['lj_12-6']) {
         data['lj_12-6'].forEach(lj => {
             if (models[lj.model]) {
@@ -244,6 +492,16 @@ function buildModelParams(data) {
         });
     }
     
+    // Buckingham
+    if (data.buckingham) {
+        data.buckingham.forEach(buck => {
+            if (models[buck.model]) {
+                models[buck.model].buckingham.push(buck);
+            }
+        });
+    }
+    
+    // Bonds
     if (data.bond) {
         data.bond.forEach(bond => {
             if (models[bond.model]) {
@@ -252,6 +510,7 @@ function buildModelParams(data) {
         });
     }
     
+    // Angles
     if (data.angle) {
         data.angle.forEach(angle => {
             if (models[angle.model]) {
@@ -260,6 +519,7 @@ function buildModelParams(data) {
         });
     }
     
+    // Impropers
     if (data.improper) {
         data.improper.forEach(imp => {
             if (models[imp.model]) {
@@ -295,7 +555,6 @@ function render() {
         });
     }
     
-    entryCount.textContent = data.length;
     renderTable(data);
 }
 
@@ -334,13 +593,13 @@ function renderTable(data) {
         return `<tr>${cols.map(col => {
             let val = '';
             if (col === 'model') {
-                val = `<a class="model-link" data-model="${model.name}">${model.name}</a>`;
+                val = `<a class="type-link model-link" data-model="${model.name}">${model.name}</a>`;
             } else if (col === 'description') {
                 val = model.description || '-';
             } else if (col === 'atom_types_count') {
                 val = model.atom_types.length;
             } else if (col === 'ref') {
-                val = model.ref ? `<a href="${model.ref}" target="_blank" class="ref-link">📄</a>` : '-';
+                val = model.ref ? `<a href="${model.ref}" target="_blank" class="ref-link"><span class="material-symbols-outlined">article</span></a>` : '-';
             }
             return `<td>${val}</td>`;
         }).join('')}</tr>`;
@@ -370,141 +629,68 @@ function openModal(modelName) {
     
     let html = '';
     
-    // Description et référence (en dehors des tableaux)
-    html += `<div style="margin-bottom:20px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;">`;
     if (data.description) {
-        html += `<span style="color:#6c757d;">${data.description}</span>`;
+        html += `<div style="margin-bottom:15px;color:var(--pst-color-text-muted, #6c757d);">${data.description}</div>`;
     }
-    if (data.ref) {
-        html += `<span style="font-size:13px;">📄 <a href="${data.ref}" target="_blank">${data.ref}</a></span>`;
-    }
-    html += `</div>`;
     
-    // ============================================================
-    // 1. Atom Types (sans colonne Ref)
-    // ============================================================
-    html += `<div class="modal-section">
-        <h3>Atom Types <span class="count-badge">${data.atom_types.length}</span></h3>
+    if (data.ref) {
+        html += `<div style="margin-bottom:15px;font-size:13px;">Reference: <a href="${data.ref}" target="_blank">${data.ref}</a></div>`;
+    }
+    
+    // Atom Types
+    html += `<div class="modal-section"><h3>Atom Types <span class="count-badge">${data.atom_types.length}</span></h3>
         <table class="modal-subtable">
-            <thead><tr>
-                <th>Type</th>
-                <th>Element</th>
-                <th>Charge</th>
-                <th>Environment</th>
-            </tr></thead>
+            <thead><tr><th>Type</th><th>Element</th><th>Charge</th><th>Environment</th></tr></thead>
             <tbody>`;
     data.atom_types.forEach(atom => {
-        html += `<tr>
-            <td><strong>${atom.type}</strong></td>
-            <td>${atom.element || '-'}</td>
-            <td>${formatNumber(atom.charge)}</td>
-            <td>${atom.environment || '-'}</td>
-        </tr>`;
+        html += `<tr><td><strong>${atom.type}</strong></td><td>${atom.element || '-'}</td><td>${formatNumber(atom.charge)}</td><td>${atom.environment || '-'}</td></tr>`;
     });
     html += `</tbody></table></div>`;
     
-    // ============================================================
-    // 2. Lennard-Jones 12-6 (sans colonne Ref)
-    // ============================================================
+    // LJ - avec vrais symboles
     if (data.lj.length > 0) {
-        html += `<div class="modal-section">
-            <h3>Lennard-Jones 12-6 <span class="count-badge">${data.lj.length}</span></h3>
+        html += `<div class="modal-section"><h3>Lennard-Jones 12-6 <span class="count-badge">${data.lj.length}</span></h3>
             <table class="modal-subtable">
-                <thead><tr>
-                    <th>Type 1</th>
-                    <th>Type 2</th>
-                    <th>ε (kcal/mol)</th>
-                    <th>σ (Å)</th>
-                </tr></thead>
+                <thead><tr><th>Type 1</th><th>Type 2</th><th>ε (kcal/mol)</th><th>σ (Å)</th></tr></thead>
                 <tbody>`;
         data.lj.forEach(lj => {
-            html += `<tr>
-                <td>${lj['type 1']}</td>
-                <td>${lj['type 2']}</td>
-                <td>${formatNumber(lj['epsilon (kcal/mol)'])}</td>
-                <td>${formatNumber(lj['sigma (A)'])}</td>
-            </tr>`;
+            html += `<tr><td>${lj['type 1']}</td><td>${lj['type 2']}</td><td>${formatNumber(lj['epsilon (kcal/mol)'])}</td><td>${formatNumber(lj['sigma (A)'])}</td></tr>`;
         });
         html += `</tbody></table></div>`;
     }
     
-    // ============================================================
-    // 3. Bonds (sans colonne Ref)
-    // ============================================================
+    // Bonds - avec vrais symboles
     if (data.bonds.length > 0) {
-        html += `<div class="modal-section">
-            <h3>Bonds <span class="count-badge">${data.bonds.length}</span></h3>
+        html += `<div class="modal-section"><h3>Bonds <span class="count-badge">${data.bonds.length}</span></h3>
             <table class="modal-subtable">
-                <thead><tr>
-                    <th>Type 1</th>
-                    <th>Type 2</th>
-                    <th>k (kcal/(mol·Å²))</th>
-                    <th>r₀ (Å)</th>
-                </tr></thead>
+                <thead><tr><th>Type 1</th><th>Type 2</th><th>k (kcal/mol·Å²)</th><th>r₀ (Å)</th></tr></thead>
                 <tbody>`;
         data.bonds.forEach(bond => {
-            html += `<tr>
-                <td>${bond['type 1']}</td>
-                <td>${bond['type 2']}</td>
-                <td>${formatNumber(bond['k (kcal/(mol.A2)'])}</td>
-                <td>${formatNumber(bond['r (A)'])}</td>
-            </tr>`;
+            html += `<tr><td>${bond['type 1']}</td><td>${bond['type 2']}</td><td>${formatNumber(bond['k (kcal/(mol.A2)'])}</td><td>${formatNumber(bond['r (A)'])}</td></tr>`;
         });
         html += `</tbody></table></div>`;
     }
     
-    // ============================================================
-    // 4. Angles (sans colonne Ref)
-    // ============================================================
+    // Angles - avec vrais symboles
     if (data.angles.length > 0) {
-        html += `<div class="modal-section">
-            <h3>Angles <span class="count-badge">${data.angles.length}</span></h3>
+        html += `<div class="modal-section"><h3>Angles <span class="count-badge">${data.angles.length}</span></h3>
             <table class="modal-subtable">
-                <thead><tr>
-                    <th>Type 1</th>
-                    <th>Type 2</th>
-                    <th>Type 3</th>
-                    <th>k (kcal/(mol·rad²))</th>
-                    <th>θ₀ (°)</th>
-                </tr></thead>
+                <thead><tr><th>Type 1</th><th>Type 2</th><th>Type 3</th><th>k (kcal/mol·rad²)</th><th>θ₀ (°)</th></tr></thead>
                 <tbody>`;
         data.angles.forEach(angle => {
-            html += `<tr>
-                <td>${angle['type 1']}</td>
-                <td>${angle['type 2']}</td>
-                <td>${angle['type 3']}</td>
-                <td>${formatNumber(angle['k (kcal/(mol.rad2))'])}</td>
-                <td>${formatNumber(angle['theta (deg)'])}</td>
-            </tr>`;
+            html += `<tr><td>${angle['type 1']}</td><td>${angle['type 2']}</td><td>${angle['type 3']}</td><td>${formatNumber(angle['k (kcal/(mol.rad2))'])}</td><td>${formatNumber(angle['theta (deg)'])}</td></tr>`;
         });
         html += `</tbody></table></div>`;
     }
     
-    // ============================================================
-    // 5. Impropers (sans colonne Ref)
-    // ============================================================
+    // Impropers - avec vrais symboles
     if (data.impropers.length > 0) {
-        html += `<div class="modal-section">
-            <h3>Impropers <span class="count-badge">${data.impropers.length}</span></h3>
+        html += `<div class="modal-section"><h3>Impropers <span class="count-badge">${data.impropers.length}</span></h3>
             <table class="modal-subtable">
-                <thead><tr>
-                    <th>Type 1</th>
-                    <th>Type 2</th>
-                    <th>Type 3</th>
-                    <th>Type 4</th>
-                    <th>k (kcal/(mol·rad²))</th>
-                    <th>θ₀ (°)</th>
-                </tr></thead>
+                <thead><tr><th>Type 1</th><th>Type 2</th><th>Type 3</th><th>Type 4</th><th>k (kcal/mol·rad²)</th><th>θ₀ (°)</th></tr></thead>
                 <tbody>`;
         data.impropers.forEach(imp => {
-            html += `<tr>
-                <td>${imp['type 1']}</td>
-                <td>${imp['type 2']}</td>
-                <td>${imp['type 3']}</td>
-                <td>${imp['type 4']}</td>
-                <td>${formatNumber(imp['k (kcal/(mol,rad2))'])}</td>
-                <td>${formatNumber(imp['theta (deg)'])}</td>
-            </tr>`;
+            html += `<tr><td>${imp['type 1']}</td><td>${imp['type 2']}</td><td>${imp['type 3']}</td><td>${imp['type 4']}</td><td>${formatNumber(imp['k (kcal/(mol,rad2))'])}</td><td>${formatNumber(imp['theta (deg)'])}</td></tr>`;
         });
         html += `</tbody></table></div>`;
     }
@@ -558,8 +744,8 @@ function init() {
         loadingState.style.display = 'none';
         render();
         
-        showDebug(`✅ Loaded: ${Object.keys(modelParams).length} models`);
-        console.log('✅ Models loaded:', Object.keys(modelParams));
+        showDebug(`Loaded: ${Object.keys(modelParams).length} models`);
+        console.log('Models loaded:', Object.keys(modelParams));
         
     } catch (error) {
         console.error('❌ Error:', error);
@@ -578,5 +764,3 @@ function showDebug(message, isError = false) {
 
 document.addEventListener('DOMContentLoaded', init);
 </script>
-</body>
-</html>

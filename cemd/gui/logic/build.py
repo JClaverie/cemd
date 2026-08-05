@@ -36,7 +36,7 @@ from cemd.gui.ui.build import (
     TranslateAtomsDialog
 )
 
-from cemd.build.base import (
+from cemd.build_old.base import (
     build_solution, 
     add_liquid, 
     split,

@@ -11,33 +11,71 @@ The following software must be installed before setting up **cemd**:
 * **Packmol** — required for automated system construction (`download <https://m3g.github.io/packmol/>`__). Must be accessible in your ``$PATH``.
 * **VMD** — required for system visualization (`download <https://www.ks.uiuc.edu/Research/vmd/>`__). Must be accessible in your ``$PATH``.
 
-Standard Installation
----------------------
 
-1. Clone the repository:
+User Installation
+-----------------
+
+It is strongly recommended to install **cemd** in a dedicated virtual environment.
+
+Create a virtual environment
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Choose the method that suits you best:
+
+**Option 1: Using venv (Python built-in)**
+
+.. code-block:: bash
+
+   python -m venv cemd_env
+   source cemd_env/bin/activate      # Linux/macOS
+   # cemd_env\Scripts\activate       # Windows
+
+**Option 2: Using conda**
+
+.. code-block:: bash
+
+   conda create -n cemd_env python=3.11
+   conda activate cemd_env
+
+Install the package
+^^^^^^^^^^^^^^^^^^^
+
+Once your environment is active, install **cemd**:
+
+.. code-block:: bash
+
+   pip install cemd
+
+For GUI support:
+
+.. code-block:: bash
+
+   pip install "cemd[gui]"
+
+Developer Installation
+----------------------
+
+If you plan to contribute to **cemd** development, clone the repository and install in editable mode:
 
 .. code-block:: bash
 
    git clone https://github.com/JClaverie/cemd.git
    cd cemd
 
-2. Create the conda environment:
+Create a dedicated conda environment:
 
 .. code-block:: bash
 
    conda env create -f environment.yml
    conda activate cemd
 
-3. Install the package in editable mode:
+Then install the package in editable mode:
 
 .. code-block:: bash
 
    pip install -e .
 
-GUI Installation
-----------------
-
-To use the graphical interface, use the dedicated environment file instead:
+For GUI development, use the dedicated environment file:
 
 .. code-block:: bash
 

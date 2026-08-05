@@ -15,14 +15,9 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-"""
-SMILES reader using RDKit.
-"""
-
 import pandas as pd
 
 from .base import BaseReader
-
 
 class SmilesReader(BaseReader):
     """Read from SMILES string using RDKit."""

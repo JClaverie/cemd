@@ -1,5 +1,7 @@
-﻿cemd.core.atomic\_system.AtomicSystem.add\_angle
-================================================
+﻿:html_theme.sidebar_secondary.remove:
+
+AtomicSystem.add\_angle
+=======================
 
 .. currentmodule:: cemd.core.atomic_system
 

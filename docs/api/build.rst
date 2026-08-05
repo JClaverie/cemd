@@ -1,7 +1,7 @@
-build Module
+Build Module
 ===============
 
-The **build** module provides the core functionality for constructing atomistic systems.
+The **build** module provides the core functionality for constructing atomistic systems from scratch.
 It acts as a high-level interface to generate crystalline surfaces, aqueous solutions, 
 and complex interfaces suitable for LAMMPS simulations.
 

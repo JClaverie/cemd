@@ -25,8 +25,7 @@ from typing import TYPE_CHECKING
 from PySide6 import QtWidgets, QtCore
 
 from .base_dialog import BaseBuilderDialog
-from ...core.atomic_system import AtomicSystem
-from ...db.pubchem import (
+from ...core._io.sources.pubchem import (
     get_structure,
     get_pubchem_details,
     pubchem_search_by_name,

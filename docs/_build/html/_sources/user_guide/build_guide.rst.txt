@@ -1,7 +1,7 @@
 Building Systems
 ================
 
-The **build** module is the central engine of the **cemd** package. Its primary purpose is to automate the construction of complex atomistic systems, from simple crystal bulks to intricate solid-liquid interfaces.
+The **build** module purpose is to automate the construction of complex atomistic systems, from simple crystal bulks to intricate solid-liquid interfaces.
 
 .. contents:: Table of Contents
    :local:

@@ -1,5 +1,7 @@
-﻿cemd.analysis.diffusion\_coefficient
-====================================
+﻿:html_theme.sidebar_secondary.remove:
+
+diffusion\_coefficient
+======================
 
 .. currentmodule:: cemd.analysis
 

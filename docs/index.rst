@@ -70,3 +70,12 @@ manipulating and analyzing atomistic systems for cement and silicate simulations
          :click-parent:
 
          To the API reference
+
+.. toctree::
+   :hidden:
+   :caption: Contents:
+
+   installation
+   getting_started
+   user_guide/index
+   api/index

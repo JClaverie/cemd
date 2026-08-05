@@ -1,5 +1,7 @@
-﻿cemd.core.atomic\_system.AtomicSystem.explore\_ff\_database
-===========================================================
+﻿:html_theme.sidebar_secondary.remove:
+
+AtomicSystem.explore\_ff\_database
+==================================
 
 .. currentmodule:: cemd.core.atomic_system
 

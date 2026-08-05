@@ -1,3 +1,3 @@
-from .mixin import ForceFieldMixin
+from .forcefield_mixin import ForceFieldMixin
 
 __all__ = ['ForceFieldMixin']

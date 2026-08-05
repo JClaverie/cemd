@@ -1,5 +1,7 @@
-﻿cemd.core.atomic\_system.AtomicSystem.write
-===========================================
+﻿:html_theme.sidebar_secondary.remove:
+
+AtomicSystem.write
+==================
 
 .. currentmodule:: cemd.core.atomic_system
 

@@ -1,5 +1,7 @@
-﻿cemd.core.atomic\_system.AtomicSystem.from\_mda
-===============================================
+﻿:html_theme.sidebar_secondary.remove:
+
+AtomicSystem.from\_mda
+======================
 
 .. currentmodule:: cemd.core.atomic_system
 

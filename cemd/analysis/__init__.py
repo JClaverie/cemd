@@ -18,6 +18,7 @@
 from .rdf import compute_rdf
 from .diffusion import msd, msd_profile, diffusion_coefficient
 from .density import density_profile, density_map, electrostatic_potential
+from .silicates import analyze_silicates
 
 __all__ = [
     "compute_rdf",
@@ -27,4 +28,5 @@ __all__ = [
     "density_profile",
     "density_map",
     "electrostatic_potential",
+    "analyze_silicates"
 ]

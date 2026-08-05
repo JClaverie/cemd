@@ -1,5 +1,7 @@
-﻿cemd.build.build\_csh
-=====================
+﻿:html_theme.sidebar_secondary.remove:
+
+build\_csh
+==========
 
 .. currentmodule:: cemd.build
 

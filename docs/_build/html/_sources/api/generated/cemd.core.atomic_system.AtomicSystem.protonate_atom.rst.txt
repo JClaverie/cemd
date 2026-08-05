@@ -1,5 +1,7 @@
-﻿cemd.core.atomic\_system.AtomicSystem.protonate\_atom
-=====================================================
+﻿:html_theme.sidebar_secondary.remove:
+
+AtomicSystem.protonate\_atom
+============================
 
 .. currentmodule:: cemd.core.atomic_system
 

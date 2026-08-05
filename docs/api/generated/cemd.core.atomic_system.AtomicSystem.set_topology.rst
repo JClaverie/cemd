@@ -1,5 +1,7 @@
-﻿cemd.core.atomic\_system.AtomicSystem.set\_topology
-===================================================
+﻿:html_theme.sidebar_secondary.remove:
+
+AtomicSystem.set\_topology
+==========================
 
 .. currentmodule:: cemd.core.atomic_system
 

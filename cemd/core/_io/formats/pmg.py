@@ -15,49 +15,118 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-"""
-Pymatgen reader.
-"""
+from __future__ import annotations
 
 import numpy as np
+import warnings
 import pandas as pd
+from typing import TYPE_CHECKING
 
 from .base import BaseReader
 from ...._constants import MASSES_DICT, CHARGES_DICT
 from ...._utils import lattice2lammps
 
+if TYPE_CHECKING:
+    from pymatgen.core import Structure
+
 class PmgReader(BaseReader):
     """Read from Pymatgen Structure."""
 
     @classmethod
-    def read(cls, structure) -> dict:
-        """Read from Pymatgen Structure."""
-        abc = structure.lattice.abc
-        angles = structure.lattice.angles
+    def read(cls, structure: Structure, refine: bool=True) -> dict:
+        """
+        Convert a Pymatgen Structure to a topology dictionary.
+        
+        Parameters
+        ----------
+        structure : Structure
+            Pymatgen Structure object
+        refine : bool
+            If True, refine the structure using SpacegroupAnalyzer.
+        
+        Returns
+        -------
+        dict
+            Topology dictionary ready for AtomicSystem initialization
+        """
+        from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
+        from itertools import permutations
+        
+        # 1. Store initial structure parameters
+        original_abc = list(structure.lattice.abc)
+        
+        # 2. Refine if requested
+        if refine:
+            try:
+                analyzer = SpacegroupAnalyzer(structure)
+                refined_structure = analyzer.get_refined_structure()
+            except Exception as e:
+                print(f"Warning: Could not refine structure: {e}")
+                refined_structure = structure
+        else:
+            refined_structure = structure
+        
+        # 3. Extract parameters from the refined structure
+        abc = list(refined_structure.lattice.abc)
+        angles = list(refined_structure.lattice.angles)
+        positions = refined_structure.cart_coords.copy()
+        
+        # 4. Reindex the axes of the refined structure
+        # to match the order of the initial structure
+        best_mapping = [0, 1, 2]
+        min_diff = float('inf')
+        
+        for p in permutations([0, 1, 2]):
+            # Compare the order of the axes of the refined structure with the original
+            current_diff = sum(abs(abc[i] - original_abc[j]) for j, i in enumerate(p))
+            if current_diff < min_diff:
+                min_diff = current_diff
+                best_mapping = list(p)
+        
+        # Apply reindexing if order has changed
+        if best_mapping != [0, 1, 2]:
 
-        positions = structure.cart_coords
-        types = [site.species.elements[0].name for site in structure]
+            warnings.warn(
+                f"Axes reindexed: original {original_abc} -> refined {abc} "
+                f"with mapping {best_mapping}",
+                UserWarning
+            )
 
-        ids = np.arange(1, len(positions) + 1)
+            abc = [abc[i] for i in best_mapping]
+            angles = [angles[i] for i in best_mapping]
+            positions = positions[:, best_mapping].copy()
+        
+        # 5. Extract Atom Types
+        types = [site.species.elements[0].name for site in refined_structure]
         unique_types = sorted(set(types))
-
-        masses = {t: MASSES_DICT.get(t, 1.0) for t in unique_types}
-        charges = {t: CHARGES_DICT.get(t, 0.0) for t in unique_types}
-        charges_arr = np.array([CHARGES_DICT.get(t, 0.0) for t in types])
-
+        
+        # 6. Create the DataFrames
+        ids = np.arange(1, len(positions) + 1)
+        charges = np.array([CHARGES_DICT.get(t, 0.0) for t in types])
+        
         df_atoms = pd.DataFrame({
             'id': ids,
             'type': types,
-            'charge': charges_arr,
+            'charge': charges,
             'x': positions[:, 0],
             'y': positions[:, 1],
             'z': positions[:, 2],
-        }).set_index('id')
-
-        return {
+        })
+        
+        # Force data types
+        df_atoms['id'] = df_atoms['id'].astype(int)
+        df_atoms[['charge', 'x', 'y', 'z']] = df_atoms[['charge', 'x', 'y', 'z']].astype(float)
+        df_atoms.set_index('id', inplace=True)
+        
+        # 7. Masses et charges par type
+        masses_dict = {t: MASSES_DICT.get(t, 1.0) for t in unique_types}
+        charges_dict = {t: CHARGES_DICT.get(t, 0.0) for t in unique_types}
+        
+        # 8. Assemble the topology
+        topology = {
             'lmp_box': lattice2lammps(abc + angles),
-            'masses': masses,
-            'charges': charges,
+            'masses': masses_dict,
+            'charges': charges_dict,
             'atom_types': unique_types,
             'atoms': df_atoms,
             'bonds': None,
@@ -67,3 +136,8 @@ class PmgReader(BaseReader):
             'velocities': None,
             'atom_style': 'full',
         }
+        
+        # Store the refined structure
+        topology['_pmg_struct'] = structure
+        
+        return topology

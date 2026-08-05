@@ -16,11 +16,6 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-
-"""
-Data classes for force field parameters.
-"""
-
 from dataclasses import dataclass, field
 from typing import Optional
 

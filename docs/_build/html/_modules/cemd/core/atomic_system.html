@@ -138,6 +138,33 @@
 <nav>
   <ul class="bd-navbar-elements navbar-nav">
     
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../getting_started.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../user_guide/index.html">
+    User Guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../api/index.html">
+    API Reference
+  </a>
+</li>
+
   </ul>
 </nav></div>
       
@@ -171,6 +198,21 @@
     <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
   </ul>
 </div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/JClaverie/cemd" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
       
     </div>
     
@@ -216,6 +258,33 @@
 <nav>
   <ul class="bd-navbar-elements navbar-nav">
     
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../getting_started.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../user_guide/index.html">
+    User Guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../api/index.html">
+    API Reference
+  </a>
+</li>
+
   </ul>
 </nav></div>
           
@@ -240,6 +309,21 @@
     <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
   </ul>
 </div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/JClaverie/cemd" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
         
       </div>
     
@@ -321,7 +405,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">copy</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Self</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Self</span><span class="p">,</span> <span class="n">TYPE_CHECKING</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
@@ -331,7 +415,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">._io</span><span class="w"> </span><span class="kn">import</span> <span class="n">IOMixin</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">._forcefield</span><span class="w"> </span><span class="kn">import</span> <span class="n">ForceFieldMixin</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">..view.visualization</span><span class="w"> </span><span class="kn">import</span> <span class="n">view</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">._view</span><span class="w"> </span><span class="kn">import</span> <span class="n">view</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">.._constants</span><span class="w"> </span><span class="kn">import</span><span class="p">(</span>
     <span class="n">AVOGADRO</span><span class="p">,</span>
@@ -343,6 +427,10 @@
     <span class="n">lammps2lattice</span><span class="p">,</span> 
     <span class="n">lattice2vectors</span><span class="p">,</span> 
 <span class="p">)</span>
+
+<span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">..build_new</span><span class="w"> </span><span class="kn">import</span> <span class="n">SolutionBuilder</span>
+
 
 <div class="viewcode-block" id="AtomicSystem">
 <a class="viewcode-back" href="../../../api/atomic_system.html#cemd.core.atomic_system.AtomicSystem">[docs]</a>
@@ -361,9 +449,39 @@
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    topology : dict[str, Any]</span>
-<span class="sd">        Dictionary containing the system data. Required keys include</span>
-<span class="sd">        atomic coordinates, box information, atom types, masses and</span>
-<span class="sd">        charges.</span>
+<span class="sd">        Dictionary containing the complete system data.</span>
+<span class="sd">        </span>
+<span class="sd">        Required keys:</span>
+<span class="sd">            - coordinates : np.ndarray</span>
+<span class="sd">                Atomic coordinates (N, 3)</span>
+<span class="sd">            - box : np.ndarray</span>
+<span class="sd">                Simulation box dimensions (3,)</span>
+<span class="sd">            - atom_types : list or np.ndarray</span>
+<span class="sd">                Atom type indices</span>
+<span class="sd">            - masses : list or np.ndarray</span>
+<span class="sd">                Atomic masses</span>
+<span class="sd">            - charges : list or np.ndarray</span>
+<span class="sd">                Atomic charges</span>
+<span class="sd">        </span>
+<span class="sd">        Optional keys:</span>
+<span class="sd">            - bonds : np.ndarray</span>
+<span class="sd">                Bond connectivity (N_bonds, 2)</span>
+<span class="sd">            - angles : np.ndarray</span>
+<span class="sd">                Angle connectivity (N_angles, 3)</span>
+<span class="sd">            - dihedrals : np.ndarray</span>
+<span class="sd">                Dihedral connectivity (N_dihedrals, 4)</span>
+<span class="sd">            - impropers : np.ndarray</span>
+<span class="sd">                Improper connectivity (N_impropers, 4)</span>
+<span class="sd">            - velocities : np.ndarray</span>
+<span class="sd">                Atomic velocities (N, 3)</span>
+<span class="sd">            - bond_params : dict</span>
+<span class="sd">                Bond force field parameters</span>
+<span class="sd">            - angle_params : dict</span>
+<span class="sd">                Angle force field parameters</span>
+<span class="sd">            - dihedral_params : dict</span>
+<span class="sd">                Dihedral force field parameters</span>
+<span class="sd">            - improper_params : dict</span>
+<span class="sd">                Improper force field parameters</span>
 
 <span class="sd">    Attributes</span>
 <span class="sd">    ----------</span>
@@ -973,6 +1091,32 @@
 <span class="sd">            Equivalent to __repr__.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__repr__</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_layer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">blueprint</span><span class="p">:</span> <span class="n">SolutionBuilder</span><span class="p">,</span> <span class="n">thickness</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+                  <span class="n">distance</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">2.0</span><span class="p">,</span> <span class="n">vacuum</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">10.0</span><span class="p">,</span> <span class="n">axis</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;z&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Self</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Add a liquid layer to this system.</span>
+<span class="sd">        </span>
+<span class="sd">        Convenience method that uses InterfaceBuilder internally.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">..build_new</span><span class="w"> </span><span class="kn">import</span> <span class="n">InterfaceBuilder</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">InterfaceBuilder</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">add_liquid_layer</span><span class="p">(</span><span class="n">blueprint</span><span class="p">,</span> <span class="n">thickness</span><span class="p">,</span> <span class="n">distance</span><span class="p">,</span> <span class="n">vacuum</span><span class="p">,</span> <span class="n">axis</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">build</span><span class="p">()</span>
+        <span class="p">)</span>
+    
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_droplet</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">blueprint</span><span class="p">:</span> <span class="n">SolutionBuilder</span><span class="p">,</span> <span class="n">radius</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+                    <span class="n">distance</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">2.0</span><span class="p">,</span> <span class="n">vacuum</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">10.0</span><span class="p">,</span> <span class="n">axis</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;z&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Self</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Add a droplet to this system.</span>
+<span class="sd">        </span>
+<span class="sd">        Convenience method that uses InterfaceBuilder internally.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">..build_new</span><span class="w"> </span><span class="kn">import</span> <span class="n">InterfaceBuilder</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">InterfaceBuilder</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">add_droplet</span><span class="p">(</span><span class="n">blueprint</span><span class="p">,</span> <span class="n">radius</span><span class="p">,</span> <span class="n">distance</span><span class="p">,</span> <span class="n">vacuum</span><span class="p">,</span> <span class="n">axis</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">build</span><span class="p">()</span>
+        <span class="p">)</span>
     
     <span class="k">def</span><span class="w"> </span><span class="nf">get_count</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">symbol</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>

@@ -138,6 +138,33 @@
 <nav>
   <ul class="bd-navbar-elements navbar-nav">
     
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../getting_started.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../user_guide/index.html">
+    User Guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../api/index.html">
+    API Reference
+  </a>
+</li>
+
   </ul>
 </nav></div>
       
@@ -171,6 +198,21 @@
     <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
   </ul>
 </div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/JClaverie/cemd" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
       
     </div>
     
@@ -216,6 +258,33 @@
 <nav>
   <ul class="bd-navbar-elements navbar-nav">
     
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../installation.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../getting_started.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../user_guide/index.html">
+    User Guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../api/index.html">
+    API Reference
+  </a>
+</li>
+
   </ul>
 </nav></div>
           
@@ -240,6 +309,21 @@
     <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
   </ul>
 </div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/JClaverie/cemd" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
         
       </div>
     
@@ -329,16 +413,6 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">pymatgen.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">Composition</span><span class="p">,</span> <span class="n">Structure</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">pymatgen.core.surface</span><span class="w"> </span><span class="kn">import</span> <span class="n">SlabGenerator</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">pymatgen.symmetry.analyzer</span><span class="w"> </span><span class="kn">import</span> <span class="n">SpacegroupAnalyzer</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">questionary</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">prompt_toolkit.application</span><span class="w"> </span><span class="kn">import</span> <span class="n">Application</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">prompt_toolkit.key_binding</span><span class="w"> </span><span class="kn">import</span> <span class="n">KeyBindings</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">prompt_toolkit.layout</span><span class="w"> </span><span class="kn">import</span> <span class="n">Layout</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">prompt_toolkit.layout.containers</span><span class="w"> </span><span class="kn">import</span> <span class="n">HSplit</span><span class="p">,</span> <span class="n">Window</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">prompt_toolkit.layout.controls</span><span class="w"> </span><span class="kn">import</span> <span class="n">FormattedTextControl</span>
-
 <span class="kn">from</span><span class="w"> </span><span class="nn">.._paths</span><span class="w"> </span><span class="kn">import</span> <span class="n">STRUCTURES_DIR</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.._constants</span><span class="w"> </span><span class="kn">import</span> <span class="n">MASSES_DICT</span><span class="p">,</span> <span class="n">AVOGADRO</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.._utils</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
@@ -374,43 +448,6 @@
     
     <span class="n">safe_filename</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}{</span><span class="n">ext</span><span class="si">}</span><span class="s2">&quot;</span>
     <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="n">safe_filename</span><span class="p">))</span>
-
-<span class="k">def</span><span class="w"> </span><span class="nf">_validate_for_surface</span><span class="p">(</span><span class="n">system</span><span class="p">:</span> <span class="n">AtomicSystem</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Validate that a pymatgen Structure can be used to generate surfaces.&quot;&quot;&quot;</span>
-
-    <span class="k">try</span><span class="p">:</span>
-        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">system</span><span class="p">,</span> <span class="s1">&#39;_pmg_struct&#39;</span><span class="p">):</span>
-            <span class="n">struct</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">_pmg_struct</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">struct</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">to_pmg</span><span class="p">()</span>
-    <span class="k">except</span> <span class="p">(</span><span class="ne">TypeError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Cannot generate surfaces: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="kc">None</span>
-    
-    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">struct</span><span class="p">,</span> <span class="n">Structure</span><span class="p">):</span>
-        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
-            <span class="s2">&quot;Surface generation requires a periodic 3D structure. &quot;</span>
-            <span class="s2">&quot;Isolated molecules are not supported.&quot;</span>
-        <span class="p">)</span>
-    
-    <span class="k">try</span><span class="p">:</span>
-        <span class="n">analyzer</span> <span class="o">=</span> <span class="n">SpacegroupAnalyzer</span><span class="p">(</span><span class="n">struct</span><span class="p">,</span> <span class="n">symprec</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
-        <span class="n">spacegroup</span> <span class="o">=</span> <span class="n">analyzer</span><span class="o">.</span><span class="n">get_space_group_symbol</span><span class="p">()</span>
-    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-            <span class="s2">&quot;Could not determine the space group of the structure. &quot;</span>
-            <span class="s2">&quot;Make sure the structure is a well-defined crystal.&quot;</span>
-        <span class="p">)</span>
-    
-    <span class="c1"># 3. Vérifier que la maille n&#39;est pas trop distordue</span>
-    <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">c</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">lattice</span><span class="o">.</span><span class="n">abc</span>
-    <span class="k">if</span> <span class="nb">min</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">c</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">1.0</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;Lattice parameter too small (</span><span class="si">{</span><span class="nb">min</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">,</span><span class="n">c</span><span class="p">)</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> Å). &quot;</span>
-            <span class="s2">&quot;The structure may not be a valid crystal.&quot;</span>
-        <span class="p">)</span>
-
-    <span class="k">return</span> <span class="n">struct</span>
 
 <span class="k">def</span><span class="w"> </span><span class="nf">rebuild_silicates</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">si_o_cutoff</span><span class="o">=</span><span class="mf">1.9</span><span class="p">,</span> <span class="n">oh_dist</span><span class="o">=</span><span class="mf">0.96</span><span class="p">,</span> <span class="n">si_o_dist</span><span class="o">=</span><span class="mf">1.6</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Rebuild the coordination of Si atoms with coordination &lt; 4 by adding silanol (OH) groups.</span>
@@ -552,25 +589,37 @@
 <div class="viewcode-block" id="build_surfaces">
 <a class="viewcode-back" href="../../../api/generated/cemd.build.build_surfaces.html#cemd.build.build_surfaces">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">build_surfaces</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">AtomicSystem</span><span class="p">,</span> 
-                 <span class="n">miller_indices</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> 
-                 <span class="n">min_slab_size</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="mf">25.0</span><span class="p">,</span> 
-                 <span class="n">min_vacuum_size</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="mf">15.0</span>
-                 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="n">AtomicSystem</span><span class="p">],</span>
-                            <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
-                            <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
-                            <span class="nb">int</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate crystalline surfaces from a given structure.</span>
+                   <span class="n">miller_indices</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> 
+                   <span class="n">min_slab_size</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">25.0</span><span class="p">,</span> 
+                   <span class="n">min_vacuum_size</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">15.0</span><span class="p">,</span>
+                   <span class="n">max_broken_bonds</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">20</span><span class="p">,</span>
+                   <span class="n">bonds_dict</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                   <span class="n">refine_slabs</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>  <span class="c1"># False by default to keep the original</span>
+                   <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="n">AtomicSystem</span><span class="p">],</span>
+                              <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
+                              <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
+                              <span class="nb">int</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generate crystalline surfaces from a given structure.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    data : AtomicSystem</span>
-<span class="sd">        The initial structure.</span>
+<span class="sd">        The initial structure. Should have &#39;_pmg_struct&#39; for best results.</span>
 <span class="sd">    miller_indices : Sequence[int]</span>
-<span class="sd">        Miller indices for the surface cut.</span>
-<span class="sd">    min_slab_size : float, optional</span>
-<span class="sd">        Minimum thickness of the slab.</span>
-<span class="sd">    min_vacuum_size : float, optional</span>
-<span class="sd">        Minimum size of the added vacuum.</span>
+<span class="sd">        Miller indices for the surface cut (e.g., (1, 1, 1)).</span>
+<span class="sd">    min_slab_size : float, default=25.0</span>
+<span class="sd">        Minimum thickness of the slab in Angstroms.</span>
+<span class="sd">    min_vacuum_size : float, default=15.0</span>
+<span class="sd">        Minimum size of the added vacuum in Angstroms.</span>
+<span class="sd">    max_broken_bonds : int, default=20</span>
+<span class="sd">        Maximum number of broken bonds to accept.</span>
+<span class="sd">    bonds_dict : dict, optional</span>
+<span class="sd">        Dictionary of bond lengths for different element pairs.</span>
+<span class="sd">        If None, uses default values.</span>
+<span class="sd">    refine_slabs : bool, default=False</span>
+<span class="sd">        If True, refine the generated slabs using SpacegroupAnalyzer.</span>
+<span class="sd">        Set to False to preserve the original slab structure.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
@@ -582,57 +631,310 @@
 <span class="sd">        Calculated dipoles for each surface.</span>
 <span class="sd">    actual_broken : int</span>
 <span class="sd">        Number of bonds broken during generation.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    RuntimeError</span>
+<span class="sd">        If no structure is available for surface generation.</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        If the structure is not suitable for surface generation.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-
+    <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">..core.atomic_system</span><span class="w"> </span><span class="kn">import</span> <span class="n">AtomicSystem</span>
-
-    <span class="n">struct</span> <span class="o">=</span> <span class="n">_validate_for_surface</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
-        
-    <span class="n">struct</span><span class="o">.</span><span class="n">add_oxidation_state_by_guess</span><span class="p">()</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">pymatgen.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">Structure</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">pymatgen.symmetry.analyzer</span><span class="w"> </span><span class="kn">import</span> <span class="n">SpacegroupAnalyzer</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">pymatgen.core.surface</span><span class="w"> </span><span class="kn">import</span> <span class="n">SlabGenerator</span>
     
-    <span class="n">slabgen</span> <span class="o">=</span> <span class="n">SlabGenerator</span><span class="p">(</span><span class="n">struct</span><span class="p">,</span> <span class="n">miller_indices</span><span class="p">,</span> <span class="n">min_slab_size</span><span class="p">,</span> <span class="n">min_vacuum_size</span><span class="p">)</span>
-
-    <span class="n">bonds_dic</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="p">(</span><span class="s1">&#39;Al4+&#39;</span><span class="p">,</span> <span class="s1">&#39;O2-&#39;</span><span class="p">)</span> <span class="p">:</span> <span class="mf">1.8</span><span class="p">,</span>
-        <span class="p">(</span><span class="s1">&#39;Al&#39;</span><span class="p">,</span> <span class="s1">&#39;O&#39;</span><span class="p">):</span> <span class="mf">1.8</span><span class="p">,</span>
-        <span class="p">(</span><span class="s1">&#39;Si4+&#39;</span><span class="p">,</span> <span class="s1">&#39;O2-&#39;</span><span class="p">)</span> <span class="p">:</span> <span class="mf">1.8</span><span class="p">,</span>
-        <span class="p">(</span><span class="s1">&#39;Si&#39;</span><span class="p">,</span> <span class="s1">&#39;O&#39;</span><span class="p">)</span> <span class="p">:</span> <span class="mf">1.8</span><span class="p">,</span>
-        <span class="p">(</span><span class="s1">&#39;C4+&#39;</span><span class="p">,</span> <span class="s1">&#39;O2-&#39;</span><span class="p">)</span> <span class="p">:</span> <span class="mf">1.4</span><span class="p">,</span>
-        <span class="p">(</span><span class="s1">&#39;C&#39;</span><span class="p">,</span> <span class="s1">&#39;O&#39;</span><span class="p">)</span> <span class="p">:</span> <span class="mf">1.4</span><span class="p">,</span> 
-        <span class="p">(</span><span class="s1">&#39;H+&#39;</span><span class="p">,</span> <span class="s1">&#39;O2-&#39;</span><span class="p">)</span> <span class="p">:</span> <span class="mf">1.1</span><span class="p">,</span>
-        <span class="p">(</span><span class="s1">&#39;H&#39;</span><span class="p">,</span> <span class="s1">&#39;O&#39;</span><span class="p">)</span> <span class="p">:</span> <span class="mf">1.1</span>
-    <span class="p">}</span>
-
-    <span class="c1"># Finding the minimum number of broken links</span>
-    <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+    
+    <span class="c1"># ===============================================================================</span>
+    <span class="c1"># 1. Recover the ORIGINAL structure (maximum priority)</span>
+    <span class="c1"># ===============================================================================</span>
+    <span class="n">struct</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">source</span> <span class="o">=</span> <span class="kc">None</span>
+    
+    <span class="c1"># 1a. Try to use the original unrefined structure</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="s1">&#39;_pmg_struct&#39;</span><span class="p">):</span>
+        <span class="n">struct</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">_pmg_struct</span>
+        <span class="n">source</span> <span class="o">=</span> <span class="s1">&#39;_pmg_struct (original)&#39;</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Using original (unrefined) structure for surface generation.&quot;</span><span class="p">)</span>
+    
+    <span class="c1"># 1b. Otherwise try _pmg_struct (can be refined)</span>
+    <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="s1">&#39;_pmg_struct&#39;</span><span class="p">):</span>
+        <span class="n">struct</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">_pmg_struct</span>
+        <span class="n">source</span> <span class="o">=</span> <span class="s1">&#39;_pmg_struct (possibly refined)&#39;</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+            <span class="s2">&quot;Using &#39;_pmg_struct&#39; which may be refined. &quot;</span>
+            <span class="s2">&quot;Surface generation works best with the original structure. &quot;</span>
+            <span class="s2">&quot;Consider using &#39;_pmg_struct&#39; instead.&quot;</span>
+        <span class="p">)</span>
+    
+    <span class="c1"># 1c. Fallback: convertir AtomicSystem -&gt; pymatgen</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">struct</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">to_pmg</span><span class="p">()</span>
+            <span class="n">source</span> <span class="o">=</span> <span class="s1">&#39;to_pmg() conversion&#39;</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Using converted structure from AtomicSystem.to_pmg().&quot;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Cannot generate surfaces: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="s2">&quot;The AtomicSystem does not have &#39;_pmg_struct&#39; or &#39;_pmg_struct&#39;, &quot;</span>
+                <span class="s2">&quot;and to_pmg() failed.&quot;</span>
+            <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
+    
+    <span class="c1"># ===============================================================================</span>
+    <span class="c1"># 2. Check that the structure is valid</span>
+    <span class="c1"># ===============================================================================</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">struct</span><span class="p">,</span> <span class="n">Structure</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Expected pymatgen Structure, got </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">struct</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">.&quot;</span>
+        <span class="p">)</span>
+    
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">struct</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Structure has only </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">struct</span><span class="p">)</span><span class="si">}</span><span class="s2"> atom(s). &quot;</span>
+            <span class="s2">&quot;Surface generation requires at least 2 atoms.&quot;</span>
+        <span class="p">)</span>
+    
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">struct</span><span class="o">.</span><span class="n">is_ordered</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Structure is not fully ordered. Surface generation may fail.&quot;</span><span class="p">)</span>
+    
+    <span class="c1"># Check that the structure is not too large</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">struct</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">10000</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Structure has </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">struct</span><span class="p">)</span><span class="si">}</span><span class="s2"> atoms. &quot;</span>
+            <span class="s2">&quot;Surface generation may be slow or fail.&quot;</span>
+        <span class="p">)</span>
+    
+    <span class="c1"># ===============================================================================</span>
+    <span class="c1"># 3. Add oxidation states (if possible)</span>
+    <span class="c1"># ===============================================================================</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">struct</span><span class="o">.</span><span class="n">add_oxidation_state_by_guess</span><span class="p">()</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Oxidation states guessed successfully.&quot;</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Could not guess oxidation states: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    
+    <span class="c1"># ===============================================================================</span>
+    <span class="c1"># 4. Prepare default bindings</span>
+    <span class="c1"># ===============================================================================</span>
+    <span class="k">if</span> <span class="n">bonds_dict</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">bonds_dict</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="c1"># With oxidation states</span>
+            <span class="p">(</span><span class="s1">&#39;Al4+&#39;</span><span class="p">,</span> <span class="s1">&#39;O2-&#39;</span><span class="p">):</span> <span class="mf">1.8</span><span class="p">,</span>
+            <span class="p">(</span><span class="s1">&#39;Si4+&#39;</span><span class="p">,</span> <span class="s1">&#39;O2-&#39;</span><span class="p">):</span> <span class="mf">1.8</span><span class="p">,</span>
+            <span class="p">(</span><span class="s1">&#39;C4+&#39;</span><span class="p">,</span> <span class="s1">&#39;O2-&#39;</span><span class="p">):</span> <span class="mf">1.4</span><span class="p">,</span>
+            <span class="p">(</span><span class="s1">&#39;H+&#39;</span><span class="p">,</span> <span class="s1">&#39;O2-&#39;</span><span class="p">):</span> <span class="mf">1.1</span><span class="p">,</span>
+            <span class="c1"># Without oxidation states (fallback)</span>
+            <span class="p">(</span><span class="s1">&#39;Al&#39;</span><span class="p">,</span> <span class="s1">&#39;O&#39;</span><span class="p">):</span> <span class="mf">1.8</span><span class="p">,</span>
+            <span class="p">(</span><span class="s1">&#39;Si&#39;</span><span class="p">,</span> <span class="s1">&#39;O&#39;</span><span class="p">):</span> <span class="mf">1.8</span><span class="p">,</span>
+            <span class="p">(</span><span class="s1">&#39;C&#39;</span><span class="p">,</span> <span class="s1">&#39;O&#39;</span><span class="p">):</span> <span class="mf">1.4</span><span class="p">,</span>
+            <span class="p">(</span><span class="s1">&#39;H&#39;</span><span class="p">,</span> <span class="s1">&#39;O&#39;</span><span class="p">):</span> <span class="mf">1.1</span><span class="p">,</span>
+        <span class="p">}</span>
+    
+    <span class="c1"># ===============================================================================</span>
+    <span class="c1"># 5. Create the surface generator</span>
+    <span class="c1"># ===============================================================================</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">slabgen</span> <span class="o">=</span> <span class="n">SlabGenerator</span><span class="p">(</span>
+            <span class="n">struct</span><span class="p">,</span>
+            <span class="n">miller_indices</span><span class="p">,</span>
+            <span class="n">min_slab_size</span><span class="p">,</span>
+            <span class="n">min_vacuum_size</span>
+        <span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;SlabGenerator created for </span><span class="si">{</span><span class="n">miller_indices</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Cannot create SlabGenerator: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;Miller indices: </span><span class="si">{</span><span class="n">miller_indices</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;Make sure the structure is periodic and valid.&quot;</span>
+        <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
+    
+    <span class="c1"># ===============================================================================</span>
+    <span class="c1"># 6. Find the minimum number of broken links</span>
+    <span class="c1"># ===============================================================================</span>
     <span class="n">slabs_list_pmg</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">while</span> <span class="nb">len</span><span class="p">(</span><span class="n">slabs_list_pmg</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="mi">20</span><span class="p">:</span>
-        <span class="n">slabs_list_pmg</span> <span class="o">=</span> <span class="n">slabgen</span><span class="o">.</span><span class="n">get_slabs</span><span class="p">(</span><span class="n">bonds</span><span class="o">=</span><span class="n">bonds_dic</span><span class="p">,</span> 
-                                       <span class="n">max_broken_bonds</span><span class="o">=</span><span class="n">i</span><span class="p">)</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">slabs_list_pmg</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">actual_broken</span> <span class="o">=</span> <span class="n">i</span>
-            <span class="k">break</span>
-        <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="n">actual_broken</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
     
+    <span class="c1"># Try with bindings first</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">max_broken_bonds</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">slabs</span> <span class="o">=</span> <span class="n">slabgen</span><span class="o">.</span><span class="n">get_slabs</span><span class="p">(</span>
+                <span class="n">bonds</span><span class="o">=</span><span class="n">bonds_dict</span><span class="p">,</span>
+                <span class="n">max_broken_bonds</span><span class="o">=</span><span class="n">i</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">slabs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">slabs_list_pmg</span> <span class="o">=</span> <span class="n">slabs</span>
+                <span class="n">actual_broken</span> <span class="o">=</span> <span class="n">i</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Found </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">slabs</span><span class="p">)</span><span class="si">}</span><span class="s2"> slabs with </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2"> broken bonds.&quot;</span><span class="p">)</span>
+                <span class="k">break</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed with </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2"> broken bonds: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">continue</span>
+    
+    <span class="c1"># Fallback: try without bindings</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">slabs_list_pmg</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">slabs_list_pmg</span> <span class="o">=</span> <span class="n">slabgen</span><span class="o">.</span><span class="n">get_slabs</span><span class="p">()</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">slabs_list_pmg</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">actual_broken</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Found </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">slabs_list_pmg</span><span class="p">)</span><span class="si">}</span><span class="s2"> slabs using fallback &quot;</span>
+                    <span class="s2">&quot;(no bond constraints).&quot;</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;No surfaces could be generated with up to </span><span class="si">{</span><span class="n">max_broken_bonds</span><span class="si">}</span><span class="s2"> broken bonds. &quot;</span>
+                    <span class="s2">&quot;The structure may not be suitable for surface generation.&quot;</span>
+                <span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Surface generation failed: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="s2">&quot;Try adjusting min_slab_size, min_vacuum_size, or max_broken_bonds.&quot;</span>
+            <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
+    
+    <span class="c1"># ===============================================================================</span>
+    <span class="c1"># 7. Extract dipoles and shifts</span>
+    <span class="c1"># ===============================================================================</span>
     <span class="n">dipole_list</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">shift_list</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">slab</span> <span class="ow">in</span> <span class="n">slabs_list_pmg</span><span class="p">:</span>
-        <span class="n">dipole_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">slab</span><span class="o">.</span><span class="n">dipole</span><span class="p">[</span><span class="mi">2</span><span class="p">]))</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">dipole_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">slab</span><span class="o">.</span><span class="n">dipole</span><span class="p">[</span><span class="mi">2</span><span class="p">]))</span>
+        <span class="k">except</span> <span class="p">(</span><span class="ne">AttributeError</span><span class="p">,</span> <span class="ne">IndexError</span><span class="p">):</span>
+            <span class="n">dipole_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>
         <span class="n">shift_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">slab</span><span class="o">.</span><span class="n">shift</span><span class="p">)</span>
 
+    
     <span class="n">slabs_list_as</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">raw_slab</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">slabs_list_pmg</span><span class="p">):</span>
-        <span class="n">analyzer</span> <span class="o">=</span> <span class="n">SpacegroupAnalyzer</span><span class="p">(</span><span class="n">raw_slab</span><span class="p">)</span>
-        <span class="n">slab</span> <span class="o">=</span> <span class="n">analyzer</span><span class="o">.</span><span class="n">get_refined_structure</span><span class="p">()</span>
-        <span class="n">slabs_list_as</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">AtomicSystem</span><span class="o">.</span><span class="n">from_pmg</span><span class="p">(</span><span class="n">slab</span><span class="p">))</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># If we ask for refinement, apply it</span>
+            <span class="k">if</span> <span class="n">refine_slabs</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">analyzer</span> <span class="o">=</span> <span class="n">SpacegroupAnalyzer</span><span class="p">(</span><span class="n">raw_slab</span><span class="p">)</span>
+                    <span class="n">slab</span> <span class="o">=</span> <span class="n">analyzer</span><span class="o">.</span><span class="n">get_refined_structure</span><span class="p">()</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Slab </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2"> refined successfully.&quot;</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Could not refine slab </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="n">slab</span> <span class="o">=</span> <span class="n">raw_slab</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">slab</span> <span class="o">=</span> <span class="n">raw_slab</span>
+            
+            <span class="c1"># Convert to AtomicSystem</span>
+            <span class="c1"># IMPORTANT: refine=False to not re-refine</span>
+            <span class="n">as_system</span> <span class="o">=</span> <span class="n">AtomicSystem</span><span class="o">.</span><span class="n">from_pmg</span><span class="p">(</span><span class="n">slab</span><span class="p">,</span> <span class="n">refine</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            
+            <span class="c1"># KEEP the original structure of the slab</span>
+            <span class="c1"># to be able to generate other surfaces if necessary</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">as_system</span><span class="p">,</span> <span class="s1">&#39;_pmg_struct&#39;</span><span class="p">):</span>
+                <span class="n">as_system</span><span class="o">.</span><span class="n">_pmg_struct</span> <span class="o">=</span> <span class="n">slab</span>
+            
+            <span class="c1"># Also keep the original structure of the parent</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="s1">&#39;_pmg_struct&#39;</span><span class="p">):</span>
+                <span class="n">as_system</span><span class="o">.</span><span class="n">_parent_structure</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">_pmg_struct</span>
+            
+            <span class="n">slabs_list_as</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">as_system</span><span class="p">)</span>
+            
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to convert slab </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2"> to AtomicSystem: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">continue</span>
+    
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">slabs_list_as</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;No slabs could be converted to AtomicSystem.&quot;</span><span class="p">)</span>
+    
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Successfully generated </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">slabs_list_as</span><span class="p">)</span><span class="si">}</span><span class="s2"> surfaces.&quot;</span><span class="p">)</span>
     
     <span class="k">return</span> <span class="n">slabs_list_as</span><span class="p">,</span> <span class="n">shift_list</span><span class="p">,</span> <span class="n">dipole_list</span><span class="p">,</span> <span class="n">actual_broken</span></div>
 
 
+
+<span class="c1"># def build_surfaces(data: AtomicSystem, </span>
+<span class="c1">#                  miller_indices: Sequence[int], </span>
+<span class="c1">#                  min_slab_size: float=25.0, </span>
+<span class="c1">#                  min_vacuum_size: float=15.0</span>
+<span class="c1">#                  ) -&gt; tuple[list[AtomicSystem],</span>
+<span class="c1">#                             list[float],</span>
+<span class="c1">#                             list[float],</span>
+<span class="c1">#                             int]:</span>
+<span class="c1">#     &quot;&quot;&quot;Generate crystalline surfaces from a given structure.</span>
+
+<span class="c1">#     Parameters</span>
+<span class="c1">#     ----------</span>
+<span class="c1">#     data : AtomicSystem</span>
+<span class="c1">#         The initial structure.</span>
+<span class="c1">#     miller_indices : Sequence[int]</span>
+<span class="c1">#         Miller indices for the surface cut.</span>
+<span class="c1">#     min_slab_size : float, optional</span>
+<span class="c1">#         Minimum thickness of the slab.</span>
+<span class="c1">#     min_vacuum_size : float, optional</span>
+<span class="c1">#         Minimum size of the added vacuum.</span>
+
+<span class="c1">#     Returns</span>
+<span class="c1">#     -------</span>
+<span class="c1">#     slabs_list_as : list[AtomicSystem]</span>
+<span class="c1">#         List of generated surfaces as AtomicSystem objects.</span>
+<span class="c1">#     shift_list : list[float]</span>
+<span class="c1">#         Shifts used for surface generation.</span>
+<span class="c1">#     dipole_list : list[float]</span>
+<span class="c1">#         Calculated dipoles for each surface.</span>
+<span class="c1">#     actual_broken : int</span>
+<span class="c1">#         Number of bonds broken during generation.</span>
+<span class="c1">#     &quot;&quot;&quot;</span>
+
+<span class="c1">#     from ..core.atomic_system import AtomicSystem</span>
+
+<span class="c1">#     struct = data.to_pmg()</span>
+        
+<span class="c1">#     struct.add_oxidation_state_by_guess()</span>
+    
+<span class="c1">#     slabgen = SlabGenerator(struct, miller_indices, min_slab_size, min_vacuum_size)</span>
+
+<span class="c1">#     bonds_dic = {</span>
+<span class="c1">#         (&#39;Al4+&#39;, &#39;O2-&#39;) : 1.8,</span>
+<span class="c1">#         (&#39;Al&#39;, &#39;O&#39;): 1.8,</span>
+<span class="c1">#         (&#39;Si4+&#39;, &#39;O2-&#39;) : 1.8,</span>
+<span class="c1">#         (&#39;Si&#39;, &#39;O&#39;) : 1.8,</span>
+<span class="c1">#         (&#39;C4+&#39;, &#39;O2-&#39;) : 1.4,</span>
+<span class="c1">#         (&#39;C&#39;, &#39;O&#39;) : 1.4, </span>
+<span class="c1">#         (&#39;H+&#39;, &#39;O2-&#39;) : 1.1,</span>
+<span class="c1">#         (&#39;H&#39;, &#39;O&#39;) : 1.1</span>
+<span class="c1">#     }</span>
+
+<span class="c1">#     # Finding the minimum number of broken links</span>
+<span class="c1">#     i = 0</span>
+<span class="c1">#     slabs_list_pmg = []</span>
+<span class="c1">#     while len(slabs_list_pmg) == 0 and i &lt; 20:</span>
+<span class="c1">#         slabs_list_pmg = slabgen.get_slabs(bonds=bonds_dic, </span>
+<span class="c1">#                                        max_broken_bonds=i)</span>
+<span class="c1">#         if len(slabs_list_pmg) &gt; 0:</span>
+<span class="c1">#             actual_broken = i</span>
+<span class="c1">#             break</span>
+<span class="c1">#         i += 1</span>
+    
+<span class="c1">#     dipole_list = []</span>
+<span class="c1">#     shift_list = []</span>
+<span class="c1">#     for slab in slabs_list_pmg:</span>
+<span class="c1">#         dipole_list.append(abs(slab.dipole[2]))</span>
+<span class="c1">#         shift_list.append(slab.shift)</span>
+
+<span class="c1">#     slabs_list_as = []</span>
+<span class="c1">#     for i, raw_slab in enumerate(slabs_list_pmg):</span>
+<span class="c1">#         analyzer = SpacegroupAnalyzer(raw_slab)</span>
+<span class="c1">#         slab = analyzer.get_refined_structure()</span>
+<span class="c1">#         slabs_list_as.append(AtomicSystem.from_pmg(slab))</span>
+    
+<span class="c1">#     return slabs_list_as, shift_list, dipole_list, actual_broken</span>
+
 <span class="k">def</span><span class="w"> </span><span class="nf">explore_surfaces</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">AtomicSystem</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AtomicSystem</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Interactive surface explorer.&quot;&quot;&quot;</span>
 
-    <span class="n">_</span> <span class="o">=</span> <span class="n">_validate_for_surface</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">questionary</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">prompt_toolkit.application</span><span class="w"> </span><span class="kn">import</span> <span class="n">Application</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">prompt_toolkit.key_binding</span><span class="w"> </span><span class="kn">import</span> <span class="n">KeyBindings</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">prompt_toolkit.layout</span><span class="w"> </span><span class="kn">import</span> <span class="n">Layout</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">prompt_toolkit.layout.containers</span><span class="w"> </span><span class="kn">import</span> <span class="n">HSplit</span><span class="p">,</span> <span class="n">Window</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">prompt_toolkit.layout.controls</span><span class="w"> </span><span class="kn">import</span> <span class="n">FormattedTextControl</span>
     
     <span class="c1"># Miller indices input</span>
     <span class="n">miller_str</span> <span class="o">=</span> <span class="n">questionary</span><span class="o">.</span><span class="n">text</span><span class="p">(</span>
@@ -683,7 +985,7 @@
             <span class="p">))</span>
         <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
 
-    <span class="c1"># Même pattern que explore_pubchem</span>
+    <span class="c1"># Same pattern as explore_pubchem</span>
     <span class="n">selected_idx</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span>
     <span class="n">kb</span> <span class="o">=</span> <span class="n">KeyBindings</span><span class="p">()</span>
 
@@ -854,6 +1156,8 @@
 <span class="sd">    AtomicSystem</span>
 <span class="sd">        The generated glass structure.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="kn">from</span><span class="w"> </span><span class="nn">pymatgen.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">Composition</span>
 
     <span class="n">require_program</span><span class="p">(</span><span class="s1">&#39;packmol&#39;</span><span class="p">)</span>
     

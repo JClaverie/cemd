@@ -15,29 +15,36 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-"""
-CIF file reader.
-"""
+import warnings
 
 from pymatgen.io.cif import CifParser
 from .base import BaseReader
 
-
 class CifReader(BaseReader):
-    """Read CIF files using Pymatgen."""
+    """Reader for CIF files using Pymatgen."""
 
     @classmethod
-    def read(cls, path: str) -> dict:
-        """Read CIF file and return topology."""
+    def read(cls, path: str, primitive=False, refine=False) -> dict:
+        """
+        Read CIF file and return topology.
+        
+        Parameters
+        ----------
+        path : str
+            Path to the CIF file.
+        primitive : bool, default=True
+            If True, return the primitive cell.
+            If False, return the conventional cell.
+        refine : bool, default=True
+            If True, refine the structure using SpacegroupAnalyzer.
+        """
         from .pmg import PmgReader
 
         parser = CifParser(path)
-        structure = parser.parse_structures()[0]
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", UserWarning)
+            structure = parser.parse_structures(primitive=primitive)[0]
 
-        from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
-        analyzer = SpacegroupAnalyzer(structure)
-        refined = analyzer.get_refined_structure()
+        topology = PmgReader.read(structure, refine)
 
-        topology = PmgReader.read(refined)
-        topology['_pmg_struct'] = structure
         return topology

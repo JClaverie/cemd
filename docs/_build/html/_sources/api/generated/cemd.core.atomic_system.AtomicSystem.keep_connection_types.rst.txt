@@ -1,5 +1,7 @@
-﻿cemd.core.atomic\_system.AtomicSystem.keep\_connection\_types
-=============================================================
+﻿:html_theme.sidebar_secondary.remove:
+
+AtomicSystem.keep\_connection\_types
+====================================
 
 .. currentmodule:: cemd.core.atomic_system
 

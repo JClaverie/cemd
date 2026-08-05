@@ -30,9 +30,9 @@ from rdkit.Chem import Draw, rdMolDescriptors
 from ui.base_dialog import BaseBuilderDialog
 from ui.gui_utils import get_icon
 from ...core.atomic_system import AtomicSystem
-from ...build.base import build_surfaces
-from ...build.hydrates import pycsh, build_csh, csh_to_cash
-from ...build.tools import concentration2count
+from ...build_old.base import build_surfaces
+from ...build_old.hydrates import pycsh, build_csh, csh_to_cash
+from ...build_old.tools import concentration2count
 from ..._paths import PYCSH_DIR
 
 if TYPE_CHECKING:
@@ -808,7 +808,7 @@ class pyCSHGeneratorDialog(BaseBuilderDialog):
 
     def on_calculation_finished(self, results) -> None:
             try:
-                from cemd.build.hydrates import csh_to_cash 
+                from cemd.build_old.hydrates import csh_to_cash 
                 
                 raw_systems = results if isinstance(results, list) else [results]
                 al_si = self.as_ratio.value()

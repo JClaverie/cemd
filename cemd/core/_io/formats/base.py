@@ -15,11 +15,6 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-
-"""
-Base classes for format readers and writers.
-"""
-
 from abc import ABC, abstractmethod
 from typing import Any
 

@@ -15,16 +15,12 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-"""
-PDB file reader and writer.
-"""
 
 import numpy as np
 import MDAnalysis as mda
 
 from .base import BaseReader, BaseWriter
 from ...._constants import MASSES_DICT
-
 
 class PdbReader(BaseReader):
     """Read PDB files using MDAnalysis."""

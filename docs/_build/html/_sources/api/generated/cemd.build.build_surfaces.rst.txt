@@ -1,5 +1,7 @@
-﻿cemd.build.build\_surfaces
-==========================
+﻿:html_theme.sidebar_secondary.remove:
+
+build\_surfaces
+===============
 
 .. currentmodule:: cemd.build
 

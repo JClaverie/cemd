@@ -10,6 +10,7 @@ Properties
 ----------
 
 .. autosummary::
+   :toctree: generated/
    :nosignatures:
 
    AtomicSystem.box
@@ -79,9 +80,9 @@ Force Field
    AtomicSystem.set_charges
    AtomicSystem.set_ff_from_database
    AtomicSystem.explore_ff_database
-   AtomicSystem.set_ff_pair_param
-   AtomicSystem.set_ff_bond_param
-   AtomicSystem.set_ff_angle_param
+   AtomicSystem.set_pair_params
+   AtomicSystem.set_bond_params
+   AtomicSystem.set_angle_params
    AtomicSystem.apply_pair_mixing_rules
 
 Modifiers

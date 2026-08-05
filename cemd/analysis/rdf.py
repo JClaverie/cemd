@@ -112,4 +112,4 @@ def _(source: mda.Universe, type1: str, type2: str, cutoff: float = 10.0, dr: fl
 
     df_res.index.name = 'r'
     
-    return df_res
+    return df_res, rho_target

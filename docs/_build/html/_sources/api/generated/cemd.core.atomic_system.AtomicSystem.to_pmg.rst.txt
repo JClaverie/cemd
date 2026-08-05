@@ -1,5 +1,7 @@
-﻿cemd.core.atomic\_system.AtomicSystem.to\_pmg
-=============================================
+﻿:html_theme.sidebar_secondary.remove:
+
+AtomicSystem.to\_pmg
+====================
 
 .. currentmodule:: cemd.core.atomic_system
 

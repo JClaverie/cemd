@@ -1211,6 +1211,26 @@
       "mass": null
     },
     {
+      "type": "htp4p2",
+      "full_type": "tip4p2005.htp4p2",
+      "element": "H",
+      "charge": 0.5564,
+      "model": "tip4p2005",
+      "environment": "water hydrogen",
+      "ref": "https://doi.org/10.1063/1.2121687",
+      "mass": null
+    },
+    {
+      "type": "otp4p2",
+      "full_type": "tip4p2005.otp4p2",
+      "element": "O",
+      "charge": -1.1128,
+      "model": "tip4p2005",
+      "environment": "water oxygen",
+      "ref": "https://doi.org/10.1063/1.2121687",
+      "mass": null
+    },
+    {
       "type": "htp4p",
       "full_type": "tip4p_ew.htp4p",
       "element": "H",
@@ -1780,7 +1800,7 @@
       "epsilon (kcal/mol)": 0,
       "sigma (A)": 0,
       "model": "spc",
-      "ref": ""
+      "ref": "https://doi.org/10.1021/j100308a038"
     },
     {
       "type 1": "ohspc",
@@ -1788,7 +1808,7 @@
       "epsilon (kcal/mol)": 0.15535,
       "sigma (A)": 3.166,
       "model": "spc",
-      "ref": ""
+      "ref": "https://doi.org/10.1021/j100308a038"
     },
     {
       "type 1": "hspce",
@@ -1828,7 +1848,7 @@
       "epsilon (kcal/mol)": 0,
       "sigma (A)": 0,
       "model": "tip3p",
-      "ref": "https://doi.org/10.1063/1.1808117"
+      "ref": ""
     },
     {
       "type 1": "ot3p",
@@ -1836,7 +1856,23 @@
       "epsilon (kcal/mol)": 0.102,
       "sigma (A)": 3.188,
       "model": "tip3p",
-      "ref": "https://doi.org/10.1063/1.1808117"
+      "ref": ""
+    },
+    {
+      "type 1": "htp4p2",
+      "type 2": "htp4p2",
+      "epsilon (kcal/mol)": 0,
+      "sigma (A)": 0,
+      "model": "tip4p2005",
+      "ref": "https://doi.org/10.1063/1.2121687"
+    },
+    {
+      "type 1": "otp4p2",
+      "type 2": "otp4p2",
+      "epsilon (kcal/mol)": 0.1852,
+      "sigma (A)": 3.1589,
+      "model": "tip4p2005",
+      "ref": "https://doi.org/10.1063/1.2121687"
     },
     {
       "type 1": "htp4p",
@@ -2146,7 +2182,7 @@
       "k (kcal/(mol.A2)": 770,
       "r (A)": 1.3,
       "model": "solcon",
-      "ref": "https://doi.org/10.1098/rsta.2022.0250"
+      "ref": ""
     },
     {
       "type 1": "hspc",
@@ -2186,7 +2222,15 @@
       "k (kcal/(mol.A2)": 450,
       "r (A)": 0.9572,
       "model": "tip3p",
-      "ref": "https://doi.org/10.1063/1.1808117"
+      "ref": ""
+    },
+    {
+      "type 1": "htp4p2",
+      "type 2": "otp4p2",
+      "k (kcal/(mol.A2)": 0,
+      "r (A)": 0.9572,
+      "model": "tip4p2005",
+      "ref": "https://doi.org/10.1063/1.2121687"
     },
     {
       "type 1": "htp4p",
@@ -2303,7 +2347,7 @@
       "k (kcal/(mol.rad2))": 110,
       "theta (deg)": 120,
       "model": "solcon",
-      "ref": "https://doi.org/10.1098/rsta.2022.0250"
+      "ref": ""
     },
     {
       "type 1": "hspc",
@@ -2339,7 +2383,16 @@
       "k (kcal/(mol.rad2))": 55,
       "theta (deg)": 104.52,
       "model": "tip3p",
-      "ref": "https://doi.org/10.1063/1.1808117"
+      "ref": ""
+    },
+    {
+      "type 1": "htp4p2",
+      "type 2": "otp4p2",
+      "type 3": "htp4p2",
+      "k (kcal/(mol.rad2))": 0,
+      "theta (deg)": 104.52,
+      "model": "tip4p2005",
+      "ref": "https://doi.org/10.1063/1.2121687"
     },
     {
       "type 1": "htp4p",

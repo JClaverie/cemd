@@ -232,12 +232,10 @@ class AtomViewerGUI(QtWidgets.QMainWindow):
         main_layout.setContentsMargins(0, 0, 0, 0)
         main_layout.setSpacing(0)
 
-        # ---LEFT PART: THE TAB MANAGER ---
-        # no longer create a plotter or table here, they will be in StructureTabWidget
         self.tabs = QtWidgets.QTabWidget()
         self.tabs.setDocumentMode(True)
         self.tabs.setTabsClosable(True)
-        self.tabs.setMovable(True)  # Optional: allows you to reorganize the tabs
+        self.tabs.setMovable(True)
         
         # Tab Signal Connections
         self.tabs.currentChanged.connect(self.on_tab_changed)
@@ -245,19 +243,16 @@ class AtomViewerGUI(QtWidgets.QMainWindow):
         
         main_layout.addWidget(self.tabs, stretch=3)
 
-        # ---RIGHT PART: CONTROL PANELS (COMMON) ---
         right_panel = QtWidgets.QWidget()
         right_layout = QtWidgets.QVBoxLayout(right_panel)
         right_layout.setContentsMargins(5, 5, 5, 5)
         right_layout.setSpacing(10)
         
-        # Summary (Overall information about the active structure)
         self.system_summary = SystemSummaryPanel()  
         right_layout.addWidget(self.system_summary)
 
-        # Filter Panel (Management of types and colors)
         self.filter_panel = FilterPanel()
-        # synchronize the UI when we check/uncheck a type
+        # synchronize the UI when check/uncheck a type
         self.filter_panel.type_changed.connect(lambda settings: self.sync_ui(full_rebuild=False))
         right_layout.addWidget(self.filter_panel, stretch=2)
         
@@ -347,10 +342,6 @@ class AtomViewerGUI(QtWidgets.QMainWindow):
         """Enable or disable all manipulation tools based on the system state."""
         for action in self._tab_sensitive_actions:
             action.setEnabled(state)
-
-        # if hasattr(self, 'save_action'):
-        #     # only activate it if we already have a known path
-        #     self.save_action.setEnabled(state and bool(self.current_file_path))
 
         self.update_protonate_state()
     
@@ -624,7 +615,7 @@ class AtomViewerGUI(QtWidgets.QMainWindow):
             name = dialog.table.item(selected_row, 1).text()
             formula = dialog.table.item(selected_row, 2).text()
  
-            self.add_structure_tab(system, title=f"PubChem_{dialog.last_cid}")
+            self.add_structure_tab(system, title=f"PubChem_{cid}")
 
             self.statusBar().showMessage(f"Compound {name} (CID {cid}) imported from PubChem.", 5000)
 

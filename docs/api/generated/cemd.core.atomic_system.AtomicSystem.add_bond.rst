@@ -1,5 +1,7 @@
-﻿cemd.core.atomic\_system.AtomicSystem.add\_bond
-===============================================
+﻿:html_theme.sidebar_secondary.remove:
+
+AtomicSystem.add\_bond
+======================
 
 .. currentmodule:: cemd.core.atomic_system
 

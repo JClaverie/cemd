@@ -11,7 +11,7 @@ SCRIPT_DIR = Path(__file__).parent
 DOCS_DIR = SCRIPT_DIR.parent
 PROJECT_ROOT = DOCS_DIR.parent
 
-TOML_DIR = PROJECT_ROOT / "cemd" / "db" / "toml"
+TOML_DIR = PROJECT_ROOT / "cemd" / "core" / "db" / "toml"
 OUTPUT_PATH = DOCS_DIR / "_static" / "ff_data.json"
 
 
@@ -58,7 +58,7 @@ def toml_to_json():
                 "charge": params.get("charge", 0.0),
                 "model": model_name,
                 "environment": params.get("environment", ""),
-                "ref": params.get("ref", ""),  # ✅ Référence explicite
+                "ref": params.get("ref", ""),  # Référence explicite
                 "mass": params.get("mass"),
             })
         
@@ -71,7 +71,7 @@ def toml_to_json():
                 "epsilon (kcal/mol)": params.get("epsilon", 0.0),
                 "sigma (A)": params.get("sigma", 0.0),
                 "model": model_name,
-                "ref": params.get("ref", ""),  # ✅ Référence explicite
+                "ref": params.get("ref", ""),  # Référence explicite
             })
         
         # Buckingham
@@ -84,7 +84,7 @@ def toml_to_json():
                 "rho (A)": params.get("rho", 0.0),
                 "C (kcal/mol.A6)": params.get("C", 0.0),
                 "model": model_name,
-                "ref": params.get("ref", ""),  # ✅ Référence explicite
+                "ref": params.get("ref", ""),  # Référence explicite
             })
         
         # Bond
@@ -96,7 +96,7 @@ def toml_to_json():
                 "k (kcal/(mol.A2)": params.get("k", 0.0),
                 "r (A)": params.get("r0", 0.0),
                 "model": model_name,
-                "ref": params.get("ref", ""),  # ✅ Référence explicite
+                "ref": params.get("ref", ""),  # Référence explicite
             })
         
         # Angle
@@ -109,7 +109,7 @@ def toml_to_json():
                 "k (kcal/(mol.rad2))": params.get("k", 0.0),
                 "theta (deg)": params.get("theta0", 0.0),
                 "model": model_name,
-                "ref": params.get("ref", ""),  # ✅ Référence explicite
+                "ref": params.get("ref", ""),  # Référence explicite
             })
         
         # Improper
@@ -123,14 +123,14 @@ def toml_to_json():
                 "k (kcal/(mol,rad2))": params.get("k", 0.0),
                 "theta (deg)": params.get("theta0", 0.0),
                 "model": model_name,
-                "ref": params.get("ref", ""),  # ✅ Référence explicite
+                "ref": params.get("ref", ""),  # Référence explicite
             })
     
     # 3. Écrire le JSON
     with open(OUTPUT_PATH, 'w', encoding='utf-8') as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
     
-    print(f"✅ Generated: {OUTPUT_PATH}")
+    print(f"Generated: {OUTPUT_PATH}")
     print(f"   Models: {len(data['models'])}")
     print(f"   Atom types: {len(data['list'])}")
     print(f"   LJ pairs: {len(data['lj_12-6'])}")

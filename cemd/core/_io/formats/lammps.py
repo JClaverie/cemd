@@ -15,11 +15,6 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-
-"""
-LAMMPS data file reader and writer.
-"""
-
 import datetime
 
 import numpy as np
@@ -116,13 +111,15 @@ class LammpsReader(BaseReader):
 
     @classmethod
     def _parse_section_data(cls, sections: dict, topology: dict) -> None:
-        """Parse each section."""
-        # Les sections 'Atoms', 'Bonds', etc. sont parsées ici
+        "Parse each section."
+        # The sections 'Atoms', 'Bonds', etc. are scattered here
         for key, values in sections.items():
             array = np.array([line.split() for line in values])
 
             if key == 'Atoms':
                 cls._parse_atoms(array, topology)
+            elif key == 'Velocities':
+                cls._parse_velocities(array, topology)
             elif key == 'Bonds':
                 cls._parse_connectivity(array, topology, 'bonds', 2)
             elif key == 'Angles':
@@ -140,25 +137,120 @@ class LammpsReader(BaseReader):
 
     @staticmethod
     def _parse_atoms(array: np.ndarray, topology: dict) -> None:
-        """Parse Atoms section."""
+        """
+        Parse Atoms section, supporting multiple LAMMPS atom styles.
+        
+        Supports:
+        - atomic: id type x y z (5 columns)
+        - charge: id type q x y z (6 columns)
+        - full: id mol type q x y z (7 columns) -> on IGNORE mol
+        """
         n_cols = array.shape[1]
-        if n_cols == 6:
-            # atom_style 'charge'
+        
+        # Détection du format
+        if n_cols == 5:
+            # Format atomic: id type x y z (pas de charge)
+            keep = [0, 1, 2, 3, 4]
+            columns = ['id', 'type', 'x', 'y', 'z']
+            has_charge = False
+            
+        elif n_cols == 6:
+            # Format charge: id type q x y z
+            keep = [0, 1, 2, 3, 4, 5]
             columns = ['id', 'type', 'charge', 'x', 'y', 'z']
-        elif n_cols >= 7:
-            # atom_style 'full' ou avec flags
+            has_charge = True
+            
+        elif n_cols == 7:
+            # Format full: id mol type q x y z
+            # On IGNORE mol (colonne 1)
+            keep = [0, 2, 3, 4, 5, 6]  # id, type, charge, x, y, z
             columns = ['id', 'type', 'charge', 'x', 'y', 'z']
-            if n_cols == 10:
-                array = array[:, [0, 2, 3, 4, 5, 6]]
-            else:
-                array = array[:, [0, 2, 3, 4, 5, 6]] if n_cols == 7 else array
-
+            has_charge = True
+            
+        elif n_cols >= 8 and n_cols <= 10:
+            # Format avec images: on ignore mol et les images
+            # On prend: id, type, charge, x, y, z
+            # Dans full: id, mol, type, q, x, y, z, ix, iy, iz
+            # On prend les colonnes 0, 2, 3, 4, 5, 6
+            keep = [0, 2, 3, 4, 5, 6]
+            columns = ['id', 'type', 'charge', 'x', 'y', 'z']
+            has_charge = True
+            
+        else:
+            raise ValueError(
+                f"Unsupported Atoms format: {n_cols} columns. "
+                "Expected 5-10 columns for atomic/charge/full styles."
+            )
+        
+        # Extraire les colonnes
+        array = array[:, keep]
+        
+        # Créer le DataFrame - SANS mol !
         df = pd.DataFrame(array, columns=columns)
+        
+        # Convertir les colonnes
         df['id'] = pd.to_numeric(df['id'], errors='coerce')
-        df[['charge', 'x', 'y', 'z']] = df[['charge', 'x', 'y', 'z']].astype(float)
+        
+        # Gérer le type (peut être string ou numérique)
+        try:
+            df['type'] = pd.to_numeric(df['type'], errors='raise')
+        except (ValueError, TypeError):
+            # Types sont des strings (ex: 'Ca', 'C', 'O')
+            # On les garde tels quels
+            pass
+        
+        # Convertir les coordonnées et la charge
+        df['x'] = df['x'].astype(float)
+        df['y'] = df['y'].astype(float)
+        df['z'] = df['z'].astype(float)
+        
+        if has_charge and 'charge' in df.columns:
+            df['charge'] = df['charge'].astype(float)
+            topology['charges'] = dict(zip(df['type'], df['charge']))
+        else:
+            df['charge'] = 0.0
+            topology['charges'] = {}
+        
+        # Stocker le type d'atome
+        topology['atom_types'] = list(df['type'].unique())
+        
+        # PAS DE COLONNE mol !
         df.set_index('id', inplace=True)
         topology['atoms'] = df
-        topology['charges'] = dict(zip(df['type'], df['charge']))
+
+    @staticmethod
+    def _parse_velocities(array: np.ndarray, topology: dict) -> None:
+        """
+        Parse Velocities section.
+
+        Only supports the standard format: id vx vy vz.
+
+        Parameters
+        ----------
+        array : np.ndarray
+            Array containing the velocities data.
+        topology : dict
+            Topology dictionary to update with velocities.
+
+        Notes
+        -----
+        The Velocities section in a LAMMPS data file has the format:
+        atom-ID vx vy vz
+        """
+        # Take only the first 4 columns (id, vx, vy, vz)
+        columns = ['id', 'vx', 'vy', 'vz']
+        array = array[:, :4] if array.shape[1] >= 4 else array
+
+        df = pd.DataFrame(array, columns=columns[:array.shape[1]])
+
+        # Convert to numeric types
+        df['id'] = pd.to_numeric(df['id'], errors='coerce')
+        for col in ['vx', 'vy', 'vz']:
+            if col in df.columns:
+                df[col] = pd.to_numeric(df[col], errors='coerce')
+
+        df.set_index('id', inplace=True)
+        topology['velocities'] = df
 
     @staticmethod
     def _parse_connectivity(array: np.ndarray, topology: dict,
@@ -293,11 +385,11 @@ class LammpsWriter(BaseWriter):
         """Write masses."""
         f.write("\n Masses\n\n")
         if oldstyle or not isinstance(system.atom_types[0], str):
-            # Utiliser des IDs numériques
+            # Use digital IDs
             for i, (t, mass) in enumerate(zip(system.atom_types, system.masses), 1):
                 f.write(f"{i} {mass}\n")
         else:
-            # Utiliser les labels textuels
+            # Use text labels
             for t, mass in zip(system.atom_types, system.masses):
                 f.write(f"{t} {mass}\n")
 
@@ -306,7 +398,7 @@ class LammpsWriter(BaseWriter):
         """Write Pair Coeffs, Bond Coeffs, etc."""
         
         def format_pair_coeff_line(id_i, id_j, params, label_i, label_j, is_ij_format=False):
-            """Formate une ligne de Pair Coeffs ou PairIJ Coeffs."""
+            """Formats a line of Pair Coeffs or PairIJ Coeffs."""
             if isinstance(params, BuckinghamParams):
                 A, rho, C = params.A, params.rho, params.C
                 prefix = f"{int(id_i):<3} {int(id_j):<3}" if is_ij_format else f"{int(id_i):<3}"
@@ -327,7 +419,7 @@ class LammpsWriter(BaseWriter):
                     return f"{prefix} {eps:>12.4e} {sigma:>10.4f}   # {label_i}-{label_j}\n"
         
         # ============================================================
-        # Pair Coeffs / PairIJ Coeffs
+        # Pair Coeffs /PairIJ Coeffs
         # ============================================================
         if system.pair_params:
             n = len(system.atom_types)
@@ -340,11 +432,11 @@ class LammpsWriter(BaseWriter):
                 f.write("\n")
                 return
             
-            # Déterminer si on utilise Pair Coeffs ou PairIJ Coeffs
+            # Determine whether to use Pair Coeffs or PairIJ Coeffs
             all_self = all(k[0] == k[1] for k in system.pair_params.keys())
             
             if all_self and actual_entries == n:
-                # --- MODE PAIR COEFFS ---
+                # ---MODE PAIR COEFFS ---
                 f.write("\n Pair Coeffs\n\n")
                 for i in range(1, n + 1):
                     label_i = system.atom_types[i - 1]
@@ -352,7 +444,7 @@ class LammpsWriter(BaseWriter):
                     if params is not None:
                         f.write(format_pair_coeff_line(i, i, params, label_i, label_i, is_ij_format=False))
             else:
-                # --- MODE PAIRIJ COEFFS ---
+                # ---MODE PAIRIJ COEFFS ---
                 f.write("\n PairIJ Coeffs\n\n")
                 for i in range(1, n + 1):
                     for j in range(i, n + 1):
