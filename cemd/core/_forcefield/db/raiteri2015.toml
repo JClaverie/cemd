@@ -1,0 +1,179 @@
+# raiteri_calcite_water_kcal.toml
+# Force field parameters for calcite-water interface (Raiteri et al. 2015)
+# All energies in kcal/mol, distances in Å
+# Reference: https://doi.org/10.1021/acs.jpcc.5b07532
+# Supplementary Information: jp5b07532_si_002-1.pdf
+
+[model]
+name = "Raiteri et al. 2015 (Calcite-Water Interface)"
+reference = "https://doi.org/10.1021/acs.jpcc.5b07532"
+description = "Force field parameters for calcite-water interface. All energies converted to kcal/mol."
+
+[atom]
+[atom.Mg]
+element = "Mg"
+charge = 2.0
+ref = "https://doi.org/10.1021/acs.jpcc.5b07532"
+
+[atom.Ca]
+element = "Ca"
+charge = 2.0
+ref = "https://doi.org/10.1021/acs.jpcc.5b07532"
+
+[atom.Sr]
+element = "Sr"
+charge = 2.0
+ref = "https://doi.org/10.1021/acs.jpcc.5b07532"
+
+[atom.Ba]
+element = "Ba"
+charge = 2.0
+ref = "https://doi.org/10.1021/acs.jpcc.5b07532"
+
+[atom.Oc]
+element = "O"
+charge = -1.041095
+environment = "carbonate oxygen (O4 in SI)"
+ref = "https://doi.org/10.1021/acs.jpcc.5b07532"
+
+[atom.C]
+element = "C"
+charge = 1.123285
+environment = "carbonate oxygen (C4 in SI)"
+ref = "https://doi.org/10.1021/acs.jpcc.5b07532"
+
+[atom.Ow]
+element = "O"
+charge = -0.82
+environment = "water oxygen (O2 in SI)"
+ref = "https://doi.org/10.1021/acs.jpcc.5b07532"
+
+[atom.Hw]
+element = "H"
+charge = 0.41
+environment = "water hydrogen (H2 in SI)"
+ref = "https://doi.org/10.1021/acs.jpcc.5b07532"
+
+
+[buckingham]
+
+[buckingham."Mg-Oc"]
+A = 90972.0 
+rho = 0.238160
+C = 0.0
+ref = "https://doi.org/10.1021/acs.jpcc.5b07532"
+
+[buckingham."Ca-Oc"] 
+A = 72914.9  
+rho = 0.271511
+C = 0.0
+ref = "https://doi.org/10.1021/acs.jpcc.5b07532"
+
+[buckingham."Sr-Oc"] 
+A = 328626.2 
+rho = 0.244116
+C = 0.0
+ref = "https://doi.org/10.1021/acs.jpcc.5b07532"
+
+[buckingham."Ba-Oc"]
+A = 310827.9 
+rho = 0.258299
+C = 0.0
+ref = "https://doi.org/10.1021/acs.jpcc.5b07532"
+
+[buckingham."Oc-Oc"] 
+A = 1472145.9 
+rho = 0.198913
+C = 643.28 
+ref = "https://doi.org/10.1021/acs.jpcc.5b07532"
+
+[buckingham."Oc-Ow"] 
+A = 289048.6 
+rho = 0.202
+C = 0.0
+ref = "https://doi.org/10.1021/acs.jpcc.5b07532"
+
+[buckingham."Oc-Hw"] 
+A = 7840.7 
+rho = 0.217
+C = 0.0
+ref = "https://doi.org/10.1021/acs.jpcc.5b07532"
+
+[lj]
+
+[lj."Ow-Ow"]
+epsilon = 0.1554
+sigma = 3.165492
+ref = "https://doi.org/10.1021/acs.jpcc.5b07532"
+
+[lj."Mg-Ow"]
+epsilon = 0.026219
+sigma = 2.82
+ref = "https://doi.org/10.1021/acs.jpcc.5b07532"
+
+[lj."Ca-Ow"]
+epsilon = 0.021904
+sigma = 3.35
+ref = "https://doi.org/10.1021/acs.jpcc.5b07532"
+
+[lj."Sr-Ow"]
+epsilon = 0.017895 
+sigma = 3.65
+ref = "https://doi.org/10.1021/acs.jpcc.5b07532"
+
+[lj."Ba-Ow"]
+epsilon = 0.015150 
+sigma = 3.965
+ref = "https://doi.org/10.1021/acs.jpcc.5b07532)"
+
+[bond.harmonic]
+
+[bond.harmonic."Ow-Ow"]
+k = 529.54
+r0 = 1.0120000
+ref = "https://doi.org/10.1021/acs.jpcc.5b07532"
+
+[bond.harmonic."C-Oc"]
+k = 470.97
+r0 = 1.3042000
+ref = "https://doi.org/10.1021/acs.jpcc.5b07532"
+
+[angle.harmonic]
+
+[angle.harmonic."Hw-Ow-Hw"]
+k = 37.95
+theta0 = 113.24
+ref = "https://doi.org/10.1021/acs.jpcc.5b07532"
+
+[angle.class2]
+
+[angle.class2."Oc-C-Oc"]
+
+theta0 = 120.0
+k2 = 152.5906668
+k3 = 0.0
+k4 = 0.0
+ref = "https://doi.org/10.1021/acs.jpcc.5b07532"
+
+[bondbond.class2]
+[bondbond.class2."Oc-C-Oc"]
+
+m = 295.5882072
+r1 = 1.3042000
+r2 = 1.3042000
+ref = "https://doi.org/10.1021/acs.jpcc.5b07532"
+
+[bondangle.class2]
+[bondangle.class2."Oc-C-Oc"]
+
+n1 = 35.355974676
+n2 = 35.355974676
+r1 = 1.3042000
+r2 = 1.3042000
+ref = "https://doi.org/10.1021/acs.jpcc.5b07532"
+
+[improper.distance]
+[improper.distance."C-Oc-Oc-Oc"]
+k2 = 314.7052788
+k4 = 8301.744
+

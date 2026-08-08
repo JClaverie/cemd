@@ -15,8 +15,10 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-from PySide6 import QtWidgets, QtGui, QtCore
-from .gui_utils import create_icon_button, create_action_button
+from PySide6 import QtCore, QtGui, QtWidgets
+
+from .gui_utils import create_action_button, create_icon_button
+
 
 class BaseBuilderDialog(QtWidgets.QDialog):
     def __init__(self, parent=None, title="Builder", width=450):
@@ -24,7 +26,7 @@ class BaseBuilderDialog(QtWidgets.QDialog):
         self.setWindowTitle(title)
         self.setMinimumWidth(width)
 
-        self.main_layout = QtWidgets.QVBoxLayout(self) 
+        self.main_layout = QtWidgets.QVBoxLayout(self)
         self.main_layout.setContentsMargins(15, 15, 15, 15)
         self.main_layout.setSpacing(10)
 
@@ -39,22 +41,24 @@ class BaseBuilderDialog(QtWidgets.QDialog):
     def show_warning(self, title, message):
         """Displays a warning popup."""
         QtWidgets.QMessageBox.warning(self, title, message)
-    
+
     def create_icon_button(self, text, icon_name, primary=False):
         """
         Creates a button with an icon that adapts to its height (90%).
         """
         return create_icon_button(text, icon_name, primary, parent_to_filter=self)
-    
+
     def create_action_button(self, text, primary=False):
         """Create a stylized button. primary=True gives it the color blue."""
         return create_action_button(text, primary)
-    
+
     def eventFilter(self, obj, event):
-        if event.type() == QtCore.QEvent.Resize and isinstance(obj, QtWidgets.QPushButton):
+        if event.type() == QtCore.QEvent.Resize and isinstance(
+            obj, QtWidgets.QPushButton
+        ):
             if not obj.icon().isNull():
                 h = obj.height()
-                icon_dim = int(h * 0.7) 
+                icon_dim = int(h * 0.7)
                 obj.setIconSize(QtCore.QSize(icon_dim, icon_dim))
         return super().eventFilter(obj, event)
 
@@ -63,34 +67,34 @@ class BaseBuilderDialog(QtWidgets.QDialog):
     #     btns = QtWidgets.QDialogButtonBox(
     #         QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel
     #     )
-        
+
     #     # This forces the button to display only the text
     #     btns.setCenterButtons(False)
-        
+
     #     # Recover the buttons to remove the icon manually
     #     btns.button(QtWidgets.QDialogButtonBox.Ok).setIcon(QtGui.QIcon())
     #     btns.button(QtWidgets.QDialogButtonBox.Cancel).setIcon(QtGui.QIcon())
 
     #     btn_ok = btns.button(QtWidgets.QDialogButtonBox.Ok)
     #     btn_ok.setText(ok_text)
-        
+
     #     btns.accepted.connect(self.accept)
     #     btns.rejected.connect(self.reject)
     #     return btns
-    
+
     def create_dialog_buttons(self, ok_text="OK"):
         btns = QtWidgets.QDialogButtonBox(
             QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel
         )
-        
+
         btns.setCenterButtons(False)
-        
+
         btn_ok = btns.button(QtWidgets.QDialogButtonBox.Ok)
         btn_ok.setIcon(QtGui.QIcon())
         btn_ok.setText(ok_text)
-        btn_ok.setAutoDefault(False) 
+        btn_ok.setAutoDefault(False)
         btn_ok.setDefault(False)
-        
+
         btn_cancel = btns.button(QtWidgets.QDialogButtonBox.Cancel)
         btn_cancel.setIcon(QtGui.QIcon())
         btn_cancel.setAutoDefault(False)
@@ -108,18 +112,22 @@ class BaseBuilderDialog(QtWidgets.QDialog):
         line.setStyleSheet("color: #eee;")
         layout.addWidget(line)
 
-    def create_table(self, headers, stretch_column=None, editable=False, selectable=False):
+    def create_table(
+        self, headers, stretch_column=None, editable=False, selectable=False
+    ):
         """
         Creates a pre-configured QTableWidget to fill the space.
         """
         table = QtWidgets.QTableWidget(0, len(headers))
         table.setHorizontalHeaderLabels(headers)
-        
-        table.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+
+        table.setSizePolicy(
+            QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding
+        )
         header = table.horizontalHeader()
-        
+
         header.setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
-        
+
         if stretch_column is not None:
             for i in range(len(headers)):
                 header.setSectionResizeMode(i, QtWidgets.QHeaderView.ResizeToContents)
@@ -127,10 +135,10 @@ class BaseBuilderDialog(QtWidgets.QDialog):
 
         if editable is False:
             table.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
-            
+
         if selectable is False:
             table.setSelectionMode(QtWidgets.QAbstractItemView.NoSelection)
-            
+
         table.verticalHeader().setVisible(False)
         table.setAlternatingRowColors(True)
         return table

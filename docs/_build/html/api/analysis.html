@@ -50,7 +50,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="compute_rdf" href="generated/cemd.analysis.compute_rdf.html" />
-    <link rel="prev" title="split" href="generated/cemd.build.split.html" />
+    <link rel="prev" title="cemd.build.CSHBuilder" href="generated/cemd.build.CSHBuilder.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="0.1.0" />
@@ -396,6 +396,9 @@
 <li class="toctree-l2"><a class="reference internal" href="generated/cemd.core.atomic_system.AtomicSystem.set_bond_params.html">AtomicSystem.set_bond_params</a></li>
 <li class="toctree-l2"><a class="reference internal" href="generated/cemd.core.atomic_system.AtomicSystem.set_angle_params.html">AtomicSystem.set_angle_params</a></li>
 <li class="toctree-l2"><a class="reference internal" href="generated/cemd.core.atomic_system.AtomicSystem.apply_pair_mixing_rules.html">AtomicSystem.apply_pair_mixing_rules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generated/cemd.core.atomic_system.AtomicSystem.add_structure.html">AtomicSystem.add_structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generated/cemd.core.atomic_system.AtomicSystem.add_liquid_layer.html">AtomicSystem.add_liquid_layer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generated/cemd.core.atomic_system.AtomicSystem.add_droplet.html">AtomicSystem.add_droplet</a></li>
 <li class="toctree-l2"><a class="reference internal" href="generated/cemd.core.atomic_system.AtomicSystem.add_atom.html">AtomicSystem.add_atom</a></li>
 <li class="toctree-l2"><a class="reference internal" href="generated/cemd.core.atomic_system.AtomicSystem.add_atoms.html">AtomicSystem.add_atoms</a></li>
 <li class="toctree-l2"><a class="reference internal" href="generated/cemd.core.atomic_system.AtomicSystem.protonate_atom.html">AtomicSystem.protonate_atom</a></li>
@@ -412,15 +415,11 @@
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="build.html">Build Module</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="generated/cemd.build.build_csh.html">build_csh</a></li>
-<li class="toctree-l2"><a class="reference internal" href="generated/cemd.build.build_solution.html">build_solution</a></li>
-<li class="toctree-l2"><a class="reference internal" href="generated/cemd.build.build_glass.html">build_glass</a></li>
-<li class="toctree-l2"><a class="reference internal" href="generated/cemd.build.add_structure.html">add_structure</a></li>
-<li class="toctree-l2"><a class="reference internal" href="generated/cemd.build.add_liquid.html">add_liquid</a></li>
-<li class="toctree-l2"><a class="reference internal" href="generated/cemd.build.add_droplet.html">add_droplet</a></li>
-<li class="toctree-l2"><a class="reference internal" href="generated/cemd.build.build_surfaces.html">build_surfaces</a></li>
-<li class="toctree-l2"><a class="reference internal" href="generated/cemd.build.merge.html">merge</a></li>
-<li class="toctree-l2"><a class="reference internal" href="generated/cemd.build.split.html">split</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generated/cemd.build.SolutionBuilder.html">cemd.build.SolutionBuilder</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generated/cemd.build.SurfaceBuilder.html">cemd.build.SurfaceBuilder</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generated/cemd.build.Splitter.html">cemd.build.Splitter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generated/cemd.build.GlassBuilder.html">cemd.build.GlassBuilder</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generated/cemd.build.CSHBuilder.html">cemd.build.CSHBuilder</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 current active has-children"><a class="current reference internal" href="#">Analysis Module</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -548,12 +547,12 @@ simulations.</p>
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="generated/cemd.build.split.html"
+       href="generated/cemd.build.CSHBuilder.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">split</p>
+        <p class="prev-next-title">cemd.build.CSHBuilder</p>
       </div>
     </a>
     <a class="right-next"

@@ -16,50 +16,53 @@
 #
 
 from abc import ABC, abstractmethod
-from typing import Optional, Any
+from typing import Any
 
 from ..core.atomic_system import AtomicSystem
 
+
 class BaseBuilder(ABC):
     """Base class for all builders."""
-    
-    def __init__(self, system: Optional[AtomicSystem] = None):
+
+    def __init__(self, system: AtomicSystem | None = None):
         self.system = system
         self._validate()
-    
+
     def _validate(self) -> None:
         """Validate the system before building."""
         if self.system is not None:
             if not isinstance(self.system, AtomicSystem):
-                raise TypeError(f"Expected AtomicSystem, got {type(self.system).__name__}")
-            
+                raise TypeError(
+                    f"Expected AtomicSystem, got {type(self.system).__name__}"
+                )
+
     def _repr_info(self) -> dict:
         """Return info dict for __repr__."""
         info = {
-            'class': self.__class__.__name__,
-            'has_system': self.system is not None,
+            "class": self.__class__.__name__,
+            "has_system": self.system is not None,
         }
         if self.system is not None:
-            info['system'] = {
-                'atoms': self.system.num_atoms,
-                'box': self.system.box,
+            info["system"] = {
+                "atoms": self.system.num_atoms,
+                "box": self.system.box,
             }
         return info
-    
+
     def __repr__(self) -> str:
         """Generic __repr__ for builders."""
         info = self._repr_info()
         parts = [f"<{info['class']}"]
-        
-        if info['has_system']:
+
+        if info["has_system"]:
             parts.append(f"system={info['system']['atoms']} atoms")
             parts.append(f"box={info['system']['box']}")
         else:
             parts.append("no system")
-        
+
         parts.append(">")
         return " ".join(parts)
-    
+
     @abstractmethod
     def build(self, **kwargs) -> Any:
         """Build the structure."""

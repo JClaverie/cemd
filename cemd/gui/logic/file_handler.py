@@ -18,41 +18,46 @@
 from __future__ import annotations
 
 import os
-from PySide6 import QtWidgets
 from typing import TYPE_CHECKING
+
+from PySide6 import QtWidgets
 
 from cemd.core.atomic_system import AtomicSystem
 
 if TYPE_CHECKING:
     from ..main_window import AtomViewerGUI
 
+
 def open_file(parent: AtomViewerGUI) -> None:
-    file_path, _ = QtWidgets.QFileDialog.getOpenFileName(parent, "Open", "", "Atomic (*.data *.pdb *.cif *.sdf)")
+    file_path, _ = QtWidgets.QFileDialog.getOpenFileName(
+        parent, "Open", "", "Atomic (*.data *.pdb *.cif *.sdf)"
+    )
 
     if not file_path:
         return None, None
-    
+
     try:
         parent.setUpdatesEnabled(False)
         system = AtomicSystem.from_file(file_path)
-        
+
         return system, file_path
-    
+
     except Exception as e:
-            QtWidgets.QMessageBox.critical(parent, "Error", f"Unable to read file:\n{e}")
-            return None, None
+        QtWidgets.QMessageBox.critical(parent, "Error", f"Unable to read file:\n{e}")
+        return None, None
 
     finally:
         parent.setUpdatesEnabled(True)
 
-def save_file(parent: AtomViewerGUI, 
-              current_system: AtomicSystem, 
-              current_path: str) -> None:
+
+def save_file(
+    parent: AtomViewerGUI, current_system: AtomicSystem, current_path: str
+) -> None:
     """Saves on the current path, but forces 'Save As' if it is not .data"""
     if not current_system:
         return False
 
-    if not current_path or not current_path.lower().endswith('.data'):
+    if not current_path or not current_path.lower().endswith(".data"):
         parent.save_file_as()
         return False
 
@@ -64,19 +69,20 @@ def save_file(parent: AtomViewerGUI,
         QtWidgets.QMessageBox.critical(parent, "Error", f"Cannot save :\n{e}")
         return False
 
-def save_file_as(parent: AtomViewerGUI, 
-                 current_system: AtomicSystem, 
-                 current_path: str=None) -> None:
+
+def save_file_as(
+    parent: AtomViewerGUI, current_system: AtomicSystem, current_path: str = None
+) -> None:
     """Saves on the given path."""
     if not current_system:
         return None
-        
+
     # Dialog setup
     dialog = QtWidgets.QFileDialog(parent, "Save as LAMMPS datafile")
     dialog.setAcceptMode(QtWidgets.QFileDialog.AcceptSave)
     dialog.setNameFilter("LAMMPS Data (*.data)")
     dialog.setDefaultSuffix("data")
-    
+
     # ESSENTIAL: Forces Qt to use its own dialog (allows layout modification)
     dialog.setOption(QtWidgets.QFileDialog.Option.DontUseNativeDialog)
 
@@ -86,12 +92,12 @@ def save_file_as(parent: AtomViewerGUI,
     # Creating the options widget
     option_group = QtWidgets.QGroupBox("Export options")
     layout = QtWidgets.QHBoxLayout()
-    
+
     style_label = QtWidgets.QLabel("LAMMPS atom style :")
     style_combo = QtWidgets.QComboBox()
-    style_combo.addItems(["atomic", "charge", "full"]) 
-    style_combo.setCurrentText(current_system._atom_style) 
-    
+    style_combo.addItems(["atomic", "charge", "full"])
+    style_combo.setCurrentText(current_system._atom_style)
+
     layout.addWidget(style_label)
     layout.addWidget(style_combo)
     option_group.setLayout(layout)
@@ -111,12 +117,14 @@ def save_file_as(parent: AtomViewerGUI,
     if dialog.exec() == QtWidgets.QDialog.Accepted:
         file_path = dialog.selectedFiles()[0]
         selected_style = style_combo.currentText()
-        
-        try:            
+
+        try:
             current_system.write(file_path, atom_style=selected_style)
             return file_path
         except Exception as e:
-            QtWidgets.QMessageBox.critical(parent, "Error", f"Save failed ({selected_style}) :\n{e}")
+            QtWidgets.QMessageBox.critical(
+                parent, "Error", f"Save failed ({selected_style}) :\n{e}"
+            )
             return None
-            
+
     return None

@@ -1,6 +1,5 @@
 # test.py
 from cemd import AtomicSystem
-from cemd.build import SolutionBuilder
 
 # 1. Charger la surface
 system = AtomicSystem.from_file("surface_104_super.data")

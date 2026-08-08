@@ -18,7 +18,8 @@
 from __future__ import annotations
 
 import os
-from typing import Self, Any
+from typing import Any, Self
+
 
 class IOMixin:
     """Mixin for file I/O operations."""
@@ -31,11 +32,11 @@ class IOMixin:
     def from_file(cls, path: str, **kwargs) -> Self:
         """
         Load a system from a file.
-        
+
         Parameters
         ----------
         path : str
-            Path to the file (supports .cif, .lmp, .pdb, etc.)
+            Path to the file (supports .cif, .data, .pdb, etc.)
         **kwargs
             Additional arguments passed to the specific reader.
             For CIF files:
@@ -52,10 +53,11 @@ class IOMixin:
 
         ext = os.path.splitext(path)[1].lower()
         readers = {
-            '.data': cls._from_lammps_data,
-            '.cif': cls._from_cif,
-            '.pdb': cls._from_pdb,
-            '.sdf': cls._from_sdf,
+            ".data": cls._from_lammps_data,
+            ".lmp": cls._from_lammps_data,
+            ".cif": cls._from_cif,
+            ".pdb": cls._from_pdb,
+            ".sdf": cls._from_sdf,
         }
 
         if ext not in readers:
@@ -110,6 +112,7 @@ class IOMixin:
         >>> system = AtomicSystem.from_cod()
         """
         from .sources.cod import explore_cod
+
         return explore_cod()
 
     @classmethod
@@ -127,18 +130,21 @@ class IOMixin:
         >>> molecule = AtomicSystem.from_pubchem()
         """
         from .sources.pubchem import explore_pubchem
+
         return explore_pubchem()
 
     # ========================================================================
     # Write methods
     # ========================================================================
 
-    def write(self, path: str, atom_style: str = 'full', oldstyle: bool = False) -> None:
+    def write(
+        self, path: str, atom_style: str = "full", oldstyle: bool = False
+    ) -> None:
         """Write to a file."""
         ext = os.path.splitext(path)[1].lower()
         writers = {
-            '.data': self._write_lammps_data,
-            '.pdb': self._write_pdb,
+            ".data": self._write_lammps_data,
+            ".pdb": self._write_pdb,
         }
         if ext not in writers:
             raise ValueError(f"Unsupported output format: {ext}")
@@ -151,16 +157,17 @@ class IOMixin:
     def to_mda(self) -> Any:
         """Convert to MDAnalysis Universe."""
         import MDAnalysis as mda
+
         universe = mda.Universe.empty(self.num_atoms, trajectory=True)
-        universe.add_TopologyAttr('type', self.atoms['type'].to_numpy())
-        universe.add_TopologyAttr('name', self.atoms['type'].to_numpy())
-        universe.add_TopologyAttr('charge', self.atoms['charge'].to_numpy())
-        universe.add_TopologyAttr('ids', self.atoms.index.to_numpy())
-        universe.atoms.positions = self.atoms[['x', 'y', 'z']].to_numpy()
+        universe.add_TopologyAttr("type", self.atoms["type"].to_numpy())
+        universe.add_TopologyAttr("name", self.atoms["type"].to_numpy())
+        universe.add_TopologyAttr("charge", self.atoms["charge"].to_numpy())
+        universe.add_TopologyAttr("ids", self.atoms.index.to_numpy())
+        universe.atoms.positions = self.atoms[["x", "y", "z"]].to_numpy()
         universe.dimensions = self.box
 
         mass_dict = {t: m for t, m in zip(self.atom_types, self.masses)}
-        universe.add_TopologyAttr('masses', [mass_dict[t] for t in self.atoms['type']])
+        universe.add_TopologyAttr("masses", [mass_dict[t] for t in self.atoms["type"]])
 
         self._add_connectivity_to_mda(universe)
         return universe
@@ -168,12 +175,13 @@ class IOMixin:
     def to_pmg(self) -> Any:
         """Convert to Pymatgen Structure."""
         from pymatgen.core import Lattice, Structure
+
         lattice = Lattice.from_parameters(*self.box)
         structure = Structure(
             lattice=lattice,
-            species=self.atoms['type'].tolist(),
-            coords=self.atoms[['x', 'y', 'z']].to_numpy(),
-            coords_are_cartesian=True
+            species=self.atoms["type"].tolist(),
+            coords=self.atoms[["x", "y", "z"]].to_numpy(),
+            coords_are_cartesian=True,
         )
         return structure
 
@@ -184,70 +192,80 @@ class IOMixin:
     @staticmethod
     def _from_lammps_data(path: str) -> dict:
         """Read LAMMPS data file."""
-        from .formats.lammps import LammpsReader
-        return LammpsReader.read(path)
+        from .formats.lammps import LAMMPSReader
+
+        return LAMMPSReader.read(path)
 
     @staticmethod
     def _from_cif(path: str, primitive=False, refine=False) -> dict:
         """Read CIF file."""
-        from .formats.cif import CifReader
-        return CifReader.read(path)
+        from .formats.cif import CIFReader
+
+        return CIFReader.read(path)
 
     @staticmethod
     def _from_pdb(path: str) -> dict:
         """Read PDB file."""
-        from .formats.pdb import PdbReader
-        return PdbReader.read(path)
+        from .formats.pdb import PDBReader
+
+        return PDBReader.read(path)
 
     @staticmethod
     def _from_sdf(path: str) -> dict:
         """Read SDF file."""
-        from .formats.sdf import SdfReader
-        return SdfReader.read(path)
+        from .formats.sdf import SDFReader
+
+        return SDFReader.read(path)
 
     @staticmethod
     def _from_mda(obj) -> dict:
         """Read from MDAnalysis."""
-        from .formats.mda import MdaReader
-        return MdaReader.read(obj)
+        from .formats.mda import MDAReader
+
+        return MDAReader.read(obj)
 
     @staticmethod
     def _from_pmg(struct, refine) -> dict:
         """Read from Pymatgen."""
         from .formats.pmg import PmgReader
+
         return PmgReader.read(struct, refine)
 
     @staticmethod
     def _from_smiles(smiles: str) -> dict:
         """Read from SMILES."""
         from .formats.smiles import SmilesReader
+
         return SmilesReader.read(smiles)
 
     # ========================================================================
     # Private writers
     # ========================================================================
 
-    def _write_lammps_data(self, path: str, atom_style: str = 'full',
-                           oldstyle: bool = False) -> None:
+    def _write_lammps_data(
+        self, path: str, atom_style: str = "full", oldstyle: bool = False
+    ) -> None:
         """Write to LAMMPS data file."""
         from .formats.lammps import LammpsWriter
+
         LammpsWriter.write(self, path, atom_style=atom_style, oldstyle=oldstyle)
 
     def _write_pdb(self, path: str, **kwargs) -> None:
         """Write to PDB file."""
         from .formats.pdb import PdbWriter
+
         PdbWriter.write(self, path)
 
     def _add_connectivity_to_mda(self, universe) -> None:
         """Add bonds, angles, dihedrals, impropers to MDAnalysis Universe."""
         connectivity = [
-            ('bonds', 2),
-            ('angles', 3),
-            ('dihedrals', 4),
-            ('impropers', 4),
+            ("bonds", 2),
+            ("angles", 3),
+            ("dihedrals", 4),
+            ("impropers", 4),
         ]
         for name, n_cols in connectivity:
             df = getattr(self, name)
             if df is not None and not df.empty:
-                indices = df[[f'atom_{i}' for i in range(1, n_cols + 1)]].to_numpy() - 1
+                indices = df[[f"atom_{i}" for i in range(1, n_cols + 1)]].to_numpy() - 1
                 universe.add_TopologyAttr(name, [tuple(row) for row in indices])

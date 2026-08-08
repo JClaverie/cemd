@@ -392,6 +392,9 @@
 <li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.set_bond_params.html">AtomicSystem.set_bond_params</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.set_angle_params.html">AtomicSystem.set_angle_params</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.apply_pair_mixing_rules.html">AtomicSystem.apply_pair_mixing_rules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.add_structure.html">AtomicSystem.add_structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.add_liquid_layer.html">AtomicSystem.add_liquid_layer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.add_droplet.html">AtomicSystem.add_droplet</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.add_atom.html">AtomicSystem.add_atom</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.add_atoms.html">AtomicSystem.add_atoms</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.protonate_atom.html">AtomicSystem.protonate_atom</a></li>
@@ -408,15 +411,11 @@
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../build.html">Build Module</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="cemd.build.build_csh.html">build_csh</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cemd.build.build_solution.html">build_solution</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cemd.build.build_glass.html">build_glass</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cemd.build.add_structure.html">add_structure</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cemd.build.add_liquid.html">add_liquid</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cemd.build.add_droplet.html">add_droplet</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cemd.build.build_surfaces.html">build_surfaces</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cemd.build.merge.html">merge</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cemd.build.split.html">split</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cemd.build.SolutionBuilder.html">cemd.build.SolutionBuilder</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cemd.build.SurfaceBuilder.html">cemd.build.SurfaceBuilder</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cemd.build.Splitter.html">cemd.build.Splitter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cemd.build.GlassBuilder.html">cemd.build.GlassBuilder</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cemd.build.CSHBuilder.html">cemd.build.CSHBuilder</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../analysis.html">Analysis Module</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -506,7 +505,7 @@ keyboard navigation.</p>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>ff_database_dir</strong><span class="classifier">str, optional</span></dt><dd><p>Path to the directory containing the force field database.
 The file must contain a sheet named ‘list’ with force field parameters.
-Defaults to FF_DATABASE_DIR (global constant).</p>
+Defaults to get_ff_db_path() (global constant).</p>
 </dd>
 <dt><strong>visible_rows</strong><span class="classifier">int, optional</span></dt><dd><p>Number of rows visible in the interactive table. Default is 20.</p>
 </dd>
@@ -530,12 +529,10 @@ successive calls to <cite>set_ff_from_database()</cite> as each selection is mad
 </dl>
 <p class="rubric">Notes</p>
 <dl class="simple">
-<dt>The interactive UI provides:</dt><dd><ul class="simple">
-<li><p>Up/Down arrows: Navigate through parameter options</p></li>
-<li><p>Enter/Space: Select the highlighted parameter</p></li>
-<li><p>Ctrl+C/Escape/q: Cancel selection and skip element</p></li>
-<li><p>p: Open the reference DOI in a web browser</p></li>
-</ul>
+<dt>The interactive UI provides:</dt><dd><p>-Up/Down arrows: Navigate through parameter options
+-Enter/Space: Select the highlighted parameter
+-Ctrl+C/Escape/q: Cancel selection and skip element
+-p: Open the reference DOI in a web browser</p>
 </dd>
 </dl>
 <p>The function filters the database for parameters matching each element

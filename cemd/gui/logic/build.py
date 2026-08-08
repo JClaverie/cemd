@@ -17,42 +17,44 @@
 
 from __future__ import annotations
 
-from PySide6 import QtWidgets, QtCore
-
 from typing import TYPE_CHECKING
 
-from cemd.gui.ui.build import (
-    SolutionDialog, 
-    SurfaceDialog, 
-    AddLiquidLayerDialog,
-    AddDropletDialog,
-    CASHBuilderDialog, 
-    ReplicateDialog, 
-    SplitterDialog, 
-    pyCSHGeneratorDialog,
-    GlassBuilderDialog,
-    SmilesDialog,
-    AddStructureDialog,
-    TranslateAtomsDialog
-)
+from PySide6 import QtCore, QtWidgets
 
 from cemd.build_old.base import (
-    build_solution, 
-    add_liquid, 
-    split,
-    build_glass,
     add_droplet,
-    add_structure
+    add_liquid,
+    add_structure,
+    build_glass,
+    build_solution,
+    split,
+)
+from cemd.gui.ui.build import (
+    AddDropletDialog,
+    AddLiquidLayerDialog,
+    AddStructureDialog,
+    CASHBuilderDialog,
+    GlassBuilderDialog,
+    ReplicateDialog,
+    SmilesDialog,
+    SolutionDialog,
+    SplitterDialog,
+    SurfaceDialog,
+    TranslateAtomsDialog,
+    pyCSHGeneratorDialog,
 )
 
 if TYPE_CHECKING:
-    from ..main_window import AtomViewerGUI
     from cemd.core.atomic_system import AtomicSystem
+
+    from ..main_window import AtomViewerGUI
+
 
 def handle_error(parent: AtomViewerGUI, title: str, error: Exception | str) -> None:
     QtWidgets.QApplication.restoreOverrideCursor()
     parent.setUpdatesEnabled(True)
     QtWidgets.QMessageBox.critical(parent, title, f"An error occurred:\n{error}")
+
 
 def open_make_solution(parent: AtomViewerGUI) -> None:
     dialog = SolutionDialog(parent)
@@ -67,26 +69,28 @@ def open_make_solution(parent: AtomViewerGUI) -> None:
         finally:
             QtWidgets.QApplication.restoreOverrideCursor()
 
+
 def open_make_glass(parent: AtomViewerGUI) -> None:
     dialog = GlassBuilderDialog(parent)
     if dialog.exec() == QtWidgets.QDialog.Accepted:
         box, density, stoich = dialog.get_values()
-        
+
         try:
             QtWidgets.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
             parent.statusBar().showMessage("Generating glass structure with Packmol...")
-            
+
             new_system = build_glass(box, density, stoich)
-            
+
             if new_system:
                 parent.add_structure_tab(new_system, f"Glass_{density}gcm3")
-                
+
         except Exception as e:
             QtWidgets.QMessageBox.critical(parent, "Error", f"Generation failed: {e}")
         finally:
             QtWidgets.QApplication.restoreOverrideCursor()
             parent.statusBar().showMessage("Ready")
-            
+
+
 def open_make_cash(parent: AtomViewerGUI) -> None:
     dialog = CASHBuilderDialog(parent)
     if dialog.exec_():
@@ -95,60 +99,70 @@ def open_make_cash(parent: AtomViewerGUI) -> None:
             try:
                 QtWidgets.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
 
-                nsi = system.get_count('Si')
-                nca = system.get_count('Ca')
-                
-                system.set_topology('cshff')
-                
-                ratio_name = f"{nca/nsi:.2f}" if nsi > 0 else "Custom"
-                
+                nsi = system.get_count("Si")
+                nca = system.get_count("Ca")
+
+                system.set_topology("cshff")
+
+                ratio_name = f"{nca / nsi:.2f}" if nsi > 0 else "Custom"
+
                 parent.add_structure_tab(system, title=f"C-S-H {ratio_name}")
-                parent.statusBar().showMessage(f"C-(A)-S-H (Ca/Si: {ratio_name}) model imported!", 5000)
-                
+                parent.statusBar().showMessage(
+                    f"C-(A)-S-H (Ca/Si: {ratio_name}) model imported!", 5000
+                )
+
             except Exception as e:
                 # Utilise ta fonction handle_error habituelle
                 handle_error(parent, "Import Error", e)
             finally:
                 QtWidgets.QApplication.restoreOverrideCursor()
 
+
 def open_pycsh(parent: AtomViewerGUI) -> None:
     dialog = pyCSHGeneratorDialog(parent)
     if dialog.exec_():
         systems = dialog.selected_systems
-        if not systems: return
+        if not systems:
+            return
         try:
-            parent.setUpdatesEnabled(False) # Bloque le rafraîchissement multiple
+            parent.setUpdatesEnabled(False)  # Bloque le rafraîchissement multiple
             QtWidgets.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
             for i, s in enumerate(systems):
-                parent.add_structure_tab(s, title=f"pyCSH #{i+1}")
-            
+                parent.add_structure_tab(s, title=f"pyCSH #{i + 1}")
+
             # parent.sync_ui(full_rebuild=True, reset_camera=True)
-            parent.statusBar().showMessage(f"Imported {len(systems)} pyCSH models.", 5000)
+            parent.statusBar().showMessage(
+                f"Imported {len(systems)} pyCSH models.", 5000
+            )
         except Exception as e:
             handle_error(parent, "Import Error", e)
         finally:
             parent.setUpdatesEnabled(True)
             QtWidgets.QApplication.restoreOverrideCursor()
 
+
 def open_make_surface(parent: AtomViewerGUI) -> None:
     active_tab = parent.tabs.currentWidget()
-    if not active_tab or not hasattr(active_tab, 'system'):
-        return QtWidgets.QMessageBox.warning(parent, "Selection Error", "Please select a solid system first.")
+    if not active_tab or not hasattr(active_tab, "system"):
+        return QtWidgets.QMessageBox.warning(
+            parent, "Selection Error", "Please select a solid system first."
+        )
 
     dialog = SurfaceDialog(active_tab.system, parent=parent)
     if dialog.exec_() == QtWidgets.QDialog.Accepted:
         systems = dialog.selected_systems
-        if not systems: return
+        if not systems:
+            return
         try:
             parent.setUpdatesEnabled(False)
             QtWidgets.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
-            
+
             miller_indices = dialog.get_values()[0]
             m_str = "".join(map(str, miller_indices))
 
             for i, s in enumerate(systems):
-                parent.add_structure_tab(s, title=f"slab_{m_str}_{i+1}")
-            
+                parent.add_structure_tab(s, title=f"slab_{m_str}_{i + 1}")
+
             parent.sync_ui(full_rebuild=True, reset_camera=True)
             parent.statusBar().showMessage(f"Generated {len(systems)} surfaces.", 5000)
         except Exception as e:
@@ -157,9 +171,11 @@ def open_make_surface(parent: AtomViewerGUI) -> None:
             parent.setUpdatesEnabled(True)
             QtWidgets.QApplication.restoreOverrideCursor()
 
+
 def open_add_liquid(parent: AtomViewerGUI) -> None:
     active_tab = parent.tabs.currentWidget()
-    if not active_tab or not hasattr(active_tab, 'system'): return
+    if not active_tab or not hasattr(active_tab, "system"):
+        return
 
     dialog = AddLiquidLayerDialog(parent)
     if dialog.exec() == QtWidgets.QDialog.Accepted:
@@ -168,15 +184,15 @@ def open_add_liquid(parent: AtomViewerGUI) -> None:
         try:
             QtWidgets.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
             parent.statusBar().showMessage("Creating interface...")
-            
+
             active_tab.system = add_liquid(
                 solid_system=active_tab.system,
-                thickness=p['thickness'], 
-                density=p['density'],
-                solutes_dict=p['solutes_dict'], 
-                structures_dict=p['structures_dict'],
-                vacuum=p['vacuum'], 
-                axis=p['axis']
+                thickness=p["thickness"],
+                density=p["density"],
+                solutes_dict=p["solutes_dict"],
+                structures_dict=p["structures_dict"],
+                vacuum=p["vacuum"],
+                axis=p["axis"],
             )
 
             parent.sync_ui(full_rebuild=True, reset_camera=True)
@@ -186,9 +202,10 @@ def open_add_liquid(parent: AtomViewerGUI) -> None:
         finally:
             QtWidgets.QApplication.restoreOverrideCursor()
 
+
 def open_add_droplet(parent: AtomViewerGUI) -> None:
     active_tab = parent.tabs.currentWidget()
-    if not active_tab or not hasattr(active_tab, 'system'): 
+    if not active_tab or not hasattr(active_tab, "system"):
         return
 
     dialog = AddDropletDialog(parent)
@@ -197,16 +214,16 @@ def open_add_droplet(parent: AtomViewerGUI) -> None:
         try:
             QtWidgets.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
             parent.statusBar().showMessage("Adding droplet...")
-            
+
             active_tab.system = add_droplet(
                 solid_system=active_tab.system,
-                radius=p['radius'],
-                density=p['density'],
-                solutes_dict=p['solutes_dict'],
-                structures_dict=p['structures_dict'],
-                vacuum=p['vacuum']
+                radius=p["radius"],
+                density=p["density"],
+                solutes_dict=p["solutes_dict"],
+                structures_dict=p["structures_dict"],
+                vacuum=p["vacuum"],
             )
-            
+
             parent.sync_ui(full_rebuild=True, reset_camera=True)
             parent.statusBar().showMessage("Droplet added successfully!", 5000)
         except Exception as e:
@@ -215,28 +232,30 @@ def open_add_droplet(parent: AtomViewerGUI) -> None:
         finally:
             QtWidgets.QApplication.restoreOverrideCursor()
 
+
 def open_add_structure(parent: AtomViewerGUI) -> None:
     active_tab = parent.tabs.currentWidget()
-    if not active_tab or not hasattr(active_tab, 'system'): 
+    if not active_tab or not hasattr(active_tab, "system"):
         return
 
     dialog = AddStructureDialog(parent)
     if dialog.exec() == QtWidgets.QDialog.Accepted:
         p = dialog.get_values()
-        if p is None: return # Si aucune structure n'était sélectionnée
-        
+        if p is None:
+            return  # Si aucune structure n'était sélectionnée
+
         try:
             QtWidgets.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
             parent.statusBar().showMessage("Adding structure to surface...")
-            
+
             active_tab.system = add_structure(
                 solid_system=active_tab.system,
-                structure_to_add=p['structure_to_add'],
-                distance=p['distance'],
-                axis=p['axis'],
-                vacuum=p['vacuum']
+                structure_to_add=p["structure_to_add"],
+                distance=p["distance"],
+                axis=p["axis"],
+                vacuum=p["vacuum"],
             )
-            
+
             parent.sync_ui(full_rebuild=True, reset_camera=True)
             parent.statusBar().showMessage("Structure added successfully!", 5000)
         except Exception as e:
@@ -244,9 +263,11 @@ def open_add_structure(parent: AtomViewerGUI) -> None:
         finally:
             QtWidgets.QApplication.restoreOverrideCursor()
 
+
 def open_split(parent: AtomViewerGUI) -> None:
     active_tab = parent.tabs.currentWidget()
-    if not active_tab or not hasattr(active_tab, 'system'): return
+    if not active_tab or not hasattr(active_tab, "system"):
+        return
 
     dialog = SplitterDialog(parent)
     if dialog.exec() == QtWidgets.QDialog.Accepted:
@@ -254,17 +275,17 @@ def open_split(parent: AtomViewerGUI) -> None:
         try:
             QtWidgets.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
             parent.statusBar().showMessage("Creating channel...")
-            
+
             active_tab.system = split(
                 solid_system=active_tab.system,
-                axis=p['axis'], 
-                coordinate=p['coordinate'], 
-                gap_size=p['gap_size'],
-                tolerance=p['tolerance'], 
-                add_solution=p['add_solution'],
-                density=p['density'],
-                solutes_dict=p['solutes_dict'],
-                structures_dict=p['structures_dict']
+                axis=p["axis"],
+                coordinate=p["coordinate"],
+                gap_size=p["gap_size"],
+                tolerance=p["tolerance"],
+                add_solution=p["add_solution"],
+                density=p["density"],
+                solutes_dict=p["solutes_dict"],
+                structures_dict=p["structures_dict"],
             )
 
             parent.sync_ui(full_rebuild=True, reset_camera=True)
@@ -274,10 +295,12 @@ def open_split(parent: AtomViewerGUI) -> None:
         finally:
             QtWidgets.QApplication.restoreOverrideCursor()
 
+
 def open_replicate(parent: AtomViewerGUI) -> None:
     active_tab = parent.tabs.currentWidget()
-    if not active_tab or not hasattr(active_tab, 'system'): return
-    
+    if not active_tab or not hasattr(active_tab, "system"):
+        return
+
     dialog = ReplicateDialog(parent)
     if dialog.exec_():
         try:
@@ -291,22 +314,25 @@ def open_replicate(parent: AtomViewerGUI) -> None:
         finally:
             QtWidgets.QApplication.restoreOverrideCursor()
 
+
 def on_protonate(parent: AtomViewerGUI) -> None:
     active_tab = parent.tabs.currentWidget()
-    if not active_tab or not active_tab.system: return
-    
+    if not active_tab or not active_tab.system:
+        return
+
     indices = active_tab.selected_real_indices.copy()
-    if not indices: return
+    if not indices:
+        return
 
     try:
         system: AtomicSystem = active_tab.system
-    
+
         system.protonate_atoms(indices)
 
-        active_tab.system = system 
+        active_tab.system = system
 
         parent._is_syncing = False
-        
+
         parent.sync_ui(full_rebuild=True, reset_camera=False)
 
     except Exception as e:
@@ -315,6 +341,7 @@ def on_protonate(parent: AtomViewerGUI) -> None:
         parent._is_syncing = False
         active_tab.selected_real_indices = []
         parent.update_protonate_state()
+
 
 def open_smiles_builder(parent: AtomViewerGUI) -> None:
     dialog = SmilesDialog(parent)
@@ -326,33 +353,31 @@ def open_smiles_builder(parent: AtomViewerGUI) -> None:
 def open_translate_atoms(parent: AtomViewerGUI) -> None:
     active_tab = parent.tabs.currentWidget()
     # Check if we have an active system to translate
-    if not active_tab or not hasattr(active_tab, 'system'): 
+    if not active_tab or not hasattr(active_tab, "system"):
         return
 
     dialog = TranslateAtomsDialog(parent)
     if dialog.exec() == QtWidgets.QDialog.Accepted:
         dx, dy, dz = dialog.get_values()
-        
+
         # Skip if translation is null
         if all(v == 0.0 for v in [dx, dy, dz]):
             return
 
         try:
             parent.statusBar().showMessage("Translating and wrapping atoms...")
-            
+
             # Apply shift
-            active_tab.system.atoms['x'] += dx
-            active_tab.system.atoms['y'] += dy
-            active_tab.system.atoms['z'] += dz
-            
+            active_tab.system.atoms["x"] += dx
+            active_tab.system.atoms["y"] += dy
+            active_tab.system.atoms["z"] += dz
+
             # Since wrap is always applied
             active_tab.system.wrap()
-            
+
             # Update visualizer without resetting the camera zoom
             parent.sync_ui(full_rebuild=True, reset_camera=False)
             parent.statusBar().showMessage("Translation successful!", 3000)
-            
+
         except Exception as e:
             QtWidgets.QMessageBox.critical(parent, "Translation Error", str(e))
-
-

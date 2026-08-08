@@ -1,0 +1,64 @@
+# scpe.toml
+# Simple Point Charge water model (extended)
+# No official reference, derived from SPC
+
+[model]
+name = "SCP-E"
+reference = "https://doi.org/10.1021/j100308a038"
+description = "Simple point charge water model (extended)"
+
+# ============================================================
+# Atom Types
+# ============================================================
+
+[atom]
+
+[atom.hspce]
+element = "H"
+charge = 0.4238
+environment = "water hydrogen"
+ref = "https://doi.org/10.1021/j100308a038"
+
+[atom.ospce]
+element = "O"
+charge = -0.8476
+environment = "water oxygen"
+ref = "https://doi.org/10.1021/j100308a038"
+
+# ============================================================
+# Lennard-Jones 12-6 Parameters
+# ============================================================
+
+[lj]
+
+[lj."hspce-hspce"]
+epsilon = 0
+sigma = 0
+ref = "https://doi.org/10.1021/j100308a038"
+
+[lj."ospce-ospce"]
+epsilon = 0.15535
+sigma = 3.166
+ref = "https://doi.org/10.1021/j100308a038"
+
+# ============================================================
+# Bond Parameters
+# ============================================================
+
+[bond.harmonic]
+
+[bond.harmonic."hspce-ospce"]
+k = 554.1349
+r0 = 1.0
+ref = "https://doi.org/10.1021/j100308a038"
+
+# ============================================================
+# Angle Parameters
+# ============================================================
+
+[angle.harmonic]
+
+[angle.harmonic."hspce-ospce-hspce"]
+k = 45.7696
+theta0 = 109.47
+ref = "https://doi.org/10.1021/j100308a038"

@@ -19,8 +19,6 @@ This guide explains how to build and analyze your atomistic models.
          :color: primary
          :click-parent:
 
-      To the build guide
-
    .. grid-item-card:: :material-regular:`query_stats;2em` Analysis Guide
       :link: build_guide
       :link-type: doc
@@ -33,8 +31,6 @@ This guide explains how to build and analyze your atomistic models.
          :expand:
          :color: primary
          :click-parent:
-
-      To the analysis guide
 
    .. grid-item-card:: :material-regular:`storage;2em` Force Field Database
       :link: ff_database
@@ -49,17 +45,28 @@ This guide explains how to build and analyze your atomistic models.
          :color: primary
          :click-parent:
 
-   .. grid-item-card:: :material-regular:`storage;2em` Tuto: build a slab
+   .. grid-item-card:: :material-regular:`school;2em` Tutorial
       :link: tuto_calcite_surface
       :link-type: doc
       :text-align: center
 
-      Building a calcite (10\=14) surface slab from COD.
+      Building a calcite surface slab from COD.
 
       +++
-      .. button-ref:: tuto_calcite_surface
+      .. button-ref:: Building a calcite slab
          :expand:
          :color: primary
          :click-parent:
 
-      To the tutorial
+   .. grid-item-card:: :material-regular:`school;2em` Tutorial
+      :link: tuto_topo_ff
+      :link-type: doc
+      :text-align: center
+
+      Applying topology and forcefield parameters to a calcite surface slab.
+
+      +++
+      .. button-ref:: Applying topology and forcefield parameters 
+         :expand:
+         :color: primary
+         :click-parent:

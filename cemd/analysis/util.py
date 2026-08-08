@@ -18,20 +18,23 @@
 from __future__ import annotations
 
 import os
-from typing import Sequence
+from collections.abc import Sequence
 
+import MDAnalysis as mda
 import numpy as np
 import pandas as pd
-import MDAnalysis as mda
-from tqdm import tqdm
 from MDAnalysis import transformations
+from tqdm import tqdm
 
-def write_dcd(universe: mda.Universe, 
-              output_path: str, 
-              selection: str = "all", 
-              start: int = 0, 
-              end: int = None, 
-              step: int = 1) -> None:
+
+def write_dcd(
+    universe: mda.Universe,
+    output_path: str,
+    selection: str = "all",
+    start: int = 0,
+    end: int = None,
+    step: int = 1,
+) -> None:
     """Write trajectory frames from an MDAnalysis Universe to a new DCD file.
 
     Parameters
@@ -51,7 +54,7 @@ def write_dcd(universe: mda.Universe,
     """
     # check on file extension
     _, ext = os.path.splitext(output_path)
-    if ext.lower() != '.dcd':
+    if ext.lower() != ".dcd":
         raise TypeError("The output file extension must be '.dcd'.")
 
     # apply the atom selection
@@ -65,8 +68,10 @@ def write_dcd(universe: mda.Universe,
     # handle the trajectory slice definition
     trajectory_slice = universe.trajectory[start:end:step]
     total_frames_to_write = len(trajectory_slice)
-    
-    print(f"Writing {total_frames_to_write} frames (start={start}, end={end}, step={step})...")
+
+    print(
+        f"Writing {total_frames_to_write} frames (start={start}, end={end}, step={step})..."
+    )
 
     # open the writer and stream the frames
     # the Writer requires the output filename and the exact number of atoms being written
@@ -76,9 +81,12 @@ def write_dcd(universe: mda.Universe,
 
     print("DCD trajectory written successfully!")
 
-def shift2com(universe: mda.Universe, 
-              atom_types: list[str | int], 
-              output_trajectory: str = 'recentered_traj.dcd') -> None:
+
+def shift2com(
+    universe: mda.Universe,
+    atom_types: list[str | int],
+    output_trajectory: str = "recentered_traj.dcd",
+) -> None:
     """Recenter all atoms relative to the center of mass (COM) of a selection.
 
     Parameters
@@ -90,23 +98,23 @@ def shift2com(universe: mda.Universe,
     output_trajectory : str, optional
         Path to the output recentered DCD trajectory file.
     """
-    
+
     selection_string = f"type {' '.join(atom_types)}"
     ref_atoms = universe.select_atoms(selection_string)
-    
+
     if len(ref_atoms) == 0:
         raise ValueError(f"No atoms found for the type(s): {atom_types}")
-        
+
     all_atoms = universe.atoms
-    
+
     with mda.Writer(output_trajectory, all_atoms.n_atoms) as W:
-        
         for ts in universe.trajectory:
             com = ref_atoms.center_of_mass()
-            
+
             all_atoms.positions -= com
-            
+
             W.write(all_atoms)
+
 
 # def shift2com(itraj, psf, atypes, otraj='recentered_traj.dcd'):
 #     """Recenter all atoms w.r.t to the COM of a selection based on atom types
@@ -115,25 +123,28 @@ def shift2com(universe: mda.Universe,
 #     ----------
 #         itraj: str
 #             An input DCD trajectory
-#         psf: str 
+#         psf: str
 #             A PSF file
 #         atypes: list of str
 #             List of the atom types in the reference selection
 #         otraj: str
 #             An output DCD trajectory
-    
+
 #     """
 
 #     sel_str = " ".join(map(str, atypes))
 
-#     subprocess.run(['vmd', '-dispdev', 'text', '-e', shift2com_tcl, '-args', itraj, psf, sel_str, otraj], stdout=subprocess.DEVNULL, check=True)            
+#     subprocess.run(['vmd', '-dispdev', 'text', '-e', shift2com_tcl, '-args', itraj, psf, sel_str, otraj], stdout=subprocess.DEVNULL, check=True)
 
-def minmax_position(universe: mda.Universe, 
-                    atom_types: list[str | int],
-                    axis: str ='z',
-                    bounds: Sequence[float] = None, 
-                    start: int = 0, 
-                    end: int = -1) -> tuple[float, float]:
+
+def minmax_position(
+    universe: mda.Universe,
+    atom_types: list[str | int],
+    axis: str = "z",
+    bounds: Sequence[float] = None,
+    start: int = 0,
+    end: int = -1,
+) -> tuple[float, float]:
     """Calculate the mean of the minimum and maximum coordinates along an axis.
 
     Parameters
@@ -160,26 +171,31 @@ def minmax_position(universe: mda.Universe,
     typestr = " ".join(map(str, atom_types))
 
     if bounds is None:
-        selstr = "type {}".format(typestr)
+        selstr = f"type {typestr}"
         print(f"Compute the min and max coordinate along {axis} for {typestr} atoms...")
     else:
         selstr = f"type {typestr} and prop {axis} >= {bounds[0]} and prop {axis} < {bounds[1]}"
-        print(f"Compute the min and max coordinate along {axis} for {typestr} atoms between {axis}={bounds[0]} angströms and {axis}={bounds[1]}...")
+        print(
+            f"Compute the min and max coordinate along {axis} for {typestr} atoms between {axis}={bounds[0]} angströms and {axis}={bounds[1]}..."
+        )
 
     sel = universe.select_atoms(selstr)
 
-    if axis == 'x': axid = 0
-    if axis == 'y': axid = 1
-    if axis == 'z': axid = 2
+    if axis == "x":
+        axid = 0
+    if axis == "y":
+        axid = 1
+    if axis == "z":
+        axid = 2
 
     mins, maxs = [], []
 
     for ts in tqdm(universe.trajectory[start:end]):
+        mins.append(sel.positions[:, axid].min())
+        maxs.append(sel.positions[:, axid].max())
 
-        mins.append(sel.positions[:,axid].min())
-        maxs.append(sel.positions[:,axid].max())
-    
     return np.mean(np.array(mins)), np.mean(np.array(maxs))
+
 
 def mean_pos(universe) -> pd.DataFrame:
     """Return a DataFrame containing the mean position of each atom over the trajectory.
@@ -207,9 +223,10 @@ def mean_pos(universe) -> pd.DataFrame:
 
     combined = np.column_stack((universe.atoms.types, mean_pos))
 
-    df = pd.DataFrame(combined, columns=['type', 'x', 'y', 'z'])
+    df = pd.DataFrame(combined, columns=["type", "x", "y", "z"])
 
     return df
+
 
 def com(universe: mda.Universe, atom_types: list[str | int]) -> float:
     """Calculate the mean position of the center of mass of a selection.
@@ -227,11 +244,11 @@ def com(universe: mda.Universe, atom_types: list[str | int]) -> float:
         The mean position of the center of mass over the trajectory.
     """
 
-    sel = universe.select_atoms("type {}".format(' '.join(atom_types)))
+    sel = universe.select_atoms("type {}".format(" ".join(atom_types)))
 
     comlist = []
 
     for ts in tqdm(universe.trajectory):
         comlist.append(sel.center_of_mass())
 
-    return np.mean(comlist, axis = 0)
+    return np.mean(comlist, axis=0)

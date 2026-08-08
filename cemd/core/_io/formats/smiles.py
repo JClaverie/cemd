@@ -19,6 +19,7 @@ import pandas as pd
 
 from .base import BaseReader
 
+
 class SmilesReader(BaseReader):
     """Read from SMILES string using RDKit."""
 
@@ -61,44 +62,53 @@ class SmilesReader(BaseReader):
                 masses[symbol] = atom.GetMass()
                 charges[symbol] = charge
 
-            atom_data.append({
-                'id': i + 1,
-                'type': symbol,
-                'charge': charge,
-                'x': pos.x,
-                'y': pos.y,
-                'z': pos.z,
-            })
+            atom_data.append(
+                {
+                    "id": i + 1,
+                    "type": symbol,
+                    "charge": charge,
+                    "x": pos.x,
+                    "y": pos.y,
+                    "z": pos.z,
+                }
+            )
 
-        df_atoms = pd.DataFrame(atom_data).set_index('id')
+        df_atoms = pd.DataFrame(atom_data).set_index("id")
 
         # Bonds
         bond_data = []
         for i, bond in enumerate(mol.GetBonds()):
-            bond_data.append({
-                'id': i + 1,
-                'type': f"{bond.GetBeginAtom().GetSymbol()}-{bond.GetEndAtom().GetSymbol()}",
-                'atom_1': bond.GetBeginAtomIdx() + 1,
-                'atom_2': bond.GetEndAtomIdx() + 1,
-            })
-        df_bonds = pd.DataFrame(bond_data).set_index('id') if bond_data else None
+            bond_data.append(
+                {
+                    "id": i + 1,
+                    "type": f"{bond.GetBeginAtom().GetSymbol()}-{bond.GetEndAtom().GetSymbol()}",
+                    "atom_1": bond.GetBeginAtomIdx() + 1,
+                    "atom_2": bond.GetEndAtomIdx() + 1,
+                }
+            )
+        df_bonds = pd.DataFrame(bond_data).set_index("id") if bond_data else None
 
         # Box
-        coords = df_atoms[['x', 'y', 'z']].values
+        coords = df_atoms[["x", "y", "z"]].values
         mins = coords.min(axis=0) - 10
         maxs = coords.max(axis=0) + 10
-        lmp_box = ((mins[0], maxs[0]), (mins[1], maxs[1]), (mins[2], maxs[2]), (0.0, 0.0, 0.0))
+        lmp_box = (
+            (mins[0], maxs[0]),
+            (mins[1], maxs[1]),
+            (mins[2], maxs[2]),
+            (0.0, 0.0, 0.0),
+        )
 
         return {
-            'lmp_box': lmp_box,
-            'masses': masses,
-            'charges': charges,
-            'atom_types': atom_types,
-            'atoms': df_atoms,
-            'bonds': df_bonds,
-            'angles': None,
-            'dihedrals': None,
-            'impropers': None,
-            'velocities': None,
-            'atom_style': 'full',
+            "lmp_box": lmp_box,
+            "masses": masses,
+            "charges": charges,
+            "atom_types": atom_types,
+            "atoms": df_atoms,
+            "bonds": df_bonds,
+            "angles": None,
+            "dihedrals": None,
+            "impropers": None,
+            "velocities": None,
+            "atom_style": "full",
         }

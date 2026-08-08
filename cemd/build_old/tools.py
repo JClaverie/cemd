@@ -15,18 +15,19 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
+from collections.abc import Sequence
 from functools import singledispatch
-from typing import Sequence
 
 import numpy as np
 
 from .._constants import AVOGADRO
 
+
 @singledispatch
 def concentration2count(arg, box_or_volume) -> None:
     """Generic function to calculate particle counts from molarity/concentration.
 
-    Supports either a scalar molarity (float/int) or a dictionary of 
+    Supports either a scalar molarity (float/int) or a dictionary of
     concentrations {species: molarity}.
     """
     raise TypeError(
@@ -38,10 +39,7 @@ def concentration2count(arg, box_or_volume) -> None:
 # 1. Implementation for a single scalar molarity
 @concentration2count.register(float)
 @concentration2count.register(int)
-def _(
-    molarity: float | int, 
-    volume: float
-) -> tuple[int, float]:
+def _(molarity: float | int, volume: float) -> tuple[int, float]:
     """Calculates the integer particle count and relative error for a single molarity.
 
     Parameters
@@ -74,8 +72,7 @@ def _(
 # 2. Implementation for a dictionary of concentrations
 @concentration2count.register(dict)
 def _(
-    concentrations_dict: dict[str, float], 
-    box: Sequence[float] | np.ndarray | float
+    concentrations_dict: dict[str, float], box: Sequence[float] | np.ndarray | float
 ) -> tuple[dict[str, int], dict[str, float]]:
     """Converts a dictionary of solute concentrations into integer particle counts.
 
@@ -107,6 +104,3 @@ def _(
         errors_dict[key] = error_pct
 
     return solutes_dict, errors_dict
-
-
-

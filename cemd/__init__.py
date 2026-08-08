@@ -19,14 +19,15 @@
 # import logging
 
 from .core.atomic_system import AtomicSystem
+from .core.topology import NeighborCriterion, TopologyRule
 
 __author__ = "Jérôme Claverie"
 
 __copyright__ = "Copyright (c) 2022-2026 Jérôme Claverie"
 
-__license__ = "GPL-3.0" 
+__license__ = "GPL-3.0"
 
-__all__  = ['AtomicSystem']
+__all__ = ["AtomicSystem"]
 
 # logger = logging.getLogger(__name__)
 # _packmol_path = shutil.which("packmol")

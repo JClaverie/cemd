@@ -1,11 +1,8 @@
-from cemd.build import CSHBuilder
+from cemd._paths import FF_DATABASE_DIR
+from cemd.core._forcefield.forcefield_database import ForceFieldDatabase
 
-builder = CSHBuilder(1.2, 0.85)
+database = ForceFieldDatabase(FF_DATABASE_DIR)
 
-print(builder)
-
-system = builder.build()
-
-print(system)
-
-system.view()
+# print(database.bond)
+# print(database.bond['raiteri2015.Ow-Ow'])
+print(database.bondangle)

@@ -1,0 +1,60 @@
+# tip3p.toml
+# Transferable Intermolecular Potential 3-point water model
+# Reference: https://doi.org/10.1063/1.1808117
+
+[model]
+name = "TIP3P"
+reference = "https://doi.org/10.1063/1.1808117"
+description = "Transferable Intermolecular Potential 3-point water model"
+
+# ============================================================
+# Atom Types
+# ============================================================
+
+[atom]
+
+[atom.ht3p]
+element = "H"
+charge = 0.415
+environment = "water hydrogen"
+ref = "https://doi.org/10.1063/1.1808117"
+
+[atom.ot3p]
+element = "O"
+charge = -0.83
+environment = "water oxygen"
+ref = "https://doi.org/10.1063/1.1808117"
+
+# ============================================================
+# Lennard-Jones 12-6 Parameters
+# ============================================================
+
+[lj]
+
+[lj."ht3p-ht3p"]
+epsilon = 0
+sigma = 0
+
+[lj."ot3p-ot3p"]
+epsilon = 0.102
+sigma = 3.188
+
+# ============================================================
+# Bond Parameters
+# ============================================================
+
+[bond.harmonic]
+
+[bond.harmonic."ht3p-ot3p"]
+k = 450
+r0 = 0.9572
+
+# ============================================================
+# Angle Parameters
+# ============================================================
+
+[angle.harmonic]
+
+[angle.harmonic."ht3p-ot3p-ht3p"]
+k = 55
+theta0 = 104.52

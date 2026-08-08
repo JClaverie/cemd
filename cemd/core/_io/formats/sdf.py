@@ -16,13 +16,14 @@
 #
 
 import os
+
 import pandas as pd
 
+from ...._constants import MASSES_DICT
 from .base import BaseReader
 
-from ...._constants import MASSES_DICT
 
-class SdfReader(BaseReader):
+class SDFReader(BaseReader):
     """Read SDF files."""
 
     @classmethod
@@ -31,7 +32,7 @@ class SdfReader(BaseReader):
         if "\n" in source.strip() or not os.path.exists(source):
             lines = source.splitlines()
         else:
-            with open(source, 'r', encoding='utf-8') as f:
+            with open(source, encoding="utf-8") as f:
                 lines = f.read().splitlines()
 
         if len(lines) < 4:
@@ -51,26 +52,31 @@ class SdfReader(BaseReader):
             if symbol not in atom_types:
                 atom_types.append(symbol)
 
-        df_atoms = pd.DataFrame(atom_data, columns=['id', 'type', 'charge', 'x', 'y', 'z']).set_index('id')
+        df_atoms = pd.DataFrame(
+            atom_data, columns=["id", "type", "charge", "x", "y", "z"]
+        ).set_index("id")
 
         masses = {t: MASSES_DICT.get(t, 12.011) for t in atom_types}
         charges = {t: 0.0 for t in atom_types}
 
-        coords = df_atoms[['x', 'y', 'z']].values
+        coords = df_atoms[["x", "y", "z"]].values
         mins, maxs = coords.min(axis=0) - 5, coords.max(axis=0) + 5
-        lmp_box = ((mins[0], maxs[0]), (mins[1], maxs[1]), (mins[2], maxs[2]), (0, 0, 0))
+        lmp_box = (
+            (mins[0], maxs[0]),
+            (mins[1], maxs[1]),
+            (mins[2], maxs[2]),
+            (0, 0, 0),
+        )
 
         return {
-            'lmp_box': lmp_box,
-            'masses': masses,
-            'charges': charges,
-            'atom_types': atom_types,
-            'atoms': df_atoms,
-            'bonds': None,
-            'angles': None,
-            'dihedrals': None,
-            'impropers': None,
-            'velocities': None,
+            "lmp_box": lmp_box,
+            "masses": masses,
+            "charges": charges,
+            "atom_types": atom_types,
+            "atoms": df_atoms,
+            "bonds": None,
+            "angles": None,
+            "dihedrals": None,
+            "impropers": None,
+            "velocities": None,
         }
-
-

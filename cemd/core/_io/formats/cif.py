@@ -18,16 +18,18 @@
 import warnings
 
 from pymatgen.io.cif import CifParser
+
 from .base import BaseReader
 
-class CifReader(BaseReader):
+
+class CIFReader(BaseReader):
     """Reader for CIF files using Pymatgen."""
 
     @classmethod
     def read(cls, path: str, primitive=False, refine=False) -> dict:
         """
         Read CIF file and return topology.
-        
+
         Parameters
         ----------
         path : str

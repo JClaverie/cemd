@@ -16,14 +16,15 @@
 #
 
 import webbrowser
-import pandas as pd
 from typing import Any
 
-from PySide6 import QtWidgets, QtCore, QtGui
+import pandas as pd
+from PySide6 import QtCore, QtGui, QtWidgets
 from PySide6Qlementine import ActionButton
+
+from ..._paths import FF_DATABASE_FILE
 from .base_dialog import BaseBuilderDialog
 from .gui_utils import get_icon
-from ..._paths import FF_DATABASE_FILE
 
 
 class FFComboDelegate(QtWidgets.QStyledItemDelegate):
@@ -31,11 +32,13 @@ class FFComboDelegate(QtWidgets.QStyledItemDelegate):
         super().__init__(parent)
         self.ff_db: Any = ff_db
 
-    def createEditor(self, 
-                     parent: QtWidgets.QWidget,
-                     option: QtWidgets.QStyleOptionViewItem,
-                     index: QtCore.QModelIndex) -> QtWidgets.QWidget:
-        
+    def createEditor(
+        self,
+        parent: QtWidgets.QWidget,
+        option: QtWidgets.QStyleOptionViewItem,
+        index: QtCore.QModelIndex,
+    ) -> QtWidgets.QWidget:
+
         combo = QtWidgets.QComboBox(parent)
         combo.addItem("None", None)
 
@@ -50,13 +53,13 @@ class FFComboDelegate(QtWidgets.QStyledItemDelegate):
         if mass > 10.0 and detected_elem == "H":
             detected_elem = "O"
 
-        if 'element' in self.ff_db.columns:
-            mask = self.ff_db['element'].astype(str).str.upper() == detected_elem
-            models_sorted = self.ff_db[mask].sort_values(by='model')
+        if "element" in self.ff_db.columns:
+            mask = self.ff_db["element"].astype(str).str.upper() == detected_elem
+            models_sorted = self.ff_db[mask].sort_values(by="model")
 
             last_model = None
             for _, row in models_sorted.iterrows():
-                current_model = str(row.get('model', ''))
+                current_model = str(row.get("model", ""))
 
                 if last_model is not None and current_model != last_model:
                     combo.insertSeparator(combo.count())
@@ -64,31 +67,34 @@ class FFComboDelegate(QtWidgets.QStyledItemDelegate):
                 label = f"{row['type']} [{current_model}]"
                 combo.addItem(label, row.to_dict())
 
-                if 'environment' in row:
+                if "environment" in row:
                     combo.setItemData(
-                        combo.count()-1,
-                        str(row['environment']),
-                        QtCore.Qt.ItemDataRole.ToolTipRole
+                        combo.count() - 1,
+                        str(row["environment"]),
+                        QtCore.Qt.ItemDataRole.ToolTipRole,
                     )
 
                 last_model: str = current_model
 
         return combo
 
-    def setEditorData(self, 
-                      editor: QtWidgets.QWidget, 
-                      index: QtCore.QModelIndex) -> None:
+    def setEditorData(
+        self, editor: QtWidgets.QWidget, index: QtCore.QModelIndex
+    ) -> None:
         value = index.data(QtCore.Qt.ItemDataRole.DisplayRole)
         idx = editor.findText(value)
         if idx >= 0:
             editor.setCurrentIndex(idx)
 
-    def setModelData(self, 
-                     editor: QtWidgets.QWidget, 
-                     model: QtCore.QAbstractItemModel,
-                     index: QtCore.QModelIndex) -> None:
+    def setModelData(
+        self,
+        editor: QtWidgets.QWidget,
+        model: QtCore.QAbstractItemModel,
+        index: QtCore.QModelIndex,
+    ) -> None:
         model.setData(index, editor.currentText(), QtCore.Qt.ItemDataRole.DisplayRole)
         model.setData(index, editor.currentData(), QtCore.Qt.ItemDataRole.UserRole)
+
 
 class TypeManagerDialog(BaseBuilderDialog):
     def __init__(self, parent=None):
@@ -101,14 +107,14 @@ class TypeManagerDialog(BaseBuilderDialog):
     @property
     def system_obj(self) -> None:
         """Dynamically retrieves the active tab's system via parent."""
-        if self.parent() and hasattr(self.parent(), 'system'):
+        if self.parent() and hasattr(self.parent(), "system"):
             return self.parent().system
         return None
-    
+
     @property
     def session_ff_dict(self) -> None:
         active_tab = self.parent().tabs.currentWidget()
-        if not hasattr(active_tab, 'session_ff_dict'):
+        if not hasattr(active_tab, "session_ff_dict"):
             active_tab.session_ff_dict = {}
         return active_tab.session_ff_dict
 
@@ -116,7 +122,7 @@ class TypeManagerDialog(BaseBuilderDialog):
         """Loads the Excel file and its different tabs"""
         try:
             self.all_sheets = pd.read_excel(FF_DATABASE_FILE, sheet_name=None)
-            self.ff_db = self.all_sheets['list']
+            self.ff_db = self.all_sheets["list"]
             self.ff_db.columns = self.ff_db.columns.str.strip()
         except Exception as e:
             print(f"Error reading Excel: {e}")
@@ -124,19 +130,21 @@ class TypeManagerDialog(BaseBuilderDialog):
 
     def setup_ui(self) -> None:
         tools_layout = QtWidgets.QHBoxLayout()
-        
+
         self.btn_reset = self.create_icon_button("Guess types from masses", "question")
         self.btn_reset.clicked.connect(self.reset_via_masses)
 
         self.btn_neutralize = self.create_icon_button("Neutralize system", "zap")
         self.btn_neutralize.clicked.connect(self.open_neutralize_dialog)
-        
+
         self.btn_apply = self.create_icon_button("Apply changes", "save", primary=True)
         self.btn_apply.clicked.connect(self.apply_and_refresh)
 
-        self.btn_copy_coeffs = self.create_icon_button("Copy pair coeff. to clipboard", "paste")
+        self.btn_copy_coeffs = self.create_icon_button(
+            "Copy pair coeff. to clipboard", "paste"
+        )
         self.btn_copy_coeffs.clicked.connect(self.copy_pair_coeffs_to_clipboard)
-        
+
         tools_layout.addWidget(self.btn_reset)
         tools_layout.addWidget(self.btn_neutralize)
         tools_layout.addWidget(self.btn_apply)
@@ -148,21 +156,25 @@ class TypeManagerDialog(BaseBuilderDialog):
         self.lbl_alert.setVisible(False)
         self.main_layout.addWidget(self.lbl_alert)
 
-        self.table = self.create_table(["Type", "FF Parameters", "Mass", "Charge", "Ref."], editable=True, selectable=True)
+        self.table = self.create_table(
+            ["Type", "FF Parameters", "Mass", "Charge", "Ref."],
+            editable=True,
+            selectable=True,
+        )
         header = self.table.horizontalHeader()
-        header.setSectionResizeMode(0, QtWidgets.QHeaderView.ResizeToContents) 
-        header.setSectionResizeMode(2, QtWidgets.QHeaderView.ResizeToContents) 
-        header.setSectionResizeMode(3, QtWidgets.QHeaderView.ResizeToContents) 
-        header.setSectionResizeMode(4, QtWidgets.QHeaderView.Fixed)            
+        header.setSectionResizeMode(0, QtWidgets.QHeaderView.ResizeToContents)
+        header.setSectionResizeMode(2, QtWidgets.QHeaderView.ResizeToContents)
+        header.setSectionResizeMode(3, QtWidgets.QHeaderView.ResizeToContents)
+        header.setSectionResizeMode(4, QtWidgets.QHeaderView.Fixed)
         self.table.setColumnWidth(4, 50)
 
         self.table.setItemDelegateForColumn(1, FFComboDelegate(self.table, self.ff_db))
         self.table.itemChanged.connect(self.on_item_changed)
-        
+
         self.table.cellClicked.connect(self.on_cell_clicked)
 
         self.main_layout.addWidget(self.table, stretch=1)
-        
+
         self.fill_table()
 
         self.dialog_buttons = self.create_dialog_buttons(ok_text="Accept All")
@@ -188,8 +200,7 @@ class TypeManagerDialog(BaseBuilderDialog):
 
             ff_item = QtWidgets.QTableWidgetItem("None")
             ff_item.setData(
-                QtCore.Qt.ItemDataRole.UserRole,
-                {"element": elem, "mass": m_val}
+                QtCore.Qt.ItemDataRole.UserRole, {"element": elem, "mass": m_val}
             )
             self.table.setItem(i, 1, ff_item)
 
@@ -197,7 +208,9 @@ class TypeManagerDialog(BaseBuilderDialog):
             self.table.setItem(i, 3, QtWidgets.QTableWidgetItem(f"{float(c_val):.4f}"))
 
             ref_item = QtWidgets.QTableWidgetItem()
-            ref_item.setFlags(QtCore.Qt.ItemFlag.ItemIsEnabled | QtCore.Qt.ItemFlag.ItemIsSelectable)
+            ref_item.setFlags(
+                QtCore.Qt.ItemFlag.ItemIsEnabled | QtCore.Qt.ItemFlag.ItemIsSelectable
+            )
             self.table.setItem(i, 4, ref_item)
 
             # Restore saved FF
@@ -207,7 +220,7 @@ class TypeManagerDialog(BaseBuilderDialog):
                 ff_item.setText(label)
                 ff_item.setData(QtCore.Qt.ItemDataRole.UserRole, saved_row)
                 self.on_ff_changed(i)
-        
+
         for row in range(self.table.rowCount()):
             self.table.openPersistentEditor(self.table.item(row, 1))
 
@@ -231,31 +244,32 @@ class TypeManagerDialog(BaseBuilderDialog):
 
         for i in range(self.table.rowCount()):
             name_item = self.table.item(i, 0)
-            if not name_item: continue
-            
+            if not name_item:
+                continue
+
             original_id = name_item.data(QtCore.Qt.ItemDataRole.UserRole)
             new_name = name_item.text().strip()
             temp_names[original_id] = new_name
-            
+
             combo = self.table.cellWidget(i, 1)
             ff_data = combo.currentData() if combo else None
-            
+
             if ff_data:
                 new_session_map[new_name] = ff_data
-                q_val = float(ff_data.get('charge', 0.0))
+                q_val = float(ff_data.get("charge", 0.0))
             else:
                 charge_item = self.table.item(i, 3)
                 q_val = float(charge_item.text()) if charge_item else 0.0
-            
+
             temp_charges[original_id] = q_val
 
             active_tab = self.parent().tabs.currentWidget()
             color_map = {}
             radius_map = {}
-            if hasattr(active_tab, 'plotter'):
+            if hasattr(active_tab, "plotter"):
                 color_map = active_tab.plotter.color_map
                 radius_map = active_tab.plotter.radius_map
-        
+
             for original_id, new_name in temp_names.items():
                 if original_id != new_name:
                     if original_id in color_map:
@@ -266,7 +280,7 @@ class TypeManagerDialog(BaseBuilderDialog):
         ids_order = list(temp_names.keys())
         self.system_obj.set_types([temp_names[tid] for tid in ids_order])
         self.system_obj.set_charges([temp_charges[tid] for tid in ids_order])
-        
+
         self.session_ff_dict.clear()
         self.session_ff_dict.update(new_session_map)
         self.sync_forcefield_parameters()
@@ -276,22 +290,21 @@ class TypeManagerDialog(BaseBuilderDialog):
     def sync_forcefield_parameters(self) -> None:
         assignments = {}
         for atom_label, ff_info in self.session_ff_dict.items():
-            if ff_info and 'type' in ff_info:
-                assignments[atom_label] = ff_info['type']
+            if ff_info and "type" in ff_info:
+                assignments[atom_label] = ff_info["type"]
 
         if not assignments:
             return
 
         try:
             self.system_obj.set_ff_from_database(
-                assignments=assignments, 
-                ff_database=FF_DATABASE_FILE
+                assignments=assignments, ff_database=FF_DATABASE_FILE
             )
         except Exception as e:
             QtWidgets.QMessageBox.critical(
-                self, 
-                "Erreur ForceField", 
-                f"Impossible d'assigner automatiquement les paramètres :\n{str(e)}"
+                self,
+                "Erreur ForceField",
+                f"Impossible d'assigner automatiquement les paramètres :\n{str(e)}",
             )
 
     def on_cell_clicked(self, row: int, col: int) -> None:
@@ -306,11 +319,12 @@ class TypeManagerDialog(BaseBuilderDialog):
         self.accept()
 
     def on_ff_changed(self, row_idx: int) -> None:
-        if self.table.cellWidget(row_idx, 1) is None: return
+        if self.table.cellWidget(row_idx, 1) is None:
+            return
         combo = self.table.cellWidget(row_idx, 1)
-        data = combo.currentData() 
+        data = combo.currentData()
         charge_item = self.table.item(row_idx, 3)
-        
+
         # Delete the old widget if it exists to start from scratch
         self.table.removeCellWidget(row_idx, 4)
         # Recreate an empty item for the background/style just in case
@@ -319,16 +333,16 @@ class TypeManagerDialog(BaseBuilderDialog):
 
         if data:
             # Load management
-            charge_col = [c for c in data.keys() if 'charge' in c]
+            charge_col = [c for c in data.keys() if "charge" in c]
             if charge_col:
                 charge_item.setText(f"{float(data[charge_col[0]]):.4f}")
-            
-            env = data.get('environment', 'No description available')
+
+            env = data.get("environment", "No description available")
             combo.setToolTip(f"<b>Chemical environment :</b><br>{env}")
-            
+
             # Reference button
-            url = data.get('ref')
-            if isinstance(url, str) and url.startswith('http'):
+            url = data.get("ref")
+            if isinstance(url, str) and url.startswith("http"):
                 # Creating the container to center the button
                 container = QtWidgets.QWidget()
                 btn_layout = QtWidgets.QHBoxLayout(container)
@@ -341,9 +355,9 @@ class TypeManagerDialog(BaseBuilderDialog):
                 btn_ref.setFlat(True)
                 btn_ref.setCursor(QtCore.Qt.PointingHandCursor)
                 btn_ref.setToolTip(f"Open reference:\n{url}")
-                
+
                 btn_ref.clicked.connect(lambda checked=False, u=url: webbrowser.open(u))
-                
+
                 btn_layout.addWidget(btn_ref)
                 self.table.setCellWidget(row_idx, 4, container)
             else:
@@ -357,8 +371,9 @@ class TypeManagerDialog(BaseBuilderDialog):
             ref_item.setTextAlignment(QtCore.Qt.AlignCenter)
 
     def check_cross_interactions(self) -> None:
-        if not hasattr(self, 'lbl_alert'): return
-        df_lj = self.all_sheets.get('lj_12-6')
+        if not hasattr(self, "lbl_alert"):
+            return
+        df_lj = self.all_sheets.get("lj_12-6")
         if df_lj is None:
             self.lbl_alert.setVisible(False)
             return
@@ -368,17 +383,20 @@ class TypeManagerDialog(BaseBuilderDialog):
             combo = self.table.cellWidget(i, 1)
             if combo:
                 data = combo.currentData()
-                if data and 'type' in data:
-                    selected_ff_types.append(data['type'])
-        
+                if data and "type" in data:
+                    selected_ff_types.append(data["type"])
+
         unique_selected = list(set(selected_ff_types))
-        if len(unique_selected) < 2: return
+        if len(unique_selected) < 2:
+            return
 
         found_cross_terms = []
         import itertools
+
         for t1, t2 in itertools.combinations(unique_selected, 2):
-            mask = ((df_lj['type 1'] == t1) & (df_lj['type 2'] == t2)) | \
-                   ((df_lj['type 1'] == t2) & (df_lj['type 2'] == t1))
+            mask = ((df_lj["type 1"] == t1) & (df_lj["type 2"] == t2)) | (
+                (df_lj["type 1"] == t2) & (df_lj["type 2"] == t1)
+            )
             if not df_lj[mask].empty:
                 found_cross_terms.append(f"{t1} ↔ {t2}")
 
@@ -389,8 +407,9 @@ class TypeManagerDialog(BaseBuilderDialog):
             self.lbl_alert.setVisible(False)
 
     def copy_pair_coeffs_to_clipboard(self) -> None:
-        df_lj = self.all_sheets.get('lj_12-6')
-        if df_lj is None: return
+        df_lj = self.all_sheets.get("lj_12-6")
+        if df_lj is None:
+            return
 
         label_to_ff = {}
         for i in range(self.table.rowCount()):
@@ -399,22 +418,26 @@ class TypeManagerDialog(BaseBuilderDialog):
             if name_item and combo:
                 atom_label = name_item.text().strip()
                 data = combo.currentData()
-                if data and 'type' in data:
-                    label_to_ff[atom_label] = data['type']
+                if data and "type" in data:
+                    label_to_ff[atom_label] = data["type"]
 
         if not label_to_ff:
-            QtWidgets.QMessageBox.warning(self, "Export", "No Force Field types assigned to atoms.")
+            QtWidgets.QMessageBox.warning(
+                self, "Export", "No Force Field types assigned to atoms."
+            )
             return
 
         lines = ["# --- LAMMPS Pair Coefficients (using atom labels) ---"]
         labels = list(label_to_ff.keys())
         count = 0
         import itertools
+
         for label1, label2 in itertools.combinations_with_replacement(labels, 2):
             ff_t1 = label_to_ff[label1]
             ff_t2 = label_to_ff[label2]
-            mask = ((df_lj['type 1'] == ff_t1) & (df_lj['type 2'] == ff_t2)) | \
-                   ((df_lj['type 1'] == ff_t2) & (df_lj['type 2'] == ff_t1))
+            mask = ((df_lj["type 1"] == ff_t1) & (df_lj["type 2"] == ff_t2)) | (
+                (df_lj["type 1"] == ff_t2) & (df_lj["type 2"] == ff_t1)
+            )
             row = df_lj[mask]
             if not row.empty:
                 eps = float(row.iloc[0].iloc[2])
@@ -426,34 +449,43 @@ class TypeManagerDialog(BaseBuilderDialog):
         full_text = "\n".join(lines)
         clipboard = QtWidgets.QApplication.clipboard()
         clipboard.setText(full_text)
-        QtWidgets.QMessageBox.information(self, "Export Successful", f"Copied {count} interaction lines.")
+        QtWidgets.QMessageBox.information(
+            self, "Export Successful", f"Copied {count} interaction lines."
+        )
 
     def open_neutralize_dialog(self) -> None:
-            """Opens the selection popup and applies the override."""
-            if not self.system_obj: return
-            
-            types = self.system_obj.atom_types
-            diag = NeutralizeDialog(types, self)
-            
-            if diag.exec() == QtWidgets.QDialog.Accepted:
-                weights = diag.get_selected_weights()
-                if not weights:
-                    QtWidgets.QMessageBox.warning(self, "Neutralize", "Please select at least one atom type.")
-                    return
-                
-                try:
-                    self.neutralize_logic(weights)
-                    self.fill_table()
-                    QtWidgets.QMessageBox.information(self, "Success", "System neutralized successfully.")
-                except Exception as e:
-                    QtWidgets.QMessageBox.critical(self, "Error", f"Neutralization failed: {e}")
+        """Opens the selection popup and applies the override."""
+        if not self.system_obj:
+            return
+
+        types = self.system_obj.atom_types
+        diag = NeutralizeDialog(types, self)
+
+        if diag.exec() == QtWidgets.QDialog.Accepted:
+            weights = diag.get_selected_weights()
+            if not weights:
+                QtWidgets.QMessageBox.warning(
+                    self, "Neutralize", "Please select at least one atom type."
+                )
+                return
+
+            try:
+                self.neutralize_logic(weights)
+                self.fill_table()
+                QtWidgets.QMessageBox.information(
+                    self, "Success", "System neutralized successfully."
+                )
+            except Exception as e:
+                QtWidgets.QMessageBox.critical(
+                    self, "Error", f"Neutralization failed: {e}"
+                )
 
     def neutralize_logic(self, weights: dict[str, float]) -> None:
         """Built-in version of neutralization function using set_charges and get_count."""
         system = self.system_obj
         df_atoms = system.atoms
-        total_charge = df_atoms['charge'].sum()
-        
+        total_charge = df_atoms["charge"].sum()
+
         if abs(total_charge) < 1e-6:
             return
 
@@ -465,7 +497,7 @@ class TypeManagerDialog(BaseBuilderDialog):
         if total_weight_atoms == 0:
             raise ValueError("Selected atom types are not present in the system.")
 
-        charge_delta = - total_charge / total_weight_atoms
+        charge_delta = -total_charge / total_weight_atoms
 
         new_charges = {}
         for atype in system.atom_types:
@@ -482,37 +514,37 @@ class ConnectivityDialog(BaseBuilderDialog):
     def __init__(self, parent=None):
         # Base class initialization
         super().__init__(parent, title="LAMMPS Topology Manager")
-        
+
         self.resize(700, 600)
-        
+
         self.load_ff_database()
         self.setup_ui()
 
     @property
     def system_obj(self):
         """Dynamically retrieves the active tab's system via parent."""
-        if self.parent() and hasattr(self.parent(), 'system'):
+        if self.parent() and hasattr(self.parent(), "system"):
             return self.parent().system
         return None
-    
+
     @property
     def session_ff_dict(self):
         active_tab = self.parent().tabs.currentWidget()
-        if not hasattr(active_tab, 'session_ff_dict'):
+        if not hasattr(active_tab, "session_ff_dict"):
             active_tab.session_ff_dict = {}
         return active_tab.session_ff_dict
-    
+
     @property
     def plotter(self):
         """Retrieves the plotter (for colors) of the active tab."""
         active_tab = self.parent().tabs.currentWidget()
-        return getattr(active_tab, 'plotter', None)
+        return getattr(active_tab, "plotter", None)
 
     def load_ff_database(self) -> None:
         """Loads the Excel file and its different tabs"""
         try:
             self.all_sheets = pd.read_excel(FF_DATABASE_FILE, sheet_name=None)
-            self.ff_db = self.all_sheets['list']
+            self.ff_db = self.all_sheets["list"]
             self.ff_db.columns = self.ff_db.columns.str.strip()
         except Exception as e:
             print(f"Erreur lors de la lecture de l'Excel : {e}")
@@ -520,15 +552,15 @@ class ConnectivityDialog(BaseBuilderDialog):
 
     def setup_ui(self) -> None:
         """Dynamically rebuilds tabs and buttons"""
-        
+
         current_idx = 0
-        if hasattr(self, 'tabs'):
+        if hasattr(self, "tabs"):
             current_idx = self.tabs.currentIndex()
-        
+
         protected_widgets = [
-            getattr(self, 'btn_build_topology', None),
-            getattr(self, 'btn_copy_topo', None),
-            getattr(self, 'dialog_buttons', None)
+            getattr(self, "btn_build_topology", None),
+            getattr(self, "btn_copy_topo", None),
+            getattr(self, "dialog_buttons", None),
         ]
 
         while self.main_layout.count() > 0:
@@ -542,14 +574,18 @@ class ConnectivityDialog(BaseBuilderDialog):
             elif item.layout():
                 self.clear_layout(item.layout())
 
-        if not hasattr(self, 'btn_build_topology'):
-            action = QtGui.QAction(get_icon("plus-square-white"), "Add a topology rule", self)
+        if not hasattr(self, "btn_build_topology"):
+            action = QtGui.QAction(
+                get_icon("plus-square-white"), "Add a topology rule", self
+            )
             action.triggered.connect(self.open_rule_builder)
             self.btn_build_topology = ActionButton(self)
             self.btn_build_topology.setAction(action)
 
-        if not hasattr(self, 'btn_copy_topo'):
-            self.btn_copy_topo = self.create_icon_button("Copy Bond/Angle Coeffs", "copy") 
+        if not hasattr(self, "btn_copy_topo"):
+            self.btn_copy_topo = self.create_icon_button(
+                "Copy Bond/Angle Coeffs", "copy"
+            )
             self.btn_copy_topo.clicked.connect(self.copy_topology_coeffs_to_clipboard)
 
         # Added button layout AT TOP
@@ -564,14 +600,14 @@ class ConnectivityDialog(BaseBuilderDialog):
         topo_types = [
             ("Bonds", self.system_obj.bonds),
             ("Angles", self.system_obj.angles),
-            ("Dihedrals", self.system_obj.dihedrals)
+            ("Dihedrals", self.system_obj.dihedrals),
         ]
 
         for name, df in topo_types:
             if df is not None and not df.empty:
                 self.tabs.addTab(self.create_table_tab(name, df), name)
                 has_data = True
-        
+
         if not has_data:
             placeholder = QtWidgets.QLabel("Aucune donnée topologique trouvée.")
             placeholder.setAlignment(QtCore.Qt.AlignCenter)
@@ -581,10 +617,10 @@ class ConnectivityDialog(BaseBuilderDialog):
             if current_idx < self.tabs.count():
                 self.tabs.setCurrentIndex(current_idx)
 
-        if not hasattr(self, 'dialog_buttons'):
+        if not hasattr(self, "dialog_buttons"):
             self.dialog_buttons = self.create_dialog_buttons(ok_text="Close")
             self.dialog_buttons.button(QtWidgets.QDialogButtonBox.Cancel).hide()
-        
+
         self.main_layout.addWidget(self.dialog_buttons)
 
     def clear_layout(self, layout) -> None:
@@ -601,14 +637,16 @@ class ConnectivityDialog(BaseBuilderDialog):
         layout = QtWidgets.QVBoxLayout(widget)
 
         layout.addWidget(QtWidgets.QLabel(f"<b>{name} types summary</b>"))
-        
+
         summary = df.copy()
-        summary['type'] = summary['type'].astype(str)
-        counts = summary.groupby('type').size().reset_index(name='count')
+        summary["type"] = summary["type"].astype(str)
+        counts = summary.groupby("type").size().reset_index(name="count")
 
         type_table = QtWidgets.QTableWidget(len(counts), 4)
         type_table.setHorizontalHeaderLabels(["Type", "Count", "FF Parameters", ""])
-        type_table.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
+        type_table.horizontalHeader().setSectionResizeMode(
+            QtWidgets.QHeaderView.Stretch
+        )
 
         view_only_flags = QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable
 
@@ -616,63 +654,74 @@ class ConnectivityDialog(BaseBuilderDialog):
         db_sheet = self.all_sheets.get(sheet_map.get(name), pd.DataFrame())
 
         for i, row in counts.iterrows():
-            t_id = str(row['type'])
-            
+            t_id = str(row["type"])
+
             item_type = QtWidgets.QTableWidgetItem(t_id)
             item_type.setFlags(view_only_flags)
             type_table.setItem(i, 0, item_type)
-            
-            item_count = QtWidgets.QTableWidgetItem(str(row['count']))
+
+            item_count = QtWidgets.QTableWidgetItem(str(row["count"]))
             item_count.setFlags(view_only_flags)
             type_table.setItem(i, 1, item_count)
-            
+
             # New button via basic method for styling
             param_label = QtWidgets.QLabel()
             param_label.setAlignment(QtCore.Qt.AlignCenter)
-            
+
             found_params = self.search_ff_parameters(name, t_id, db_sheet)
-            
+
             if found_params:
                 param_label.setText(f"✓ {found_params['label']}")
-                param_label.setToolTip(found_params['details'])
+                param_label.setToolTip(found_params["details"])
             else:
                 param_label.setText("✕ Not defined")
-            
+
             type_table.setCellWidget(i, 2, param_label)
-            
+
             # Bouton Delete type
             btn_del_type = QtWidgets.QPushButton("Delete type")
-            btn_del_type.clicked.connect(lambda ch, n=name, t=t_id: self.delete_by_type(n, t))
+            btn_del_type.clicked.connect(
+                lambda ch, n=name, t=t_id: self.delete_by_type(n, t)
+            )
             type_table.setCellWidget(i, 3, btn_del_type)
 
             for col in range(4):
                 it = type_table.item(i, col)
-                if it: it.setBackground(QtGui.QColor("lightgray"))
+                if it:
+                    it.setBackground(QtGui.QColor("lightgray"))
 
         layout.addWidget(type_table)
         return widget
-    
-    def search_ff_parameters(self, 
-                             category: str, 
-                             type_str: str, 
-                             db_df: pd.DataFrame) -> None:
-        if db_df.empty: return None
-        parts = type_str.split('-')
+
+    def search_ff_parameters(
+        self, category: str, type_str: str, db_df: pd.DataFrame
+    ) -> None:
+        if db_df.empty:
+            return None
+        parts = type_str.split("-")
         translated_parts = []
         for p in parts:
             if p in self.session_ff_dict:
-                translated_parts.append(str(self.session_ff_dict[p].get('type', p)))
+                translated_parts.append(str(self.session_ff_dict[p].get("type", p)))
             else:
                 translated_parts.append(p)
 
         if category == "Bonds" and len(translated_parts) == 2:
             p1, p2 = translated_parts
-            mask = ((db_df.iloc[:, 0] == p1) & (db_df.iloc[:, 1] == p2)) | \
-                   ((db_df.iloc[:, 0] == p2) & (db_df.iloc[:, 1] == p1))
+            mask = ((db_df.iloc[:, 0] == p1) & (db_df.iloc[:, 1] == p2)) | (
+                (db_df.iloc[:, 0] == p2) & (db_df.iloc[:, 1] == p1)
+            )
         elif category == "Angles" and len(translated_parts) == 3:
             p1, p2, p3 = translated_parts
-            mask = ((db_df.iloc[:, 0] == p1) & (db_df.iloc[:, 1] == p2) & (db_df.iloc[:, 2] == p3)) | \
-                   ((db_df.iloc[:, 0] == p3) & (db_df.iloc[:, 1] == p2) & (db_df.iloc[:, 2] == p1))
+            mask = (
+                (db_df.iloc[:, 0] == p1)
+                & (db_df.iloc[:, 1] == p2)
+                & (db_df.iloc[:, 2] == p3)
+            ) | (
+                (db_df.iloc[:, 0] == p3)
+                & (db_df.iloc[:, 1] == p2)
+                & (db_df.iloc[:, 2] == p1)
+            )
         else:
             return None
 
@@ -680,14 +729,21 @@ class ConnectivityDialog(BaseBuilderDialog):
         if not match.empty:
             row = match.iloc[0]
             if category == "Bonds":
-                return {'label': "Harmonic", 'details': f"K: {row.iloc[2]} | r0: {row.iloc[3]}"}
+                return {
+                    "label": "Harmonic",
+                    "details": f"K: {row.iloc[2]} | r0: {row.iloc[3]}",
+                }
             else:
-                return {'label': "Harmonic", 'details': f"K: {row.iloc[3]} | theta0: {row.iloc[4]}"}
+                return {
+                    "label": "Harmonic",
+                    "details": f"K: {row.iloc[3]} | theta0: {row.iloc[4]}",
+                }
         return None
 
     def delete_by_type(self, category: str, type_id: str | int) -> None:
-        confirm = QtWidgets.QMessageBox.question(self, "Confirmation", 
-                    f"Delete all {category} of type '{type_id}' ?")
+        confirm = QtWidgets.QMessageBox.question(
+            self, "Confirmation", f"Delete all {category} of type '{type_id}' ?"
+        )
         if confirm == QtWidgets.QMessageBox.Yes:
             if category == "Bonds":
                 self.system_obj.remove_connection_types(bond_types=[type_id])
@@ -714,25 +770,27 @@ class ConnectivityDialog(BaseBuilderDialog):
                 QtWidgets.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
                 self.system_obj.set_topology(new_rule)
                 print(new_rule)
-                self.setup_ui() 
+                self.setup_ui()
                 main_win = self.parent()
-                if hasattr(main_win, 'sync_ui'):
+                if hasattr(main_win, "sync_ui"):
                     main_win.sync_ui()
                 QtWidgets.QMessageBox.information(self, "Success", "Topology updated!")
             except Exception as e:
-                QtWidgets.QMessageBox.critical(self, "Error", f"Failed to apply topology: {e}")
+                QtWidgets.QMessageBox.critical(
+                    self, "Error", f"Failed to apply topology: {e}"
+                )
             finally:
                 QtWidgets.QApplication.restoreOverrideCursor()
 
     def highlight_atoms_in_tables(self, selected_indices: list[int]) -> None:
-        if not hasattr(self, 'tabs') or self.tabs.count() == 0:
+        if not hasattr(self, "tabs") or self.tabs.count() == 0:
             return
         current_widget = self.tabs.currentWidget()
         tables = current_widget.findChildren(QtWidgets.QTableWidget)
         if not tables:
             return
-        list_table = tables[-1] 
-        
+        list_table = tables[-1]
+
         for row in range(list_table.rowCount()):
             for col in range(list_table.columnCount()):
                 item = list_table.item(row, col)
@@ -742,7 +800,7 @@ class ConnectivityDialog(BaseBuilderDialog):
         if not selected_indices:
             return
 
-        highlight_color = QtGui.QColor("#fff9c4") 
+        highlight_color = QtGui.QColor("#fff9c4")
         first_match = -1
         tab_name = self.tabs.tabText(self.tabs.currentIndex())
         atom_cols = [2, 3]
@@ -762,7 +820,8 @@ class ConnectivityDialog(BaseBuilderDialog):
                         continue
 
             if found:
-                if first_match == -1: first_match = row
+                if first_match == -1:
+                    first_match = row
                 for col in range(list_table.columnCount() - 1):
                     item = list_table.item(row, col)
                     if item:
@@ -771,21 +830,23 @@ class ConnectivityDialog(BaseBuilderDialog):
         if first_match != -1:
             item_to_scroll = list_table.item(first_match, 0)
             if item_to_scroll:
-                list_table.scrollToItem(item_to_scroll, QtWidgets.QAbstractItemView.PositionAtTop)
+                list_table.scrollToItem(
+                    item_to_scroll, QtWidgets.QAbstractItemView.PositionAtTop
+                )
 
     def copy_topology_coeffs_to_clipboard(self) -> None:
         lines = ["# --- LAMMPS Topology Coefficients ---"]
         count = 0
         if self.system_obj.bonds is not None and not self.system_obj.bonds.empty:
             lines.append("\n# Bond Coefficients")
-            db_bond = self.all_sheets.get('bond', pd.DataFrame())
-            bond_types = sorted(self.system_obj.bonds['type'].unique())
+            db_bond = self.all_sheets.get("bond", pd.DataFrame())
+            bond_types = sorted(self.system_obj.bonds["type"].unique())
             for b_type in bond_types:
                 params = self.search_ff_parameters("Bonds", str(b_type), db_bond)
                 if params:
                     try:
-                        k = params['details'].split('|')[0].split(':')[1].strip()
-                        r0 = params['details'].split('|')[1].split(':')[1].strip()
+                        k = params["details"].split("|")[0].split(":")[1].strip()
+                        r0 = params["details"].split("|")[1].split(":")[1].strip()
                         lines.append(f"bond_coeff {b_type} {k} {r0}  # Harmonic")
                         count += 1
                     except:
@@ -793,14 +854,14 @@ class ConnectivityDialog(BaseBuilderDialog):
 
         if self.system_obj.angles is not None and not self.system_obj.angles.empty:
             lines.append("\n# Angle Coefficients")
-            db_angle = self.all_sheets.get('angle', pd.DataFrame())
-            angle_types = sorted(self.system_obj.angles['type'].unique())
+            db_angle = self.all_sheets.get("angle", pd.DataFrame())
+            angle_types = sorted(self.system_obj.angles["type"].unique())
             for a_type in angle_types:
                 params = self.search_ff_parameters("Angles", str(a_type), db_angle)
                 if params:
                     try:
-                        k = params['details'].split('|')[0].split(':')[1].strip()
-                        t0 = params['details'].split('|')[1].split(':')[1].strip()
+                        k = params["details"].split("|")[0].split(":")[1].strip()
+                        t0 = params["details"].split("|")[1].split(":")[1].strip()
                         lines.append(f"angle_coeff {a_type} {k} {t0}  # Harmonic")
                         count += 1
                     except:
@@ -810,9 +871,16 @@ class ConnectivityDialog(BaseBuilderDialog):
         clipboard = QtWidgets.QApplication.clipboard()
         clipboard.setText(full_text)
         if count > 0:
-            QtWidgets.QMessageBox.information(self, "Export successful", f"Copied {count} topology lines to clipboard.")
+            QtWidgets.QMessageBox.information(
+                self,
+                "Export successful",
+                f"Copied {count} topology lines to clipboard.",
+            )
         else:
-            QtWidgets.QMessageBox.warning(self, "Export", "No matching parameters found in database to copy.")
+            QtWidgets.QMessageBox.warning(
+                self, "Export", "No matching parameters found in database to copy."
+            )
+
 
 class RuleBuilderDialog(QtWidgets.QDialog):
     def __init__(self, atomic_system, parent=None):
@@ -868,12 +936,15 @@ class RuleBuilderDialog(QtWidgets.QDialog):
         # Inputs
         combo = QtWidgets.QComboBox()
         combo.addItems([str(t) for t in self.system.atom_types])
-        
+
         n_spin = QtWidgets.QSpinBox()
-        n_spin.setRange(1, 12); n_spin.setValue(1)
-        
+        n_spin.setRange(1, 12)
+        n_spin.setValue(1)
+
         dist_spin = QtWidgets.QDoubleSpinBox()
-        dist_spin.setRange(0.5, 5.0); dist_spin.setValue(1.2); dist_spin.setSuffix(" Å")
+        dist_spin.setRange(0.5, 5.0)
+        dist_spin.setValue(1.2)
+        dist_spin.setSuffix(" Å")
         dist_spin.setSingleStep(0.1)
 
         new_t = QtWidgets.QLineEdit()
@@ -885,8 +956,11 @@ class RuleBuilderDialog(QtWidgets.QDialog):
 
         # Storage
         rule_data = {
-            'widget': row_widget, 'type_cb': combo, 
-            'n_spin': n_spin, 'dist_spin': dist_spin, 'new_type': new_t
+            "widget": row_widget,
+            "type_cb": combo,
+            "n_spin": n_spin,
+            "dist_spin": dist_spin,
+            "new_type": new_t,
         }
         self.neighbor_rules.append(rule_data)
         btn_del.clicked.connect(lambda: self.remove_neighbor_row(rule_data))
@@ -900,32 +974,37 @@ class RuleBuilderDialog(QtWidgets.QDialog):
         row_lay.addWidget(dist_spin)
         row_lay.addWidget(new_t)
         row_lay.addWidget(btn_del)
-        
+
         self.neighbors_layout.addWidget(row_widget)
 
     def remove_neighbor_row(self, rule_data: dict) -> None:
-        rule_data['widget'].deleteLater()
+        rule_data["widget"].deleteLater()
         self.neighbor_rules.remove(rule_data)
 
     def get_rule(self) -> None:
         """Builds the rule dictionary for set_topology_rule"""
         neighbors = []
         for r in self.neighbor_rules:
-            neighbors.append({
-                "sel": f"type {r['type_cb'].currentText()}",
-                "n": r['n_spin'].value(),
-                "cutoff": r['dist_spin'].value(),
-                "exact": False,
-                "new_type": r['new_type'].text() if r['new_type'].text() else None
-            })
+            neighbors.append(
+                {
+                    "sel": f"type {r['type_cb'].currentText()}",
+                    "n": r["n_spin"].value(),
+                    "cutoff": r["dist_spin"].value(),
+                    "exact": False,
+                    "new_type": r["new_type"].text() if r["new_type"].text() else None,
+                }
+            )
 
         return {
             "center_sel": f"type {self.combo_center.currentText()}",
-            "new_type": self.new_type_center.text() if self.new_type_center.text() else None,
+            "new_type": self.new_type_center.text()
+            if self.new_type_center.text()
+            else None,
             "neighbors": neighbors,
             "create_bond": self.cb_bonds.isChecked(),
-            "create_angle": self.cb_angles.isChecked()
+            "create_angle": self.cb_angles.isChecked(),
         }
+
 
 class NeutralizeDialog(QtWidgets.QDialog):
     def __init__(self, atom_types, parent=None):
@@ -933,34 +1012,40 @@ class NeutralizeDialog(QtWidgets.QDialog):
         self.setWindowTitle("Neutralize System")
         self.setMinimumWidth(300)
         layout = QtWidgets.QVBoxLayout(self)
-        
-        layout.addWidget(QtWidgets.QLabel("<b>Select types and weights for distribution:</b>"))
-        
+
+        layout.addWidget(
+            QtWidgets.QLabel("<b>Select types and weights for distribution:</b>")
+        )
+
         self.rows = {}
         grid = QtWidgets.QGridLayout()
-        
+
         for i, atype in enumerate(atom_types):
             cb = QtWidgets.QCheckBox(str(atype))
             cb.setChecked(True)
-            
+
             sb = QtWidgets.QDoubleSpinBox()
             sb.setRange(0.01, 10.0)
             sb.setValue(1.0)
             sb.setSingleStep(0.1)
             sb.setEnabled(True)
-            
+
             cb.toggled.connect(sb.setEnabled)
-            
+
             grid.addWidget(cb, i, 0)
             grid.addWidget(sb, i, 1)
             self.rows[atype] = (cb, sb)
-            
+
         layout.addLayout(grid)
-        
-        btns = QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel)
+
+        btns = QtWidgets.QDialogButtonBox(
+            QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel
+        )
         btns.accepted.connect(self.accept)
         btns.rejected.connect(self.reject)
         layout.addWidget(btns)
 
     def get_selected_weights(self) -> None:
-        return {atype: sb.value() for atype, (cb, sb) in self.rows.items() if cb.isChecked()}
+        return {
+            atype: sb.value() for atype, (cb, sb) in self.rows.items() if cb.isChecked()
+        }

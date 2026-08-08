@@ -124,8 +124,18 @@ Th = "#00BFFF"
 "Osih-Hsi" = 1.1
 "O-H" = 1.1
 
-# C-H bonds
-"C-H" = 1.1
+# Carbone
+"C-C" = 1.8
+"C-O" = 1.8
+"C-N" = 1.8
+"C-S" = 1.8
+"C-P" = 1.8
+"C-Si" = 1.8
+"C-F" = 1.6
+"C-Cl" = 1.8
+"C-Br" = 1.9
+"C-I" = 2.0
+"C-H" = 1.2
 
 # C-O bonds
 "Oc-C" = 1.6

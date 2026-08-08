@@ -410,8 +410,8 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
 
+<span class="kn">from</span><span class="w"> </span><span class="nn">.topology</span><span class="w"> </span><span class="kn">import</span> <span class="n">TopologyMixin</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">._edit</span><span class="w"> </span><span class="kn">import</span> <span class="n">EditMixin</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">._topology</span><span class="w"> </span><span class="kn">import</span> <span class="n">TopologyMixin</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">._io</span><span class="w"> </span><span class="kn">import</span> <span class="n">IOMixin</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">._forcefield</span><span class="w"> </span><span class="kn">import</span> <span class="n">ForceFieldMixin</span>
 
@@ -429,7 +429,7 @@
 <span class="p">)</span>
 
 <span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">..build_new</span><span class="w"> </span><span class="kn">import</span> <span class="n">SolutionBuilder</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">..build</span><span class="w"> </span><span class="kn">import</span> <span class="n">SolutionBuilder</span>
 
 
 <div class="viewcode-block" id="AtomicSystem">
@@ -642,7 +642,7 @@
             <span class="s1">&#39;dihedrals&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">dihedrals</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dihedrals</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
             <span class="s1">&#39;impropers&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">impropers</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">impropers</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
             <span class="s1">&#39;velocities&#39;</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">velocities</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span><span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">velocities</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
-            <span class="s1">&#39;lmp_box&#39;</span><span class="p">:</span>   <span class="bp">self</span><span class="o">.</span><span class="n">lmp_box</span><span class="p">,</span>
+            <span class="s1">&#39;lmp_box&#39;</span><span class="p">:</span>   <span class="bp">self</span><span class="o">.</span><span class="n">_lmp_box</span><span class="p">,</span>
             <span class="s1">&#39;atom_types&#39;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_types</span><span class="p">),</span>
             <span class="s1">&#39;masses&#39;</span><span class="p">:</span>    <span class="nb">dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_masses_storage</span><span class="p">),</span>
             <span class="s1">&#39;charges&#39;</span><span class="p">:</span>   <span class="nb">dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_charges_storage</span><span class="p">),</span>
@@ -1092,31 +1092,176 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__repr__</span><span class="p">()</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">add_layer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">blueprint</span><span class="p">:</span> <span class="n">SolutionBuilder</span><span class="p">,</span> <span class="n">thickness</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+<div class="viewcode-block" id="AtomicSystem.add_structure">
+<a class="viewcode-back" href="../../../api/generated/cemd.core.atomic_system.AtomicSystem.add_structure.html#cemd.core.atomic_system.AtomicSystem.add_structure">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_structure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> 
+                      <span class="n">structure_to_add</span><span class="p">:</span> <span class="n">AtomicSystem</span><span class="p">,</span>
+                      <span class="n">distance</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">2.0</span><span class="p">,</span> 
+                      <span class="n">axis</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;z&#39;</span><span class="p">,</span>
+                      <span class="n">vacuum</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">10.0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Self</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Add a structure on top of this system.</span>
+
+<span class="sd">        This method adds any structure (droplet, liquid layer, molecule, etc.)</span>
+<span class="sd">        on top of the current system along the specified axis. The structure is</span>
+<span class="sd">        aligned by center of mass in the transverse directions and placed at the</span>
+<span class="sd">        specified distance from the surface.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        structure_to_add : AtomicSystem or str</span>
+<span class="sd">            The structure to add. Can be an AtomicSystem object or a path to a</span>
+<span class="sd">            file that can be loaded by AtomicSystem.from_file().</span>
+<span class="sd">        distance : float, default=2.0</span>
+<span class="sd">            Distance between the current system surface and the structure</span>
+<span class="sd">            in Ångströms.</span>
+<span class="sd">        axis : str, default=&#39;z&#39;</span>
+<span class="sd">            Axis along which to add the structure (&#39;x&#39;, &#39;y&#39;, or &#39;z&#39;).</span>
+<span class="sd">        vacuum : float, default=10.0</span>
+<span class="sd">            Vacuum space added above the structure in Ångströms.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Self</span>
+<span class="sd">            The updated system with the structure added.</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; from cemd import AtomicSystem</span>
+<span class="sd">        &gt;&gt;&gt; </span>
+<span class="sd">        &gt;&gt;&gt; # Add a droplet from a file</span>
+<span class="sd">        &gt;&gt;&gt; surface = AtomicSystem.from_file(&quot;surface.lmp&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; droplet = AtomicSystem.from_file(&quot;droplet.lmp&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; system = surface.add_structure(droplet, distance=2.0, vacuum=10.0)</span>
+<span class="sd">        &gt;&gt;&gt; </span>
+<span class="sd">        &gt;&gt;&gt; # Add a structure from a file path (auto-loads)</span>
+<span class="sd">        &gt;&gt;&gt; system = surface.add_structure(&quot;droplet.lmp&quot;, distance=2.0)</span>
+<span class="sd">        &gt;&gt;&gt; </span>
+<span class="sd">        &gt;&gt;&gt; # Add a custom structure with different axis</span>
+<span class="sd">        &gt;&gt;&gt; system = surface.add_structure(molecule, axis=&#39;y&#39;, distance=3.0)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">..build</span><span class="w"> </span><span class="kn">import</span> <span class="n">add_structure</span>
+        
+        <span class="n">new_system</span> <span class="o">=</span> <span class="n">add_structure</span><span class="p">(</span>
+            <span class="n">solid_system</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>
+            <span class="n">structure_to_add</span><span class="o">=</span><span class="n">structure_to_add</span><span class="p">,</span>
+            <span class="n">distance</span><span class="o">=</span><span class="n">distance</span><span class="p">,</span>
+            <span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">,</span>
+            <span class="n">vacuum</span><span class="o">=</span><span class="n">vacuum</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_replace_internals</span><span class="p">(</span><span class="n">new_system</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+
+<div class="viewcode-block" id="AtomicSystem.add_liquid_layer">
+<a class="viewcode-back" href="../../../api/generated/cemd.core.atomic_system.AtomicSystem.add_liquid_layer.html#cemd.core.atomic_system.AtomicSystem.add_liquid_layer">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_liquid_layer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">blueprint</span><span class="p">:</span> <span class="n">SolutionBuilder</span><span class="p">,</span> <span class="n">thickness</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
                   <span class="n">distance</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">2.0</span><span class="p">,</span> <span class="n">vacuum</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">10.0</span><span class="p">,</span> <span class="n">axis</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;z&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Self</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Add a liquid layer to this system.</span>
-<span class="sd">        </span>
-<span class="sd">        Convenience method that uses InterfaceBuilder internally.</span>
+<span class="sd">        Add a liquid layer on top of this system.</span>
+
+<span class="sd">        This method creates a liquid layer with the composition defined by the</span>
+<span class="sd">        blueprint and places it on top of the current system along the specified</span>
+<span class="sd">        axis. The layer is aligned to match the transverse dimensions of the</span>
+<span class="sd">        current system.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        blueprint : SolutionBuilder</span>
+<span class="sd">            Solution blueprint defining the liquid composition (density,</span>
+<span class="sd">            solutes, etc.).</span>
+<span class="sd">        thickness : float</span>
+<span class="sd">            Thickness of the liquid layer in Ångströms.</span>
+<span class="sd">        distance : float, default=2.0</span>
+<span class="sd">            Distance between the current system surface and the liquid layer</span>
+<span class="sd">            in Ångströms.</span>
+<span class="sd">        vacuum : float, default=10.0</span>
+<span class="sd">            Vacuum space added above the liquid layer in Ångströms.</span>
+<span class="sd">        axis : str, default=&#39;z&#39;</span>
+<span class="sd">            Axis along which to add the layer (&#39;x&#39;, &#39;y&#39;, or &#39;z&#39;).</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Self</span>
+<span class="sd">            The updated system with the liquid layer added.</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; from cemd import AtomicSystem</span>
+<span class="sd">        &gt;&gt;&gt; from cemd.builders import SolutionBuilder</span>
+<span class="sd">        &gt;&gt;&gt; </span>
+<span class="sd">        &gt;&gt;&gt; surface = AtomicSystem.from_file(&quot;surface.lmp&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; blueprint = SolutionBuilder.from_molarities(</span>
+<span class="sd">        ...     density=1.0,</span>
+<span class="sd">        ...     molarities={&#39;NaCl&#39;: 0.1}</span>
+<span class="sd">        ... )</span>
+<span class="sd">        &gt;&gt;&gt; </span>
+<span class="sd">        &gt;&gt;&gt; # Add a 30 Å water layer on the surface</span>
+<span class="sd">        &gt;&gt;&gt; system = surface.add_layer(blueprint, thickness=30.0, distance=2.0)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="kn">from</span><span class="w"> </span><span class="nn">..build_new</span><span class="w"> </span><span class="kn">import</span> <span class="n">InterfaceBuilder</span>
-        <span class="k">return</span> <span class="p">(</span><span class="n">InterfaceBuilder</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
-            <span class="o">.</span><span class="n">add_liquid_layer</span><span class="p">(</span><span class="n">blueprint</span><span class="p">,</span> <span class="n">thickness</span><span class="p">,</span> <span class="n">distance</span><span class="p">,</span> <span class="n">vacuum</span><span class="p">,</span> <span class="n">axis</span><span class="p">)</span>
-            <span class="o">.</span><span class="n">build</span><span class="p">()</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">..build</span><span class="w"> </span><span class="kn">import</span> <span class="n">add_liquid_layer</span>
+        <span class="n">new_system</span> <span class="o">=</span> <span class="n">add_liquid_layer</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span> <span class="n">blueprint</span><span class="p">,</span> <span class="n">thickness</span><span class="p">,</span> <span class="n">distance</span><span class="p">,</span> <span class="n">vacuum</span><span class="p">,</span> <span class="n">axis</span>
         <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_replace_internals</span><span class="p">(</span><span class="n">new_system</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span></div>
+
     
+<div class="viewcode-block" id="AtomicSystem.add_droplet">
+<a class="viewcode-back" href="../../../api/generated/cemd.core.atomic_system.AtomicSystem.add_droplet.html#cemd.core.atomic_system.AtomicSystem.add_droplet">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">add_droplet</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">blueprint</span><span class="p">:</span> <span class="n">SolutionBuilder</span><span class="p">,</span> <span class="n">radius</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
                     <span class="n">distance</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">2.0</span><span class="p">,</span> <span class="n">vacuum</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">10.0</span><span class="p">,</span> <span class="n">axis</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;z&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Self</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Add a droplet to this system.</span>
-<span class="sd">        </span>
-<span class="sd">        Convenience method that uses InterfaceBuilder internally.</span>
+<span class="sd">        Add a hemispherical liquid droplet on top of this system.</span>
+
+<span class="sd">        This method creates a hemispherical droplet with the composition defined</span>
+<span class="sd">        by the blueprint and places it on top of the current system along the</span>
+<span class="sd">        specified axis. The droplet sits on the surface with a flat bottom.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        blueprint : SolutionBuilder</span>
+<span class="sd">            Solution blueprint defining the droplet composition (density,</span>
+<span class="sd">            solutes, etc.).</span>
+<span class="sd">        radius : float</span>
+<span class="sd">            Radius of the hemispherical droplet in Ångströms.</span>
+<span class="sd">        distance : float, default=2.0</span>
+<span class="sd">            Distance between the current system surface and the droplet</span>
+<span class="sd">            in Ångströms.</span>
+<span class="sd">        vacuum : float, default=10.0</span>
+<span class="sd">            Vacuum space added above the droplet in Ångströms.</span>
+<span class="sd">        axis : str, default=&#39;z&#39;</span>
+<span class="sd">            Axis along which the droplet sits (&#39;x&#39;, &#39;y&#39;, or &#39;z&#39;).</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Self</span>
+<span class="sd">            The updated system with the droplet added.</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; from cemd import AtomicSystem</span>
+<span class="sd">        &gt;&gt;&gt; from cemd.builders import SolutionBuilder</span>
+<span class="sd">        &gt;&gt;&gt; </span>
+<span class="sd">        &gt;&gt;&gt; surface = AtomicSystem.from_file(&quot;surface.lmp&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; blueprint = SolutionBuilder.from_molarities(</span>
+<span class="sd">        ...     density=1.0,</span>
+<span class="sd">        ...     molarities={&#39;NaCl&#39;: 0.1}</span>
+<span class="sd">        ... )</span>
+<span class="sd">        &gt;&gt;&gt; </span>
+<span class="sd">        &gt;&gt;&gt; # Add a 15 Å radius water droplet on the surface</span>
+<span class="sd">        &gt;&gt;&gt; system = surface.add_droplet(blueprint, radius=15.0, distance=2.0)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="kn">from</span><span class="w"> </span><span class="nn">..build_new</span><span class="w"> </span><span class="kn">import</span> <span class="n">InterfaceBuilder</span>
-        <span class="k">return</span> <span class="p">(</span><span class="n">InterfaceBuilder</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
-            <span class="o">.</span><span class="n">add_droplet</span><span class="p">(</span><span class="n">blueprint</span><span class="p">,</span> <span class="n">radius</span><span class="p">,</span> <span class="n">distance</span><span class="p">,</span> <span class="n">vacuum</span><span class="p">,</span> <span class="n">axis</span><span class="p">)</span>
-            <span class="o">.</span><span class="n">build</span><span class="p">()</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">..build</span><span class="w"> </span><span class="kn">import</span> <span class="n">add_droplet</span>
+        <span class="n">new_system</span> <span class="o">=</span> <span class="n">add_droplet</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span> <span class="n">blueprint</span><span class="p">,</span> <span class="n">radius</span><span class="p">,</span> <span class="n">distance</span><span class="p">,</span> <span class="n">vacuum</span><span class="p">,</span> <span class="n">axis</span>
         <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_replace_internals</span><span class="p">(</span><span class="n">new_system</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span></div>
+
     
     <span class="k">def</span><span class="w"> </span><span class="nf">get_count</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">symbol</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>

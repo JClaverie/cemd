@@ -1,0 +1,64 @@
+# tip4p_ew.toml
+# Transferable Intermolecular Potential 4-point water model (Ewald)
+# Reference: https://doi.org/10.1063/1.1683075
+
+[model]
+name = "TIP4P-EW"
+reference = "https://doi.org/10.1063/1.1683075"
+description = "Transferable Intermolecular Potential 4-point water model (Ewald)"
+
+# ============================================================
+# Atom Types
+# ============================================================
+
+[atom]
+
+[atom.htp4p]
+element = "H"
+charge = 0.52
+environment = "water hydrogen"
+ref = "https://doi.org/10.1063/1.1683075"
+
+[atom.otp4p]
+element = "O"
+charge = -1.04
+environment = "water oxygen"
+ref = "https://doi.org/10.1063/1.1683075"
+
+# ============================================================
+# Lennard-Jones 12-6 Parameters
+# ============================================================
+
+[lj]
+
+[lj."htp4p-htp4p"]
+epsilon = 0
+sigma = 0
+ref = "https://doi.org/10.1063/1.1683075"
+
+[lj."otp4p-otp4p"]
+epsilon = 0.16275
+sigma = 3.16435
+ref = "https://doi.org/10.1063/1.1683075"
+
+# ============================================================
+# Bond Parameters
+# ============================================================
+
+[bond.harmonic]
+
+[bond.harmonic."htp4p-otp4p"]
+k = 0
+r0 = 0.9572
+ref = "https://doi.org/10.1063/1.1683075"
+
+# ============================================================
+# Angle Parameters
+# ============================================================
+
+[angle.harmonic]
+
+[angle.harmonic."htp4p-otp4p-htp4p"]
+k = 0
+theta0 = 104.52
+ref = "https://doi.org/10.1063/1.1683075"

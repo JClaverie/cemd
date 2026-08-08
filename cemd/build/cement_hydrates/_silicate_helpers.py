@@ -17,15 +17,18 @@
 
 from __future__ import annotations
 
+import random
 from typing import TYPE_CHECKING
 
 import numpy as np
-import random
 
 if TYPE_CHECKING:
     import MDAnalysis as mda
 
-def grouped_average(array: np.ndarray, expected_size: int) -> tuple[np.ndarray, list[np.ndarray], list[int]]:
+
+def grouped_average(
+    array: np.ndarray, expected_size: int
+) -> tuple[np.ndarray, list[np.ndarray], list[int]]:
     """
     Groups coordinates that are close to each other and returns their averages.
     Optimized to avoid large memory allocation and fix boolean ambiguity errors.
@@ -36,7 +39,7 @@ def grouped_average(array: np.ndarray, expected_size: int) -> tuple[np.ndarray, 
     # Sort the array to make grouping much faster (O(N log N))
     sorted_arr = np.sort(array)
     tol = 0.2
-    
+
     def get_groups(data, tolerance):
         # Find gaps between points larger than tolerance
         gaps = np.diff(data) > tolerance
@@ -47,7 +50,7 @@ def grouped_average(array: np.ndarray, expected_size: int) -> tuple[np.ndarray, 
     # Iterate tolerance until we reach the expected number of layers
     group_ids = get_groups(sorted_arr, tol)
     num_groups = group_ids[-1] + 1
-    
+
     while num_groups > expected_size:
         tol += 0.2
         group_ids = get_groups(sorted_arr, tol)
@@ -57,22 +60,21 @@ def grouped_average(array: np.ndarray, expected_size: int) -> tuple[np.ndarray, 
     averaged_values = []
     indices_list = []
     counts = []
-    
+
     for g_id in range(num_groups):
         # Get indices where the sorted array belongs to this group
-        mask = (group_ids == g_id)
+        mask = group_ids == g_id
         group_data = sorted_arr[mask]
-        
+
         averaged_values.append(np.mean(group_data))
         counts.append(len(group_data))
-        
+
         # To get indices relative to the ORIGINAL (unsorted) array:
         # We find where original values match the values in this group
         original_indices = np.where(np.isin(array, group_data))[0]
         indices_list.append(original_indices)
 
     return np.array(averaged_values), indices_list, counts
-
 
 
 def _detect_z_factor(universe: mda.Universe) -> int:
@@ -82,54 +84,76 @@ def _detect_z_factor(universe: mda.Universe) -> int:
     """
     # Get the z-dimension of the simulation box
     box_z = universe.dimensions[2]
-    
+
     # Determine the reference unit cell height based on the total box size
     # If the box is a multiple of ~28 Å, we use 28, otherwise we default to 22.
     if abs(box_z % 28.0) < abs(box_z % 22.0):
         unit_cell_z = 28.0
     else:
         unit_cell_z = 22.0
-        
+
     # Calculate the multiplier factor (minimum of 1)
     multiplier = max(1, int(round(box_z / unit_cell_z)))
     return multiplier
+
 
 def _get_bridging_silicates_indices(universe: mda.Universe) -> np.ndarray:
     """Returns indices of bridging silicates using _get_bridging_zplanes."""
     si_sel = universe.select_atoms("type Si")
     si_indices = si_sel.indices
-    
-    (_, 
-     si_indices_per_plane, 
-     si_count_per_plane) = _get_silicate_planes(universe)
-    
+
+    (_, si_indices_per_plane, si_count_per_plane) = _get_silicate_planes(universe)
+
     max_num = max(si_count_per_plane)
-    bridging_groups = [g for g, n in zip(si_indices_per_plane, si_count_per_plane) if n != max_num]
+    bridging_groups = [
+        g for g, n in zip(si_indices_per_plane, si_count_per_plane) if n != max_num
+    ]
     return si_indices[np.concatenate(bridging_groups).flatten()]
 
-def _get_silicate_planes(universe: mda.Universe) -> tuple[np.ndarray, list[np.ndarray], list[int]]:
+
+def _get_silicate_planes(
+    universe: mda.Universe,
+) -> tuple[np.ndarray, list[np.ndarray], list[int]]:
     """Groups the Si by plane z and sorts them, keeping the indices
     origin of each plane (used by _find_symmetric_bridging_pairs)."""
     # Perform the selection internally to simplify the function call
     si_sel = universe.select_atoms("type Si")
     si_pos_z = si_sel.positions[:, 2]
-    
+
     supercell_factor = _detect_z_factor(universe)
 
-    (si_plane_positions, 
-     si_indices_per_plane, 
-     si_count_per_plane) = grouped_average(si_pos_z, 8 * supercell_factor)
-    
+    (si_plane_positions, si_indices_per_plane, si_count_per_plane) = grouped_average(
+        si_pos_z, 8 * supercell_factor
+    )
+
     order = np.argsort(si_plane_positions)
     si_plane_positions = si_plane_positions[order]
     si_indices_per_plane = [si_indices_per_plane[i] for i in order]
     si_count_per_plane = [si_count_per_plane[i] for i in order]
     return si_plane_positions, si_indices_per_plane, si_count_per_plane
 
-def _find_symmetric_bridging_pairs(universe: mda.Universe) -> list[list[tuple[int, int]]]:
+
+def _find_symmetric_bridging_pairs(
+    universe: mda.Universe, planar_distance_cutoff: float | None = 5.0
+) -> list[list[tuple[int, int]]]:
     """
     Identifies bridging silicates and associates them in symmetrical pairs
     across each interlayer pore, grouped by pore.
+
+    Parameters
+    ----------
+    universe : mda.Universe
+        The MDAnalysis universe containing the structure.
+    planar_distance_cutoff : float or None, default=5.0
+        Maximum planar distance (in XY plane) for two Si atoms to be considered
+        a symmetric pair. If None, planar distance is not used and atoms are
+        paired in order of appearance.
+
+    Returns
+    -------
+    list[list[tuple[int, int]]]
+        List of pores, each containing a list of (idx1, idx2) pairs of bridging
+        silicates that are symmetrically positioned.
     """
     box = universe.dimensions
     box_x, box_y, box_z = box[0], box[1], box[2]
@@ -137,38 +161,40 @@ def _find_symmetric_bridging_pairs(universe: mda.Universe) -> list[list[tuple[in
     si_sel = universe.select_atoms("type Si")
     si_indices = si_sel.indices
     si_pos = si_sel.positions
- 
-    (si_plane_positions,
-     si_indices_per_plane, 
-     si_count_per_plane) = _get_silicate_planes(universe)
-    
+
+    (si_plane_positions, si_indices_per_plane, si_count_per_plane) = (
+        _get_silicate_planes(universe)
+    )
+
     max_num = max(si_count_per_plane)
     nplanes = len(si_plane_positions)
- 
+
     def _pbc_dist_xy(p, q) -> float:
         dx = p[0] - q[0]
         dy = p[1] - q[1]
         dx -= box_x * round(dx / box_x)
         dy -= box_y * round(dy / box_y)
         return (dx * dx + dy * dy) ** 0.5
- 
-    bridging_plane_indices = [i for i in range(nplanes) if si_count_per_plane[i] != max_num]
+
+    bridging_plane_indices = [
+        i for i in range(nplanes) if si_count_per_plane[i] != max_num
+    ]
 
     n_bridging_planes = len(bridging_plane_indices)
- 
+
     bridging_pairs_per_pore = []
     used = set()
- 
+
     # Boucle sur les plans de pontage
     for idx_b in range(n_bridging_planes):
         i = bridging_plane_indices[idx_b]
-        j = bridging_plane_indices[(idx_b + 1) % n_bridging_planes] 
+        j = bridging_plane_indices[(idx_b + 1) % n_bridging_planes]
 
         gap = (si_plane_positions[j] - si_plane_positions[i]) % box_z
 
-        if gap > 5.0:
+        if planar_distance_cutoff is not None and gap > planar_distance_cutoff:
             continue
- 
+
         atoms_i = si_indices[np.array(si_indices_per_plane[i])]
         atoms_j = si_indices[np.array(si_indices_per_plane[j])]
         xy_i = si_pos[np.array(si_indices_per_plane[i])][:, :2]
@@ -179,34 +205,34 @@ def _find_symmetric_bridging_pairs(universe: mda.Universe) -> list[list[tuple[in
         for k, idx1 in enumerate(atoms_i):
             if idx1 in used:
                 continue
-            
-            best_l, min_dist = None, float('inf')
-            
+
+            best_l, min_dist = None, float("inf")
+
             for l, idx2 in enumerate(atoms_j):
                 if idx2 in used:
                     continue
-                
+
                 dist = _pbc_dist_xy(xy_i[k], xy_j[l])
-                
+
                 if dist < min_dist:
                     min_dist, best_l = dist, l
- 
+
             if best_l is not None and min_dist < 5.0:
                 idx2 = atoms_j[best_l]
                 current_pore_pairs.append((idx1, idx2))
                 used.add(idx1)
                 used.add(idx2)
-        
+
         # On ajoute les paires trouvées pour ce pore à la liste globale
         if current_pore_pairs:
             bridging_pairs_per_pore.append(current_pore_pairs)
- 
+
     return bridging_pairs_per_pore
 
 
 def calculate_csh_modifiers(
-        nsi: int, nca: int, target_cs_ratio: float, min_mcl: float
-        ) -> tuple[int, int, float]:
+    nsi: int, nca: int, target_cs_ratio: float, min_mcl: float
+) -> tuple[int, int, float]:
     """Calculate the vacancy fraction and check that it is higher than 1 /(1 + MCL) to keep a minimum of bridging silicates. Calculate the number of bridging SiO2 and Ca2+ to add to reach the target C/S."""
     nsi_to_remove = nsi - round(nca / target_cs_ratio)
     vacancy_fraction = nsi_to_remove / nsi
@@ -222,9 +248,10 @@ def calculate_csh_modifiers(
 
     return nsi_to_remove, nca_to_add, vacancy_fraction
 
-def remove_bridging_silicates(univ: mda.Universe, 
-                               nsi_to_remove: int, 
-                               symmetry: bool = True) -> mda.Universe:
+
+def remove_bridging_silicates(
+    univ: mda.Universe, nsi_to_remove: int, symmetry: bool = True
+) -> mda.Universe:
     if nsi_to_remove <= 0:
         return univ
 
@@ -238,18 +265,18 @@ def remove_bridging_silicates(univ: mda.Universe,
         pore_idx = 0
 
         seconds_to_process = [[] for _ in range(n_pores)]
-        
+
         # On continue tant qu'il reste des suppressions à effectuer
         while count < nsi_to_remove:
             if not any(pores):
                 break
-                
+
             # Sélectionner le pore courant de manière cyclique
             current_pore = pores[pore_idx % n_pores]
-            
+
             if current_pore:
                 item = current_pore.pop(0)
-                
+
                 # Gestion paire vs index unique
                 if isinstance(item, (list, tuple)) and len(item) == 2:
                     idx1, idx2 = item
@@ -257,42 +284,42 @@ def remove_bridging_silicates(univ: mda.Universe,
                     idx2remove = np.random.choice(options)
                     options.remove(idx2remove)
                     to_remove.append(idx2remove)
-                    seconds_to_process[pore_idx % n_pores].append(options[0]) 
+                    seconds_to_process[pore_idx % n_pores].append(options[0])
                 else:
                     to_remove.append(item)
-                    
-                count += 1       
+
+                count += 1
             pore_idx += 1
 
         pore_idx = 0
         while count < nsi_to_remove:
             if not any(seconds_to_process):
                 break
-                
+
             current_seconds = seconds_to_process[pore_idx % n_pores]
             if current_seconds:
                 to_remove.append(current_seconds.pop(0))
                 count += 1
             pore_idx += 1
-            
+
     else:
         bridging_indices = _get_bridging_silicates_indices(univ)
         to_remove = np.random.choice(bridging_indices, nsi_to_remove, replace=False)
 
     # Mise à jour de l'univers
-    idx_str = ' '.join(map(str, to_remove))
+    idx_str = " ".join(map(str, to_remove))
     univ = univ.select_atoms(f"not index {idx_str}")
     univ = univ.select_atoms("not (name O and not around 2.1 type Si)")
-    
+
     return univ
 
-def substitute_si_by_al(univ: mda.Universe, 
-                         nal: int, 
-                         symmetry: bool = True
-                         ) -> tuple[mda.Universe, list[int]]:
+
+def substitute_si_by_al(
+    univ: mda.Universe, nal: int, symmetry: bool = True
+) -> tuple[mda.Universe, list[int]]:
     """
     Substitutes bridging Si with Al according to a ratio.
-    
+
     Parameters
     ----------
     univ : mda.Universe
@@ -310,35 +337,35 @@ def substitute_si_by_al(univ: mda.Universe,
 
     if symmetry:
         # Récupération des paires par pore
-        pores = _find_symmetric_bridging_pairs(univ)
+        pores = _find_symmetric_bridging_pairs(univ, planar_distance_cutoff=None)
         # Mélanger l'ordre des pores pour ne pas toujours commencer par le même
         random.shuffle(pores)
-        
+
         n_pores = len(pores)
         count = 0
         pore_idx = 0
-        
+
         # Tant qu'on n'a pas atteint nal et qu'il reste des paires
         while count < nal:
             if not any(pores):
                 break
-                
+
             # Sélectionner le pore courant cycliquement
             current_pore = pores[pore_idx % n_pores]
-            
+
             if current_pore:
                 # On prend une paire du pore courant
                 idx1, idx2 = current_pore.pop(0)
-                
+
                 # Ajout du premier atome
                 to_sub.append(idx1)
                 count += 1
-                
+
                 # Ajout du second si on a encore besoin d'atomes
                 if idx2 is not None and count < nal:
                     to_sub.append(idx2)
                     count += 1
-            
+
             pore_idx += 1
     else:
         bridging_indices = _get_bridging_silicates_indices(univ)
@@ -347,13 +374,12 @@ def substitute_si_by_al(univ: mda.Universe,
     # Changing atom types
     for idx in to_sub:
         atom = univ.atoms[idx]
-        atom.type = 'Al'
-        atom.name = 'Al'
+        atom.type = "Al"
+        atom.name = "Al"
 
     substituted_ids = univ.atoms[to_sub].ids.tolist()
-            
-    return univ, substituted_ids
 
+    return univ, substituted_ids
 
 
 def neutralize_csh_charge(pdb_path: str) -> float:
@@ -376,35 +402,40 @@ def neutralize_csh_charge(pdb_path: str) -> float:
     # Filter universe and overwrite PDB
     remaining_indices = np.setdiff1d(univ.atoms.indices, to_remove)
     univ.atoms[remaining_indices].write(pdb_path)
-    
+
     return total_charge / 2
+
 
 def get_interlayer_ca_indices(universe: mda.Universe) -> np.ndarray:
     """Get IDs of interlayer calcium in a C-S-H structure."""
     box = universe.dimensions
-    
+
     si_plane_positions, _, si_count_per_plane = _get_silicate_planes(universe)
     max_num = max(si_count_per_plane)
     n_planes = len(si_plane_positions)
 
-    si_pairing_plane_indices = [i for i in range(n_planes) if si_count_per_plane[i] == max_num]
+    si_pairing_plane_indices = [
+        i for i in range(n_planes) if si_count_per_plane[i] == max_num
+    ]
     si_pairing_plane_positions = si_plane_positions[si_pairing_plane_indices]
 
     interlayer_ca_indices = []
 
     # Internal layers
     for i in range(len(si_pairing_plane_positions) - 1):
-        gap = si_pairing_plane_positions[i+1] - si_pairing_plane_positions[i]
+        gap = si_pairing_plane_positions[i + 1] - si_pairing_plane_positions[i]
         if gap > 5:
             sel = universe.select_atoms(
                 f"(type Ca) and "
                 f"(prop z > {si_pairing_plane_positions[i]}) and "
-                f"(prop z < {si_pairing_plane_positions[i+1]})"
+                f"(prop z < {si_pairing_plane_positions[i + 1]})"
             )
             interlayer_ca_indices.append(sel.ids)
 
     # Periodic layer (box edge)
-    gap_pbc = abs(si_pairing_plane_positions[-1] - si_pairing_plane_positions[0] - box[2])
+    gap_pbc = abs(
+        si_pairing_plane_positions[-1] - si_pairing_plane_positions[0] - box[2]
+    )
     if gap_pbc > 5:
         sel = universe.select_atoms(
             f"(type Ca) and "
@@ -413,5 +444,6 @@ def get_interlayer_ca_indices(universe: mda.Universe) -> np.ndarray:
         )
         interlayer_ca_indices.append(sel.ids)
 
-    return np.concatenate(interlayer_ca_indices) if interlayer_ca_indices else np.array([])
-
+    return (
+        np.concatenate(interlayer_ca_indices) if interlayer_ca_indices else np.array([])
+    )

@@ -92,6 +92,9 @@ Modifiers
    :toctree: generated/
    :nosignatures:
 
+   AtomicSystem.add_structure
+   AtomicSystem.add_liquid_layer
+   AtomicSystem.add_droplet
    AtomicSystem.add_atom
    AtomicSystem.add_atoms
    AtomicSystem.protonate_atom

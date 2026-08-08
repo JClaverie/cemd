@@ -17,27 +17,27 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
+from typing import TYPE_CHECKING, Any
+
 import numpy as np
 import pandas as pd
 import pyvista as pv
-
-from PySide6 import QtWidgets, QtCore
 from plotter_widget import AtomicPlotter
-from typing import TYPE_CHECKING, Any, Sequence
-
+from PySide6 import QtCore, QtWidgets
 from ui.atom_table import AtomTable
 
 if TYPE_CHECKING:
     from PySide6.QtGui import QKeyEvent
+
     from ..core.atomic_system import AtomicSystem
     from .main_window import AtomViewerGUI
 
 
 class StructureTabWidget(QtWidgets.QWidget):
-    def __init__(self, 
-                 system: AtomicSystem, 
-                 parent_gui: AtomViewerGUI, 
-                 file_path: str=None) -> None:
+    def __init__(
+        self, system: AtomicSystem, parent_gui: AtomViewerGUI, file_path: str = None
+    ) -> None:
         super().__init__()
         self.system = system
         self.file_path = file_path
@@ -54,7 +54,9 @@ class StructureTabWidget(QtWidgets.QWidget):
 
         # move the creation of the plotter and the table here
         self.plotter = AtomicPlotter(self, config=self.parent_gui.global_config)
-        self.plotter.enable_point_picking(callback=None, show_point=False, left_clicking=True)
+        self.plotter.enable_point_picking(
+            callback=None, show_point=False, left_clicking=True
+        )
         self.plotter.render_window.GetInteractor().AddObserver(
             "LeftButtonPressEvent", self._force_pick_callback
         )
@@ -98,7 +100,7 @@ class StructureTabWidget(QtWidgets.QWidget):
 
         # IMPROVED PROXIMITY SEARCH
         if not self.df_visible.empty:
-            xyz = self.df_visible[['x', 'y', 'z']].values
+            xyz = self.df_visible[["x", "y", "z"]].values
 
             # Calculation of distances between the clicked point in 3D space and all atoms
             distances = np.linalg.norm(xyz - picked_point, axis=1)
@@ -124,7 +126,7 @@ class StructureTabWidget(QtWidgets.QWidget):
         if self.df_visible.empty:
             return
 
-        xyz = self.df_visible[['x', 'y', 'z']].values
+        xyz = self.df_visible[["x", "y", "z"]].values
         distances = np.linalg.norm(xyz - point, axis=1)
 
         idx = np.argmin(distances)
@@ -150,32 +152,36 @@ class StructureTabWidget(QtWidgets.QWidget):
         # Updated 3D HIGHLIGHT (Variable Direction -> Plotter)
         self.update_selection_plot()
 
-        if hasattr(self.parent_gui, 'update_protonate_state'):
+        if hasattr(self.parent_gui, "update_protonate_state"):
             self.parent_gui.update_protonate_state()
 
         # Display in status bar
         atom = self.system.atoms.loc[real_idx]
         self.parent_gui.statusBar().showMessage(
-        f"Atom {real_idx} | Type: {atom['type']} | Pos: ({atom['x']:.2f}, {atom['y']:.2f}, {atom['z']:.2f})", 3000)
+            f"Atom {real_idx} | Type: {atom['type']} | Pos: ({atom['x']:.2f}, {atom['y']:.2f}, {atom['z']:.2f})",
+            3000,
+        )
 
-
-    def on_table_selection_changed(self,
-                                   selected: QtCore.QItemSelection,
-                                   deselected: QtCore.QItemSelection) -> None:
+    def on_table_selection_changed(
+        self, selected: QtCore.QItemSelection, deselected: QtCore.QItemSelection
+    ) -> None:
         """Synchronizes the 3D plotter selection highlight when rows are selected or deselected in the data table."""
         model = self.table.model()
-        if model is None: return
+        if model is None:
+            return
 
         rows = self.table.selectionModel().selectedRows()
         # Tab Truth List Update
-        self.selected_real_indices = [int(model.system_obj.atoms.index[r.row()]) for r in rows]
+        self.selected_real_indices = [
+            int(model.system_obj.atoms.index[r.row()]) for r in rows
+        ]
 
         # Visual update (the pink halo)
         self.update_selection_plot()
 
         # ---CRUCIAL CALL (NOW VIA PARENT) ---
         # tell the MainWindow: "Hey, my selection has changed, check if you need to activate the button"
-        if hasattr(self.parent_gui, 'update_protonate_state'):
+        if hasattr(self.parent_gui, "update_protonate_state"):
             self.parent_gui.update_protonate_state()
 
         # Visual refresh of the table
@@ -185,10 +191,10 @@ class StructureTabWidget(QtWidgets.QWidget):
         """Updates the 3D visualization by adding or removing highlight halos around selected atoms."""
         # retrieve all the actor names present in the renderer
         for actor_name in list(self.plotter.renderer.actors.keys()):
-            if actor_name.startswith('sel_') or actor_name == 'selection_highlight':
+            if actor_name.startswith("sel_") or actor_name == "selection_highlight":
                 self.plotter.remove_actor(actor_name)
 
-        if hasattr(self, 'topo_win') and self.topo_win.isVisible():
+        if hasattr(self, "topo_win") and self.topo_win.isVisible():
             self.topo_win.highlight_atoms_in_tables(self.selected_real_indices)
 
         if not self.selected_real_indices:
@@ -200,29 +206,29 @@ class StructureTabWidget(QtWidgets.QWidget):
         # Collect all positions at once
         positions = []
         point_sizes = []
-    
+
         for idx in self.selected_real_indices:
             atom = self.system.atoms.loc[idx]
-            atype = str(atom['type'])
-            positions.append([atom['x'], atom['y'], atom['z']])
+            atype = str(atom["type"])
+            positions.append([atom["x"], atom["y"], atom["z"]])
             base_radius = self.plotter.radius_map.get(atype, 1.5)
             point_sizes.append(base_radius * 20 * global_scale)
 
         # A single mesh for all selected atoms
         mesh = pv.PolyData(np.array(positions))
-    
+
         # PyVista does not support different point_sizes per point
         # We take the maximum size as a compromise
         selection_size = max(point_sizes)
 
         self.plotter.add_mesh(
             mesh,
-            color='pink',
+            color="pink",
             point_size=selection_size,
             render_points_as_spheres=True,
-            name='selection_highlight',  # ← only one name
+            name="selection_highlight",  # ← only one name
             reset_camera=False,
-            opacity=0.9
+            opacity=0.9,
         )
 
         self.plotter.render()
@@ -258,11 +264,12 @@ class StructureTabWidget(QtWidgets.QWidget):
 
         # ---THE CRUCIAL ADDITION: Scroll to the atom ---
         if first_index:
-            self.table.scrollTo(first_index, QtWidgets.QAbstractItemView.PositionAtCenter)
+            self.table.scrollTo(
+                first_index, QtWidgets.QAbstractItemView.PositionAtCenter
+            )
 
         sel_model.blockSignals(False)
         self.table.viewport().update()
-
 
     def delete_selected(self) -> None:
         """Removes the currently selected atoms from the atomic system and triggers a global UI synchronization."""
@@ -303,7 +310,7 @@ class StructureTabWidget(QtWidgets.QWidget):
     def on_data_changed(self, top_left, bottom_right=None):
         """Processes manual edits in the table cells to update atom coordinates or types within the underlying atomic system."""
         # Basic security
-        if getattr(self.parent_gui, '_is_syncing', False) or self.system is None:
+        if getattr(self.parent_gui, "_is_syncing", False) or self.system is None:
             return
 
         # CASE A: Forced refresh (exit BEFORE reading .row())
@@ -322,27 +329,31 @@ class StructureTabWidget(QtWidgets.QWidget):
             # Retrieving the real ID via column 0 (hidden or not)
             real_idx = model.index(row, 0).data(QtCore.Qt.ItemDataRole.DisplayRole)
 
-            cols_map = {1: 'type', 2: 'x', 3: 'y', 4: 'z', 5: 'charge'}
+            cols_map = {1: "type", 2: "x", 3: "y", 4: "z", 5: "charge"}
             col_name = cols_map.get(col)
             if not col_name:
                 return
 
             # ---UPDATE LOGIC ---
-            if col_name in ['x', 'y', 'z']:
+            if col_name in ["x", "y", "z"]:
                 new_val = model.data(top_left, QtCore.Qt.ItemDataRole.EditRole)
                 self.system.set_atom_position([real_idx], **{col_name: float(new_val)})
-                QtCore.QTimer.singleShot(10, lambda: self.parent_gui.sync_ui(full_rebuild=False))
+                QtCore.QTimer.singleShot(
+                    10, lambda: self.parent_gui.sync_ui(full_rebuild=False)
+                )
 
-            elif col_name == 'type':
+            elif col_name == "type":
                 new_val = model.data(top_left, QtCore.Qt.ItemDataRole.EditRole)
                 new_type = str(new_val)
                 self.system.set_type2atoms([real_idx], new_type)
                 # Gray by default [2026-03-08]
                 if new_type not in self.plotter.color_map:
                     self.plotter.color_map[new_type] = "gray"
-                QtCore.QTimer.singleShot(10, lambda: self.parent_gui.sync_ui(full_rebuild=True))
+                QtCore.QTimer.singleShot(
+                    10, lambda: self.parent_gui.sync_ui(full_rebuild=True)
+                )
 
-            # NOTE: For 'charge', do nothing! 
+            # NOTE: For 'charge', do nothing!
             # The model (setData) has already written to the DataFrame.
 
             # ---DELAYED UI SYNC ---
@@ -351,10 +362,12 @@ class StructureTabWidget(QtWidgets.QWidget):
         except Exception as e:
             print(f"Erreur d'édition dans l'onglet : {e}")
 
-    def refresh_tab_view(self,
-                     full_rebuild: bool = False,
-                     reset_camera: bool = False,
-                     refresh_bonds: bool = True) -> None:
+    def refresh_tab_view(
+        self,
+        full_rebuild: bool = False,
+        reset_camera: bool = False,
+        refresh_bonds: bool = True,
+    ) -> None:
         """Manages 3D drawing and synchronization between the UI and the Plotter."""
         if self.system is None or self.system.atoms.empty:
             return
@@ -371,7 +384,9 @@ class StructureTabWidget(QtWidgets.QWidget):
                 self.table.selectionModel().selectionChanged.disconnect()
             except:
                 pass
-            self.table.selectionModel().selectionChanged.connect(self.on_table_selection_changed)
+            self.table.selectionModel().selectionChanged.connect(
+                self.on_table_selection_changed
+            )
 
         # --- PHASE 2 : PLOTTER SETTINGS UPDATE ---
         f_panel = self.parent_gui.filter_panel
@@ -393,15 +408,19 @@ class StructureTabWidget(QtWidgets.QWidget):
 
         # Sync global config
         self.parent_gui.global_config = self.plotter.get_current_config_dict()
-        self.plotter.color_map.update(self.parent_gui._config_cache.get("color_map", {}))
-        self.plotter.radius_map.update(self.parent_gui._config_cache.get("radius_map", {}))
+        self.plotter.color_map.update(
+            self.parent_gui._config_cache.get("color_map", {})
+        )
+        self.plotter.radius_map.update(
+            self.parent_gui._config_cache.get("radius_map", {})
+        )
 
         # Visible atoms filter
         sel_types = [str(t) for t, cb in f_panel.checkboxes.items() if cb.isChecked()]
         if not sel_types:
-            sel_types = self.system.atoms['type'].astype(str).unique().tolist()
+            sel_types = self.system.atoms["type"].astype(str).unique().tolist()
         self.df_visible = self.system.atoms[
-            self.system.atoms['type'].astype(str).isin(sel_types)
+            self.system.atoms["type"].astype(str).isin(sel_types)
         ].copy()
 
         # --- PHASE 3 : 3D RENDERING ---
@@ -420,5 +439,3 @@ class StructureTabWidget(QtWidgets.QWidget):
             self.plotter.reset_camera()
 
         self.plotter.render()
-
-    

@@ -17,30 +17,34 @@
 
 from __future__ import annotations
 
-from scipy import integrate
-from tqdm import tqdm
-import numpy as np
-import pandas as pd
 import dask
 import MDAnalysis as mda
+import numpy as np
+import pandas as pd
+from scipy import integrate
+from tqdm import tqdm
 
 _AXIS_MAP = {
-    'x': {'axid': 0, 'axida': 1, 'axidb': 2},
-    'y': {'axid': 1, 'axida': 0, 'axidb': 2},
-    'z': {'axid': 2,'axida': 0, 'axidb': 1},
+    "x": {"axid": 0, "axida": 1, "axidb": 2},
+    "y": {"axid": 1, "axida": 0, "axidb": 2},
+    "z": {"axid": 2, "axida": 0, "axidb": 1},
 }
+
 
 def _get_axis_ids(axis: str) -> dict:
     if axis not in _AXIS_MAP:
         raise ValueError(f"axis must be 'x', 'y' or 'z', got '{axis}'")
     return _AXIS_MAP[axis]
 
-def density_profile(universe: mda.Universe, 
-              atom_types: list[str | int], 
-              axis: str = "z", 
-              start: int = 0, 
-              end: int = -1, 
-              bin_size: float = 0.1) -> pd.DataFrame:
+
+def density_profile(
+    universe: mda.Universe,
+    atom_types: list[str | int],
+    axis: str = "z",
+    start: int = 0,
+    end: int = -1,
+    bin_size: float = 0.1,
+) -> pd.DataFrame:
     """Create a DataFrame with the average density of atoms of given types along a given axis.
 
     Parameters
@@ -67,8 +71,8 @@ def density_profile(universe: mda.Universe,
     box = universe.dimensions
 
     ids = _get_axis_ids(axis)
-    axid = ids['axid']
-    axida, axidb = ids['axida'], ids['axidb']
+    axid = ids["axid"]
+    axida, axidb = ids["axida"], ids["axidb"]
     slice_vol = bin_size * box[axida] * box[axidb]
 
     bins = np.arange(0, box[axid], bin_size)
@@ -80,7 +84,7 @@ def density_profile(universe: mda.Universe,
 
         sel.universe.trajectory[frame_index]
 
-        posi = sel.positions[:,axid]
+        posi = sel.positions[:, axid]
 
         posi = posi % box[axid]
 
@@ -92,10 +96,9 @@ def density_profile(universe: mda.Universe,
         atom_types = np.unique(universe.atoms.types)
 
     for t in atom_types:
+        print(f"Compute 1D atomic density of {t} atoms...")
 
-        print("Compute 1D atomic density of {} atoms...".format(t))
-
-        sel = universe.select_atoms("type {}".format(t))
+        sel = universe.select_atoms(f"type {t}")
 
         # nframes = len(universe.trajectory[start:end])
 
@@ -103,11 +106,17 @@ def density_profile(universe: mda.Universe,
         # for frame_index in tqdm( range(nframes) ):
         #     job_list.append(dask.delayed(count_pframe)(frame_index, sel))
 
-        frames = range(len(universe.trajectory))[start:end] if end != -1 else range(len(universe.trajectory))[start:]
+        frames = (
+            range(len(universe.trajectory))[start:end]
+            if end != -1
+            else range(len(universe.trajectory))[start:]
+        )
         nframes = len(frames)
-        
+
         if nframes == 0:
-            raise ValueError("Le slice de la trajectoire [start:end] ne contient aucune frame.")
+            raise ValueError(
+                "Le slice de la trajectoire [start:end] ne contient aucune frame."
+            )
 
         job_list = []
         for frame_index in tqdm(frames):
@@ -120,18 +129,21 @@ def density_profile(universe: mda.Universe,
 
         density_total.append(density)
 
-        columns.append('{}'.format(t))
+        columns.append(f"{t}")
 
     return pd.DataFrame(np.array(density_total).T, columns=columns, index=pos)
 
-def density_map(univ: mda.Universe, 
-              atom_types: str | list[str | int],
-              interface_coordinate: float,
-              axis: str = "z",
-              eps: float = 3.0, 
-              start: int = 0, 
-              end: int = -1, 
-              bin_size: float = 0.1) -> pd.DataFrame:
+
+def density_map(
+    univ: mda.Universe,
+    atom_types: str | list[str | int],
+    interface_coordinate: float,
+    axis: str = "z",
+    eps: float = 3.0,
+    start: int = 0,
+    end: int = -1,
+    bin_size: float = 0.1,
+) -> pd.DataFrame:
     """Create a 2D density map of atoms within a specified distance of an interface.
 
     Parameters
@@ -163,30 +175,28 @@ def density_map(univ: mda.Universe,
 
     type_str = " ".join(atom_types) if isinstance(atom_types, list) else atom_types
     sel = univ.select_atoms(
-        f"type {type_str} and prop {axis} < {interface_coordinate + eps}",
-        updating=True
+        f"type {type_str} and prop {axis} < {interface_coordinate + eps}", updating=True
     )
 
     ids = _get_axis_ids(axis)
-    axida, axidb = ids['axida'], ids['axidb']
+    axida, axidb = ids["axida"], ids["axidb"]
     bins_a = np.arange(0, box[axida], bin_size)
     bins_b = np.arange(0, box[axidb], bin_size)
     slice_vol = bin_size * box[axida] * box[axidb]
 
     nframes = len(univ.trajectory[start:end])
 
-    print("Compute 2D atomic density of {} atoms...".format(type_str))
+    print(f"Compute 2D atomic density of {type_str} atoms...")
 
     pos_a_list, pos_b_list = [], []
-    for ts in tqdm( univ.trajectory[start:end] ):
-
-        posi, posj = sel.positions[:,axida], sel.positions[:,axidb]
+    for ts in tqdm(univ.trajectory[start:end]):
+        posi, posj = sel.positions[:, axida], sel.positions[:, axidb]
 
         posi = sel.positions[:, axida] % box[axida]
         posj = sel.positions[:, axidb] % box[axidb]
 
-        pos_a_list.append(posi)        
-        pos_b_list.append(posj) 
+        pos_a_list.append(posi)
+        pos_b_list.append(posj)
 
     pos_a = np.concatenate(pos_a_list)
     pos_b = np.concatenate(pos_b_list)
@@ -201,10 +211,9 @@ def density_map(univ: mda.Universe,
     return pd.DataFrame(density, index=ra, columns=rb)
 
 
-def find_interfaces_coordinates(input_df: pd.DataFrame,
-               solid_types: list[str | int], 
-               liquid_types: list[str | int]
-               ) -> tuple[float, float, float, float]:
+def find_interfaces_coordinates(
+    input_df: pd.DataFrame, solid_types: list[str | int], liquid_types: list[str | int]
+) -> tuple[float, float, float, float]:
     """Calculate the solid/liquid interface coordinates for an interfacial system.
 
     Parameters
@@ -219,7 +228,7 @@ def find_interfaces_coordinates(input_df: pd.DataFrame,
     Returns
     -------
     tuple
-        Left liquid interface, left solid interface, right solid interface, 
+        Left liquid interface, left solid interface, right solid interface,
         and right liquid interface coordinates.
     """
 
@@ -239,9 +248,9 @@ def find_interfaces_coordinates(input_df: pd.DataFrame,
     return solution_left, solid_left, solid_right, solution_right
 
 
-def shift_profile(input_df: pd.DataFrame, 
-                  shift: float, 
-                  csv_output: str = "new_density_profile.csv"):
+def shift_profile(
+    input_df: pd.DataFrame, shift: float, csv_output: str = "new_density_profile.csv"
+):
     """Shift the coordinates of a 1D density profile.
 
     Parameters
@@ -270,7 +279,7 @@ def shift_profile(input_df: pd.DataFrame,
     idx = int(shift / dr)
     new_densities = np.roll(densities, idx, axis=0)
 
-    new_data = np.hstack((r.reshape(r.size,1), new_densities))
+    new_data = np.hstack((r.reshape(r.size, 1), new_densities))
 
     output_df = pd.DataFrame(new_data, columns=columns)
 
@@ -279,9 +288,10 @@ def shift_profile(input_df: pd.DataFrame,
 
     return output_df
 
-def electrostatic_potential(input_df: pd.DataFrame, 
-               list_charges: list[float]
-               ) -> tuple[pd.Series, pd.Series, pd.Series]:
+
+def electrostatic_potential(
+    input_df: pd.DataFrame, list_charges: list[float]
+) -> tuple[pd.Series, pd.Series, pd.Series]:
     """Calculate charge distribution, electric field, and electrostatic potential.
 
     Parameters
@@ -301,21 +311,20 @@ def electrostatic_potential(input_df: pd.DataFrame,
         Calculated electrostatic potential profile.
     """
 
-    def shift_constant(array: np.ndarray, threshold: float=0.1
-                       ) -> np.ndarray:
+    def shift_constant(array: np.ndarray, threshold: float = 0.1) -> np.ndarray:
         """Shifts the array by subtracting the mean of its constant (flat) regions.
 
         This function automatically detects stationary or flat regions within a 1D signal by analyzing relative consecutive differences. It computes the average intensity of the signal across these stable baselines and subtracts it from the entire array, effectively centering the baseline/background around zero.
 
         Parameters
         ----------
-            array 
+            array
             The 1D input array containing the signal to be corrected.
             threshold
             The maximum relative difference between consecutive elements to consider a region as 'constant' or flat. Evaluated after scaling the array by its maximum value.
 
         Returns:
-            np.ndarray: The baseline-corrected array where the flat regions 
+            np.ndarray: The baseline-corrected array where the flat regions
                 are centered around zero.
 
         Example:
@@ -324,21 +333,21 @@ def electrostatic_potential(input_df: pd.DataFrame,
             array([-0.025,  0.075, -0.025, 14.975, 39.975,  0.175, -0.025])
         """
 
-        narr = array/array.max()
+        narr = array / array.max()
         # Calculate the absolute differences between consecutive elements
         differences = np.abs(np.diff(narr))
-        
+
         # Identify indices where the difference is within the threshold
         constant_indices = np.where(differences <= threshold)[0]
-        
+
         # Adjust indices to include the next element in the array
         constant_indices = np.append(constant_indices, constant_indices + 1)
-        
+
         # Get unique indices and sort them
         constant_indices = np.unique(constant_indices)
 
         result_array = array - np.mean(array[constant_indices])
-        
+
         return result_array
 
     charge = np.array(list_charges)
@@ -346,18 +355,18 @@ def electrostatic_potential(input_df: pd.DataFrame,
     r = input_df.index
     dr = (r[1] - r[0]) * 1e-10
 
-    charge_density = np.sum(input_df.values * charge.T, axis = 1)
+    charge_density = np.sum(input_df.values * charge.T, axis=1)
     charge_density_series = pd.Series(charge_density, index=r)
-    
-    efield = integrate.cumulative_trapezoid(charge_density * 1.602e-19 * 1e27, dx = dr) / 8.854e-12
+
+    efield = (
+        integrate.cumulative_trapezoid(charge_density * 1.602e-19 * 1e27, dx=dr)
+        / 8.854e-12
+    )
     r = (r[1:] + r[:-1]) / 2
     efield_series = pd.Series(shift_constant(efield), index=r)
 
-    potential = - integrate.cumulative_trapezoid(efield, dx = dr)
+    potential = -integrate.cumulative_trapezoid(efield, dx=dr)
     r = (r[1:] + r[:-1]) / 2
     potential_series = pd.Series(shift_constant(potential), index=r)
 
     return charge_density_series, efield_series, potential_series
-
-
-

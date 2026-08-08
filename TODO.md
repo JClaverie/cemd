@@ -1,5 +1,7 @@
 - améliorer/rendre plus clean les builders
 - Implémentation de TO_CASH
+- Il faut améliorer l'update du USER_FF_DB avec l'implémentation d'un nouveau
+- Améliorer l'implémentation automatique des dihedrals par les liaisons
 
 
 cd /home/jerome/Documents/Recherche/Codes/cemd

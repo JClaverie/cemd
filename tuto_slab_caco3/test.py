@@ -2,12 +2,9 @@
 Script pour générer la surface (10-14) de la calcite à partir d'un fichier CIF.
 """
 
-import numpy as np
-from pymatgen.core import Structure
-from pymatgen.io.cif import CifParser
 from pymatgen.core.surface import SlabGenerator
+from pymatgen.io.cif import CifParser
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
-from pymatgen.io.xyz import XYZ
 
 
 def generate_calcite_surface(
@@ -17,7 +14,7 @@ def generate_calcite_surface(
     min_vacuum_size: float = 15.0,
     max_broken_bonds: int = 10,
     symmetrize: bool = True,
-    output_file: str = "calcite_10-14_slab.cif"
+    output_file: str = "calcite_10-14_slab.cif",
 ):
     """
     Génère une surface de calcite à partir d'un fichier CIF.
@@ -48,15 +45,10 @@ def generate_calcite_surface(
     print("Génération de la surface (10-14) de la calcite")
     print("=" * 60)
 
+
 """
 Script corrigé pour générer la surface (10-14) de la calcite.
 """
-
-import numpy as np
-from pymatgen.core import Structure
-from pymatgen.io.cif import CifParser
-from pymatgen.core.surface import SlabGenerator
-from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 
 
 def generate_calcite_surface(
@@ -64,9 +56,9 @@ def generate_calcite_surface(
     miller_indices=(1, 0, 4),
     min_slab_size: float = 20.0,  # Réduit
     min_vacuum_size: float = 15.0,
-    max_broken_bonds: int = 20,   # Augmenté
-    symmetrize: bool = False,     # Désactivé pour commencer
-    output_file: str = "calcite_10-14_slab.cif"
+    max_broken_bonds: int = 20,  # Augmenté
+    symmetrize: bool = False,  # Désactivé pour commencer
+    output_file: str = "calcite_10-14_slab.cif",
 ):
     """
     Génère une surface de calcite avec des paramètres optimisés.
@@ -79,12 +71,12 @@ def generate_calcite_surface(
     print(f"\n1. Chargement du fichier CIF: {cif_path}")
     parser = CifParser(cif_path)
     structure = parser.parse_structures()[0]
-    
+
     # Raffiner la structure
     print("   Raffinement de la structure...")
     analyzer = SpacegroupAnalyzer(structure)
     structure = analyzer.get_refined_structure()
-    
+
     print(f"   Structure: {structure.formula}")
     print(f"   Groupe d'espace: {structure.get_space_group_info()[0]}")
     print(f"   Nombre d'atomes: {len(structure)}")
@@ -188,7 +180,7 @@ def generate_calcite_surface(
     # 6. Sélectionner le meilleur slab
     best_slab = all_slabs[0]
     best_dipole = abs(best_slab.dipole[2]) if hasattr(best_slab, "dipole") else 0
-    
+
     for slab in all_slabs[1:]:
         dipole = abs(slab.dipole[2]) if hasattr(slab, "dipole") else 0
         if dipole < best_dipole:
@@ -226,5 +218,6 @@ def save_lammps_data(slab, output_file="calcite_10-14_slab.lmp"):
     print(f"  Nombre d'atomes: {len(slab)}")
     print(f"  Volume: {slab.volume:.2f} Å³")
     print(f"  Densité: {slab.density:.2f} g/cm³")
+
 
 generate_calcite_surface("9016705.cif")

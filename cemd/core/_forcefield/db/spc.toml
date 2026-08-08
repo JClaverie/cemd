@@ -1,0 +1,91 @@
+# spc.toml
+# Simple Point Charge water model
+# Reference: https://doi.org/10.1021/j100308a038
+
+[model]
+name = "SPC"
+reference = "https://doi.org/10.1021/j100308a038"
+description = "Simple Point Charge water model"
+
+# ============================================================
+# Atom Types
+# ============================================================
+
+[atom]
+
+[atom.hspc]
+element = "H"
+charge = 0.41
+environment = "water hydrogen"
+ref = "https://doi.org/10.1021/j100308a038"
+
+[atom.ospc]
+element = "O"
+charge = -0.82
+environment = "water oxygen"
+ref = "https://doi.org/10.1021/j100308a038"
+
+[atom.hhspc]
+element = "H"
+charge = 0.41
+environment = "aqueous hydroxide ion"
+ref = ""
+
+[atom.ohspc]
+element = "O"
+charge = -1.41
+environment = "aqueous hydroxide ion"
+ref = ""
+
+# ============================================================
+# Lennard-Jones 12-6 Parameters
+# ============================================================
+
+[lj]
+
+[lj."hspc-hspc"]
+epsilon = 0
+sigma = 0
+ref = "https://doi.org/10.1021/j100308a038"
+
+[lj."ospc-ospc"]
+epsilon = 0.15535
+sigma = 3.166
+ref = "https://doi.org/10.1021/j100308a038"
+
+[lj."hhspc-hhspc"]
+epsilon = 0
+sigma = 0
+ref = "https://doi.org/10.1021/j100308a038"
+
+[lj."ohspc-ohspc"]
+epsilon = 0.15535
+sigma = 3.166
+ref = "https://doi.org/10.1021/j100308a038"
+
+# ============================================================
+# Bond Parameters
+# ============================================================
+
+[bond.harmonic]
+
+[bond.harmonic."hspc-ospc"]
+k = 554.1349
+r0 = 1.0
+ref = "https://doi.org/10.1021/j100308a038"
+
+[bond.harmonic."hhspc-ohspc"]
+k = 554.1349
+r0 = 1.0
+ref = "https://doi.org/10.1021/j100308a038"
+
+# ============================================================
+# Angle Parameters
+# ============================================================
+
+[angle.harmonic]
+
+[angle.harmonic."hspc-ospc-hspc"]
+k = 45.7696
+theta0 = 109.47
+ref = "https://doi.org/10.1021/j100308a038"

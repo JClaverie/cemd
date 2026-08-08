@@ -19,6 +19,6 @@ import os
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-FF_DATABASE_DIR = os.path.join(BASE_DIR, "_data", "forcefields")
-STRUCTURES_DIR = os.path.join(BASE_DIR, "_data", "structures")
+FF_DATABASE_DIR = os.path.join(BASE_DIR, "core", "_forcefield", "db")
+STRUCTURES_DIR = os.path.join(BASE_DIR, "build", "_structures")
 PYCSH_DIR = os.path.join(BASE_DIR, "build", "pyCSH-main")

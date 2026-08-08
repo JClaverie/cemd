@@ -392,6 +392,9 @@
 <li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.set_bond_params.html">AtomicSystem.set_bond_params</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.set_angle_params.html">AtomicSystem.set_angle_params</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.apply_pair_mixing_rules.html">AtomicSystem.apply_pair_mixing_rules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.add_structure.html">AtomicSystem.add_structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.add_liquid_layer.html">AtomicSystem.add_liquid_layer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.add_droplet.html">AtomicSystem.add_droplet</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.add_atom.html">AtomicSystem.add_atom</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.add_atoms.html">AtomicSystem.add_atoms</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.protonate_atom.html">AtomicSystem.protonate_atom</a></li>
@@ -408,15 +411,11 @@
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../build.html">Build Module</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l2"><a class="reference internal" href="cemd.build.build_csh.html">build_csh</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cemd.build.build_solution.html">build_solution</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cemd.build.build_glass.html">build_glass</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cemd.build.add_structure.html">add_structure</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cemd.build.add_liquid.html">add_liquid</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cemd.build.add_droplet.html">add_droplet</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cemd.build.build_surfaces.html">build_surfaces</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cemd.build.merge.html">merge</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cemd.build.split.html">split</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cemd.build.SolutionBuilder.html">cemd.build.SolutionBuilder</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cemd.build.SurfaceBuilder.html">cemd.build.SurfaceBuilder</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cemd.build.Splitter.html">cemd.build.Splitter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cemd.build.GlassBuilder.html">cemd.build.GlassBuilder</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cemd.build.CSHBuilder.html">cemd.build.CSHBuilder</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../analysis.html">Analysis Module</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -494,22 +493,50 @@
 <h1>AtomicSystem.keep_connection_types<a class="headerlink" href="#atomicsystem-keep-connection-types" title="Link to this heading">#</a></h1>
 <dl class="py method">
 <dt class="sig sig-object py" id="cemd.core.atomic_system.AtomicSystem.keep_connection_types">
-<span class="sig-prename descclassname"><span class="pre">AtomicSystem.</span></span><span class="sig-name descname"><span class="pre">keep_connection_types</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bond_types</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">angle_types</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dihedral_types</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">improper_types</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cemd.core.atomic_system.AtomicSystem.keep_connection_types" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">AtomicSystem.</span></span><span class="sig-name descname"><span class="pre">keep_connection_types</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bond_types</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">angle_types</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dihedral_types</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">improper_types</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cemd.core.atomic_system.AtomicSystem.keep_connection_types" title="Link to this definition">#</a></dt>
 <dd><p>Keep only the specified connection types and remove all others.</p>
+<p>This method filters the topology of the system by retaining only the
+specified bond, angle, dihedral, and improper types. All connection
+types not listed will be removed from the system.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>bond_types</strong><span class="classifier">Sequence[str | int]</span></dt><dd><p>Bond types to keep.</p>
+<dt><strong>bond_types</strong><span class="classifier">Sequence[str | int], optional</span></dt><dd><p>Bond types to keep. Can be specified as type names (str) or type
+indices (int). If None, all bonds are removed.</p>
 </dd>
-<dt><strong>angle_types</strong><span class="classifier">Sequence[str | int]</span></dt><dd><p>Angle types to keep.</p>
+<dt><strong>angle_types</strong><span class="classifier">Sequence[str | int], optional</span></dt><dd><p>Angle types to keep. Can be specified as type names (str) or type
+indices (int). If None, all angles are removed.</p>
 </dd>
-<dt><strong>dihedral_types</strong><span class="classifier">Sequence[str | int]</span></dt><dd><p>Dihedral types to keep.</p>
+<dt><strong>dihedral_types</strong><span class="classifier">Sequence[str | int], optional</span></dt><dd><p>Dihedral types to keep. Can be specified as type names (str) or type
+indices (int). If None, all dihedrals are removed.</p>
 </dd>
-<dt><strong>improper_types</strong><span class="classifier">Sequence[str | int]</span></dt><dd><p>Improper types to keep.</p>
+<dt><strong>improper_types</strong><span class="classifier">Sequence[str | int], optional</span></dt><dd><p>Improper types to keep. Can be specified as type names (str) or type
+indices (int). If None, all impropers are removed.</p>
 </dd>
 </dl>
 </dd>
 </dl>
+<p class="rubric">Notes</p>
+<ul class="simple">
+<li><p>If a connection type is specified as a string, it will match the
+type name in the topology.</p></li>
+<li><p>If specified as an integer, it will match the type index (1-based).</p></li>
+<li><p>This operation modifies the system in place.</p></li>
+</ul>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Keep only Si-O bonds and H-O-H angles</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">system</span><span class="o">.</span><span class="n">keep_connection_types</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">bond_types</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Si-O&#39;</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="n">angle_types</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;H-O-H&#39;</span><span class="p">]</span>
+<span class="gp">... </span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Keep bonds of type 1 and 2 only</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">system</span><span class="o">.</span><span class="n">keep_connection_types</span><span class="p">(</span><span class="n">bond_types</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Remove all bonds but keep all angles</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">system</span><span class="o">.</span><span class="n">keep_connection_types</span><span class="p">(</span><span class="n">bond_types</span><span class="o">=</span><span class="p">[],</span> <span class="n">angle_types</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+</pre></div>
+</div>
 </dd></dl>
 
 </section>

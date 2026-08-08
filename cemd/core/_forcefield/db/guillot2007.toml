@@ -1,0 +1,130 @@
+# guillot2007.toml
+# Force field parameters for Guillot & Sator 2007
+# Reference: https://doi.org/10.1016/j.gca.2006.11.015
+
+[model]
+name = "Guillot & Sator 2007"
+reference = "https://doi.org/10.1016/j.gca.2006.11.015"
+description = "Force field for silica melts"
+
+# ============================================================
+# Atom Types
+# ============================================================
+
+[atom]
+
+[atom.alsm]
+element = "Al"
+charge = 1.4175
+environment = "aluminium in silica melt"
+ref = "https://doi.org/10.1016/j.gca.2006.11.015"
+
+[atom.casm]
+element = "Ca"
+charge = 0.945
+environment = "calcium in silica melt"
+ref = "https://doi.org/10.1016/j.gca.2006.11.015"
+
+[atom.fe2sm]
+element = "Fe"
+charge = 0.945
+environment = "fe2+ in silica melt"
+ref = "https://doi.org/10.1016/j.gca.2006.11.015"
+
+[atom.fe3sm]
+element = "Fe"
+charge = 1.4175
+environment = "fe3+ in silica melt"
+ref = "https://doi.org/10.1016/j.gca.2006.11.015"
+
+[atom.ksm]
+element = "K"
+charge = 0.4725
+environment = "potassium in silica melt"
+ref = "https://doi.org/10.1016/j.gca.2006.11.015"
+
+[atom.mgsm]
+element = "Mg"
+charge = 0.945
+environment = "magnesium in silica melt"
+ref = "https://doi.org/10.1016/j.gca.2006.11.015"
+
+[atom.nasm]
+element = "Na"
+charge = 0.4725
+environment = "sodium in silica melt"
+ref = "https://doi.org/10.1016/j.gca.2006.11.015"
+
+[atom.osm]
+element = "O"
+charge = -0.945
+environment = "oxygen in silica melt"
+ref = "https://doi.org/10.1016/j.gca.2006.11.015"
+
+[atom.sism]
+element = "Si"
+charge = 1.89
+environment = "silicium in silica melt"
+ref = "https://doi.org/10.1016/j.gca.2006.11.015"
+
+[atom.tism]
+element = "Ti"
+charge = 1.89
+environment = "titanium in silica melt"
+ref = "https://doi.org/10.1016/j.gca.2006.11.015"
+
+# ============================================================
+# Buckingham Parameters
+# ============================================================
+
+[buckingham]
+
+[buckingham."osm-osm"]
+A = 208071.223709369
+rho = 0.265
+C = 1962.27772466539
+
+[buckingham."sism-osm"]
+A = 1160089.74665392
+rho = 0.161
+C = 1067.65535372849
+
+[buckingham."tism-osm"]
+A = 1155950.04780115
+rho = 0.178
+C = 1067.65535372849
+
+[buckingham."alsm-osm"]
+A = 658112.882409178
+rho = 0.172
+C = 797.385277246654
+
+[buckingham."fe3sm-osm"]
+A = 184952.198852772
+rho = 0.19
+C = 0
+
+[buckingham."fe2sm-osm"]
+A = 300546.988527725
+rho = 0.19
+C = 0
+
+[buckingham."mgsm-osm"]
+A = 752989.340344168
+rho = 0.178
+C = 629.115678776291
+
+[buckingham."casm-osm"]
+A = 3589789.45984704
+rho = 0.178
+C = 974.533938814531
+
+[buckingham."nasm-osm"]
+A = 2774279.99521989
+rho = 0.17
+C = 0
+
+[buckingham."ksm-osm"]
+A = 52688.1931166348
+rho = 0.29
+C = 0

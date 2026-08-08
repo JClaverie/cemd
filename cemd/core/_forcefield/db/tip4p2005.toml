@@ -1,0 +1,64 @@
+# tip4p2005.toml
+# Transferable Intermolecular Potential 4-point water model (2005)
+# Reference: https://doi.org/10.1063/1.2121687
+
+[model]
+name = "TIP4P-2005"
+reference = "https://doi.org/10.1063/1.2121687"
+description = "Transferable Intermolecular Potential 4-point water model (2005)"
+
+# ============================================================
+# Atom Types
+# ============================================================
+
+[atom]
+
+[atom.htp4p2]
+element = "H"
+charge = 0.5564
+environment = "water hydrogen"
+ref = "https://doi.org/10.1063/1.2121687"
+
+[atom.otp4p2]
+element = "O"
+charge = -1.1128
+environment = "water oxygen"
+ref = "https://doi.org/10.1063/1.2121687"
+
+# ============================================================
+# Lennard-Jones 12-6 Parameters
+# ============================================================
+
+[lj]
+
+[lj."htp4p2-htp4p2"]
+epsilon = 0
+sigma = 0
+ref = "https://doi.org/10.1063/1.2121687"
+
+[lj."otp4p2-otp4p2"]
+epsilon = 0.1852
+sigma = 3.1589
+ref = "https://doi.org/10.1063/1.2121687"
+
+# ============================================================
+# Bond Parameters
+# ============================================================
+
+[bond.harmonic]
+
+[bond.harmonic."htp4p2-otp4p2"]
+k = 0
+r0 = 0.9572
+ref = "https://doi.org/10.1063/1.2121687"
+
+# ============================================================
+# Angle Parameters
+# ============================================================
+
+[angle.harmonic]
+
+[angle.harmonic."htp4p2-otp4p2-htp4p2"]
+k = 0
+theta0 = 104.52
+ref = "https://doi.org/10.1063/1.2121687"

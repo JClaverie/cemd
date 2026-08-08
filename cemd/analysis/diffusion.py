@@ -17,23 +17,24 @@
 
 from __future__ import annotations
 
+import matplotlib.pyplot as plt
+import MDAnalysis as mda
 import numpy as np
 import pandas as pd
-import MDAnalysis as mda
 import scipy.stats as stats
-import matplotlib.pyplot as plt
 from tqdm import tqdm
 
 from .._utils import lattice2vectors
 
-def _linear_fit(t: np.ndarray, 
-                msd: np.ndarray, 
-                sigma_msd: np.ndarray=None) -> tuple[float, float]:
+
+def _linear_fit(
+    t: np.ndarray, msd: np.ndarray, sigma_msd: np.ndarray = None
+) -> tuple[float, float]:
 
     if sigma_msd is not None:
         w = 1 / sigma_msd
 
-        fit, cov_matrix = np.polyfit(t, msd, 1, w=w, cov='unscaled')
+        fit, cov_matrix = np.polyfit(t, msd, 1, w=w, cov="unscaled")
 
     else:
         fit, cov_matrix = np.polyfit(t, msd, 1, cov=True)
@@ -51,12 +52,14 @@ def _linear_fit(t: np.ndarray,
     return m, ci_m
 
 
-def msd(univ: mda.Universe, 
-             atom_type: str, 
-             dt: float=100.0, 
-             nblocks: int=None, 
-             corrlength: int=None, 
-             gaplength: int=None) -> pd.DataFrame:
+def msd(
+    univ: mda.Universe,
+    atom_type: str,
+    dt: float = 100.0,
+    nblocks: int = None,
+    corrlength: int = None,
+    gaplength: int = None,
+) -> pd.DataFrame:
     """Calculate the diffusion coefficient in a bulk solution from the mean squared displacement (MSD).
 
     Uses Einstein's equation:
@@ -83,7 +86,7 @@ def msd(univ: mda.Universe,
         DataFrame containing MSD values over time.
     """
 
-    sel = univ.select_atoms("type {}".format(atom_type))
+    sel = univ.select_atoms(f"type {atom_type}")
     box = univ.dimensions
 
     if nblocks == None or corrlength == None or gaplength == None:
@@ -91,41 +94,46 @@ def msd(univ: mda.Universe,
         gaplength = int(len(univ.trajectory) / 50)
         if gaplength == 0:
             gaplength = 1
-            print("Warning: The trajectory is too short so the gap between blocks was set to 1.")
-        nblocks = int( (len(univ.trajectory) - corrlength) / gaplength )
-        
-    if (gaplength * nblocks + corrlength) > len(univ.trajectory):
-        raise ValueError("Gap between correlation block, correlation length, or number of block too large.")
+            print(
+                "Warning: The trajectory is too short so the gap between blocks was set to 1."
+            )
+        nblocks = int((len(univ.trajectory) - corrlength) / gaplength)
 
-    print("Compute the profile of the mean-squared displacement on {} {} atoms...".format(len(sel), atom_type))   
-    print("Total number of frames: {}".format(len(univ.trajectory)))
-    print("Timestep between frames: {} fs".format(dt))
-    print("Number of blocks for calculation: {}".format(nblocks))
-    print("Length of blocks: {} frames / {:.2f} ps".format(
-        corrlength, corrlength * dt * 1e-3))
-    print("Length between origins: {} frames / {:.2f} ps\n".format(
-        gaplength, gaplength * dt * 1e-3))
+    if (gaplength * nblocks + corrlength) > len(univ.trajectory):
+        raise ValueError(
+            "Gap between correlation block, correlation length, or number of block too large."
+        )
+
+    print(
+        f"Compute the profile of the mean-squared displacement on {len(sel)} {atom_type} atoms..."
+    )
+    print(f"Total number of frames: {len(univ.trajectory)}")
+    print(f"Timestep between frames: {dt} fs")
+    print(f"Number of blocks for calculation: {nblocks}")
+    print(f"Length of blocks: {corrlength} frames / {corrlength * dt * 1e-3:.2f} ps")
+    print(
+        f"Length between origins: {gaplength} frames / {gaplength * dt * 1e-3:.2f} ps\n"
+    )
 
     if nblocks > 1:
-        starts = np.arange(0, nblocks * gaplength , gaplength)
+        starts = np.arange(0, nblocks * gaplength, gaplength)
         ends = starts + corrlength
-    else: 
+    else:
         starts = np.array([0])
         ends = np.array([corrlength])
-    
-    t = np.arange(0, corrlength, 1) * dt / 1000 # time in picosecond
+
+    t = np.arange(0, corrlength, 1) * dt / 1000  # time in picosecond
 
     msd_dic = {
-    'xx': [],
-    'yy': [],
-    'zz': [],
-    'xy': [],
-    'xz': [],
-    'yz': [],
+        "xx": [],
+        "yy": [],
+        "zz": [],
+        "xy": [],
+        "xz": [],
+        "yz": [],
     }
 
-    for i, (start, end) in enumerate( tqdm(zip(starts, ends), total=len(starts)), 1):
-
+    for i, (start, end) in enumerate(tqdm(zip(starts, ends), total=len(starts)), 1):
         # initialize the trajectory
         univ.trajectory[start]
 
@@ -138,7 +146,6 @@ def msd(univ: mda.Universe,
         msd_values = {key: [] for key in msd_dic.keys()}
 
         for ts in univ.trajectory[start:end]:
-
             # collect positions w.r.t the center of mass to remove the drift
             pos = sel.positions
             r = pos - np.mean(pos, axis=0)
@@ -147,17 +154,17 @@ def msd(univ: mda.Universe,
             dd = r - rr
 
             # Taking PBC into account
-            dd -= box[:3].T * (dd/box[:3].T).round()
+            dd -= box[:3].T * (dd / box[:3].T).round()
 
             # Add the the differential displacement to the total displacement
             d += dd
 
-            msd_values['xx'].append(np.mean(d[:, 0] * d[:, 0]))
-            msd_values['yy'].append(np.mean(d[:, 1] * d[:, 1]))
-            msd_values['zz'].append(np.mean(d[:, 2] * d[:, 2]))
-            msd_values['xy'].append(np.mean(d[:, 0] * d[:, 1]))
-            msd_values['xz'].append(np.mean(d[:, 0] * d[:, 2]))
-            msd_values['yz'].append(np.mean(d[:, 1] * d[:, 2]))
+            msd_values["xx"].append(np.mean(d[:, 0] * d[:, 0]))
+            msd_values["yy"].append(np.mean(d[:, 1] * d[:, 1]))
+            msd_values["zz"].append(np.mean(d[:, 2] * d[:, 2]))
+            msd_values["xy"].append(np.mean(d[:, 0] * d[:, 1]))
+            msd_values["xz"].append(np.mean(d[:, 0] * d[:, 2]))
+            msd_values["yz"].append(np.mean(d[:, 1] * d[:, 2]))
 
             # save last frame position w.r.t the center of mass to remove the drift
             rr = r
@@ -165,24 +172,24 @@ def msd(univ: mda.Universe,
         for key, values in msd_values.items():
             msd_dic[key].append(np.array(values))
 
-    data_dic = {
-        key: np.mean(values, axis=0) for key, values in msd_dic.items()
-    }
+    data_dic = {key: np.mean(values, axis=0) for key, values in msd_dic.items()}
 
-    dfo = pd.DataFrame(data_dic, index = t)
-    dfo.index.name = 'time'
+    dfo = pd.DataFrame(data_dic, index=t)
+    dfo.index.name = "time"
 
     return dfo
 
 
-def msd_profile(univ: mda.Universe, 
-                atom_type: str, 
-                dt: int=100, 
-                axis: str='z', 
-                nblocks: int=None, 
-                corrlength: int=100, 
-                gaplength: int=100, 
-                delta: float=1.0) -> tuple[pd.MultiIndex, pd.MultiIndex]:
+def msd_profile(
+    univ: mda.Universe,
+    atom_type: str,
+    dt: int = 100,
+    axis: str = "z",
+    nblocks: int = None,
+    corrlength: int = 100,
+    gaplength: int = 100,
+    delta: float = 1.0,
+) -> tuple[pd.MultiIndex, pd.MultiIndex]:
     """Calculate a profile of diffusion coefficients at a liquid/solid interface.
 
     Parameters
@@ -213,32 +220,34 @@ def msd_profile(univ: mda.Universe,
     dict
         Coordinate variation during measurement.
     """
-    
-    sel = univ.select_atoms("type {}".format(atom_type))
+
+    sel = univ.select_atoms(f"type {atom_type}")
     box = univ.dimensions
     boxv = lattice2vectors(box)
 
     if nblocks == None:
-        nblocks = int( (len(univ.trajectory) - corrlength) / gaplength)
-   
+        nblocks = int((len(univ.trajectory) - corrlength) / gaplength)
+
     if (gaplength * nblocks + corrlength) > len(univ.trajectory):
-        raise Exception("Gap between correlation block, correlation length, or number of block too large.")
+        raise Exception(
+            "Gap between correlation block, correlation length, or number of block too large."
+        )
 
     if nblocks > 1:
-        starts = np.arange(0, nblocks * gaplength , gaplength)
+        starts = np.arange(0, nblocks * gaplength, gaplength)
         ends = starts + corrlength
-    else: 
+    else:
         starts = np.array([0])
         ends = np.array([corrlength])
 
-    print("Compute the profile of the mean-squared displacement on {} {} atoms along the {} axis...".format(len(sel), atom_type, axis))   
-    print("Total number of frames: {}".format(len(univ.trajectory)))
-    print("Timestep between frames: {} fs".format(dt))
-    print("Number of blocks: {}".format(nblocks))
-    print("Length of blocks: {} frames / {} ps".format(
-        corrlength, corrlength*dt*1e-3))
-    print("Gap between origins: {} frames / {} ps\n".format(
-        gaplength, gaplength*dt*1e-3)) 
+    print(
+        f"Compute the profile of the mean-squared displacement on {len(sel)} {atom_type} atoms along the {axis} axis..."
+    )
+    print(f"Total number of frames: {len(univ.trajectory)}")
+    print(f"Timestep between frames: {dt} fs")
+    print(f"Number of blocks: {nblocks}")
+    print(f"Length of blocks: {corrlength} frames / {corrlength * dt * 1e-3} ps")
+    print(f"Gap between origins: {gaplength} frames / {gaplength * dt * 1e-3} ps\n")
 
     if axis == "x":
         axid = 0
@@ -259,52 +268,51 @@ def msd_profile(univ: mda.Universe,
     # std_pos = np.array([], dtype=np.float64)
 
     msd_per_block = {
-    'xx': [],
-    'yy': [],
-    'zz': [],
-    'xy': [],
-    'xz': [],
-    'yz': [],
+        "xx": [],
+        "yy": [],
+        "zz": [],
+        "xy": [],
+        "xz": [],
+        "yz": [],
     }
 
     msd_df_dic = {
-    'xx': [],
-    'yy': [],
-    'zz': [],
-    'xy': [],
-    'xz': [],
-    'yz': [],
+        "xx": [],
+        "yy": [],
+        "zz": [],
+        "xy": [],
+        "xz": [],
+        "yz": [],
     }
 
     std_df_dic = {
-    'xx': [],
-    'yy': [],
-    'zz': [],
-    'xy': [],
-    'xz': [],
-    'yz': [],
+        "xx": [],
+        "yy": [],
+        "zz": [],
+        "xy": [],
+        "xz": [],
+        "yz": [],
     }
 
     error_df_dic = {
-    'xx': [],
-    'yy': [],
-    'zz': [],
-    'xy': [],
-    'xz': [],
-    'yz': [],
+        "xx": [],
+        "yy": [],
+        "zz": [],
+        "xy": [],
+        "xz": [],
+        "yz": [],
     }
 
-    for i, (start, end) in enumerate( tqdm(zip(starts, ends), total=len(starts)), 1):
-        
+    for i, (start, end) in enumerate(tqdm(zip(starts, ends), total=len(starts)), 1):
         # initialize the trajectory
         univ.trajectory[start]
 
         # create the selection of atoms
-        sel = univ.select_atoms("type {}".format(atom_type))
+        sel = univ.select_atoms(f"type {atom_type}")
 
         # get the reference positions at the start of the block
         rpos = sel.positions
-        rposbyframe = sel.positions # to avoid problem due to PBC
+        rposbyframe = sel.positions  # to avoid problem due to PBC
 
         # initialize total dr and msd
         d = np.zeros(rpos.shape)
@@ -313,7 +321,6 @@ def msd_profile(univ: mda.Universe,
         positions_per_block = []
 
         for ts in univ.trajectory[start:end]:
-
             # collect positions
             pos = sel.positions
 
@@ -327,24 +334,24 @@ def msd_profile(univ: mda.Universe,
             #     dd[idx] += boxv[i]
 
             # take PBC into account
-            dd -= box[:3].T * (dd/box[:3].T).round()
+            dd -= box[:3].T * (dd / box[:3].T).round()
 
             # Add the the differential displacement to the total displacement
             d += dd
 
-            msd_values['xx'].append(d[:, 0] * d[:, 0])
-            msd_values['yy'].append(d[:, 1] * d[:, 1])
-            msd_values['zz'].append(d[:, 2] * d[:, 2])
-            msd_values['xy'].append(d[:, 0] * d[:, 1])
-            msd_values['xz'].append(d[:, 0] * d[:, 2])
-            msd_values['yz'].append(d[:, 1] * d[:, 2])
+            msd_values["xx"].append(d[:, 0] * d[:, 0])
+            msd_values["yy"].append(d[:, 1] * d[:, 1])
+            msd_values["zz"].append(d[:, 2] * d[:, 2])
+            msd_values["xy"].append(d[:, 0] * d[:, 1])
+            msd_values["xz"].append(d[:, 0] * d[:, 2])
+            msd_values["yz"].append(d[:, 1] * d[:, 2])
 
-            positions_intra_block.append((rposbyframe+dd)[:,axid])
+            positions_intra_block.append((rposbyframe + dd)[:, axid])
 
             # save last frame position
             rpos = pos
             rposbyframe += dd
-            
+
         for key, values in msd_values.items():
             msd_per_block[key].append(np.array(values).T)
             # msd_dic[key].extend(np.array(values).T)
@@ -369,36 +376,55 @@ def msd_profile(univ: mda.Universe,
             bin_index -= 1
         column_groups[bin_index].append(col_index)
 
-    coords_var_dict = {j: positions_array[column_groups[i],:].flatten() - np.median(positions_array[column_groups[i],:].flatten()) for i, j in enumerate(np.round(binned_pos,2))}
+    coords_var_dict = {
+        j: positions_array[column_groups[i], :].flatten()
+        - np.median(positions_array[column_groups[i], :].flatten())
+        for i, j in enumerate(np.round(binned_pos, 2))
+    }
 
     def remove_empty_arrays(input_dict):
         keys_to_remove = [key for key, value in input_dict.items() if value.size == 0]
         for key in keys_to_remove:
             del input_dict[key]
         return input_dict
-    
+
     coords_var_dict = remove_empty_arrays(coords_var_dict)
-        
+
     # create the histogram for MSD
     for key, values in msd_dic.items():
-    
-        binned_msd = np.array([np.mean(values[np.where((avg_pos > low) & (avg_pos <= high))], axis=0) for low, high in zip(drange[:-1], drange[1:])])
-        binned_std_msd = np.array([np.std(values[np.where((avg_pos > low) & (avg_pos <= high))], axis=0) for low, high in zip(drange[:-1], drange[1:])])
+        binned_msd = np.array(
+            [
+                np.mean(values[np.where((avg_pos > low) & (avg_pos <= high))], axis=0)
+                for low, high in zip(drange[:-1], drange[1:])
+            ]
+        )
+        binned_std_msd = np.array(
+            [
+                np.std(values[np.where((avg_pos > low) & (avg_pos <= high))], axis=0)
+                for low, high in zip(drange[:-1], drange[1:])
+            ]
+        )
 
         binned_pos_final = binned_pos[~np.isnan(binned_msd).any(axis=1)]
         binned_msd = binned_msd[~np.isnan(binned_msd).any(axis=1)]
         binned_std_msd = binned_std_msd[~np.isnan(binned_std_msd).any(axis=1)]
 
-        msd_df_dic[key] = pd.DataFrame(binned_msd.T, index=t, columns=np.round(binned_pos_final,2))
-        std_df_dic[key] = pd.DataFrame(binned_std_msd.T, index=t, columns=np.round(binned_pos_final,2))
+        msd_df_dic[key] = pd.DataFrame(
+            binned_msd.T, index=t, columns=np.round(binned_pos_final, 2)
+        )
+        std_df_dic[key] = pd.DataFrame(
+            binned_std_msd.T, index=t, columns=np.round(binned_pos_final, 2)
+        )
 
-        msd_df_dic[key].index.name = 'time'
-        std_df_dic[key].index.name = 'time'
-        
+        msd_df_dic[key].index.name = "time"
+        std_df_dic[key].index.name = "time"
+
     return pd.concat(msd_df_dic, axis=1), pd.concat(std_df_dic, axis=1), coords_var_dict
 
-def diffusion_coefficient(df_msd: pd.DataFrame, start: float=0.0) -> pd.DataFrame:
-    """Calculate the diffusion coefficients for a bulk solution from an MSD DataFrame.
+
+def diffusion_coefficient(df_msd: pd.DataFrame, start: float = 0.0) -> pd.DataFrame:
+    (
+        """Calculate the diffusion coefficients for a bulk solution from an MSD DataFrame.
 
     Parameters
     ----------
@@ -411,7 +437,9 @@ def diffusion_coefficient(df_msd: pd.DataFrame, start: float=0.0) -> pd.DataFram
     -------
     pd.DataFrame
         Calculated diffusion coefficients and errors in m²/s.
-    """"""Calculate the diffusion coefficients for a bulk solution."""
+    """
+        """Calculate the diffusion coefficients for a bulk solution."""
+    )
     df_msd = df_msd.loc[start:]
     t = df_msd.index
 
@@ -420,24 +448,29 @@ def diffusion_coefficient(df_msd: pd.DataFrame, start: float=0.0) -> pd.DataFram
 
     for c in df_msd.columns:
         msd = df_msd[c]
-        
+
         m, ci_m = _linear_fit(t, msd)
         dc_array.append(m)
         error_array.append(ci_m)
 
-    res = pd.DataFrame([dc_array, error_array], index=['DC (m2/s)', 'Error (m2/s)'], columns=df_msd.columns)
+    res = pd.DataFrame(
+        [dc_array, error_array],
+        index=["DC (m2/s)", "Error (m2/s)"],
+        columns=df_msd.columns,
+    )
     res *= 1e-8 / 2  # Conversion from A2/ps to m2/s
-    
-    dc_iso = res[['xx', 'yy', 'zz']].iloc[0].mean()
-    sd_iso = np.sqrt((res[['xx', 'yy', 'zz']].iloc[1]**2).sum()) / 3
 
-    res['3d'] = [dc_iso, sd_iso]
+    dc_iso = res[["xx", "yy", "zz"]].iloc[0].mean()
+    sd_iso = np.sqrt((res[["xx", "yy", "zz"]].iloc[1] ** 2).sum()) / 3
+
+    res["3d"] = [dc_iso, sd_iso]
 
     return res
 
-def diffusion_coefficient_profile(df_msd: pd.MultiIndex, 
-                      df_std: pd.MultiIndex=None, 
-                      start:float=1.0) -> pd.DataFrame:
+
+def diffusion_coefficient_profile(
+    df_msd: pd.MultiIndex, df_std: pd.MultiIndex = None, start: float = 1.0
+) -> pd.DataFrame:
     """Calculate the spatial diffusion coefficient profile from an MSD MultiIndex DataFrame.
 
     Parameters
@@ -456,40 +489,54 @@ def diffusion_coefficient_profile(df_msd: pd.MultiIndex,
     """
     df_msd = df_msd.loc[start:]
     t = df_msd.index
-    
+
     if df_std is not None:
         df_std = df_std.loc[start:]
 
     dc_array = []
     error_array = []
 
-    components = ['xx', 'yy', 'zz', 'xy', 'xz', 'yz']
+    components = ["xx", "yy", "zz", "xy", "xz", "yz"]
     for comp in components:
         msd_comp = df_msd[comp]
         std_comp = df_std[comp] if df_std is not None else None
-        
+
         for c in msd_comp.columns:
             msd = msd_comp[c]
             std = std_comp[c] if std_comp is not None else None
-            
+
             m, ci_m = _linear_fit(t, msd, std)
             dc_array.append(m)
             error_array.append(ci_m)
 
-    res = pd.DataFrame([dc_array, error_array], index=['DC (m2/s)', 'Error (m2/s)'], columns=df_msd.columns)
+    res = pd.DataFrame(
+        [dc_array, error_array],
+        index=["DC (m2/s)", "Error (m2/s)"],
+        columns=df_msd.columns,
+    )
     res *= 1e-8 / 2
 
     # Isotropic calculation on the MultiIndex
-    dc_iso = res['xx'].iloc[0] + res['yy'].iloc[0] + res['zz'].iloc[0]
+    dc_iso = res["xx"].iloc[0] + res["yy"].iloc[0] + res["zz"].iloc[0]
     dc_iso /= 3
-    sd_iso = np.sqrt(res['xx'].iloc[1]**2 + res['yy'].iloc[1]**2 + res['zz'].iloc[1]**2) / 3
-    
-    iso_values = pd.DataFrame([dc_iso, sd_iso], index=res.index, columns=res['xx'].columns)
-    multi_index = pd.MultiIndex.from_product([['iso'], iso_values.columns], names=df_msd.columns.names)
+    sd_iso = (
+        np.sqrt(
+            res["xx"].iloc[1] ** 2 + res["yy"].iloc[1] ** 2 + res["zz"].iloc[1] ** 2
+        )
+        / 3
+    )
+
+    iso_values = pd.DataFrame(
+        [dc_iso, sd_iso], index=res.index, columns=res["xx"].columns
+    )
+    multi_index = pd.MultiIndex.from_product(
+        [["iso"], iso_values.columns], names=df_msd.columns.names
+    )
     iso_values.columns = multi_index
-    
+
     res = pd.concat([res, iso_values], axis=1)
     return res
+
 
 def plot_msd(df_msd: pd.DataFrame) -> None:
     """Plot the MSD values from a pandas DataFrame.
@@ -501,20 +548,20 @@ def plot_msd(df_msd: pd.DataFrame) -> None:
     """
 
     # Plot using Seaborn
-    half_size = int(len(df_msd.columns)/2)
+    half_size = int(len(df_msd.columns) / 2)
 
     # Get the colormaps
     cmap = plt.get_cmap("coolwarm")
     cmap_r = plt.get_cmap("coolwarm_r")
-    
+
     # Generate arrays of values from 0.0 to 1.0 to sample colors
     colors_forward = cmap(np.linspace(0, 1, half_size))
-    
+
     if len(df_msd.columns) % 2 == 0:
         colors_reverse = cmap_r(np.linspace(0, 1, half_size))
     else:
         colors_reverse = cmap_r(np.linspace(0, 1, int(half_size + 1)))
-        
+
     # Combine the lists (Matplotlib handles RGBA arrays natively, no need for hex string conversion)
     palettef = np.vstack([colors_forward, colors_reverse])
 
@@ -522,31 +569,40 @@ def plot_msd(df_msd: pd.DataFrame) -> None:
     dashes = []
     for i in range(len(df_msd.columns)):
         if i == 0 or i == len(df_msd.columns) - 1:
-            dashes.append('--')
+            dashes.append("--")
         else:
-            dashes.append('-')   
+            dashes.append("-")
 
     fig, ax = plt.subplots()
     for i, (msd, col) in enumerate(zip(df_msd.values.T, df_msd.columns)):
-        ax.plot(df_msd.index, msd, color=palettef[i], linestyle=dashes[i], label=np.round(col,2))
-        
+        ax.plot(
+            df_msd.index,
+            msd,
+            color=palettef[i],
+            linestyle=dashes[i],
+            label=np.round(col, 2),
+        )
+
     # Set labels and title
-    ax.set_xlabel('Time (ps)')
-    ax.set_ylabel('MSD ($\AA^2$)')
-    ax.set_xscale('log')
-    ax.set_yscale('log')
+    ax.set_xlabel("Time (ps)")
+    ax.set_ylabel("MSD ($\AA^2$)")
+    ax.set_xscale("log")
+    ax.set_yscale("log")
     ax.grid()
 
     # Legend labels
-    num_cols = int(np.ceil(len(df_msd.columns)/20))
-    ax.legend(title='z ($\AA$)', bbox_to_anchor=(1.04, 0.5), loc='center left', ncols=num_cols)
+    num_cols = int(np.ceil(len(df_msd.columns) / 20))
+    ax.legend(
+        title="z ($\AA$)", bbox_to_anchor=(1.04, 0.5), loc="center left", ncols=num_cols
+    )
 
     # Adjust the plot layout to accommodate the legend
-    fig.subplots_adjust(right=1-num_cols*0.20)
+    fig.subplots_adjust(right=1 - num_cols * 0.20)
 
     # Show the plot
     fig.tight_layout()
     fig.show()
+
 
 def plot_diffusion_profile(input_df: pd.DataFrame) -> None:
     """Plot the spatial diffusion coefficient profile from a pandas DataFrame.
@@ -561,19 +617,18 @@ def plot_diffusion_profile(input_df: pd.DataFrame) -> None:
         input_df = input_df.T
 
     t = input_df.index
-    dc = input_df['DC (m2/s)']
-    error = input_df['Error (m2/s)']
+    dc = input_df["DC (m2/s)"]
+    error = input_df["Error (m2/s)"]
 
-    plt.scatter(t, dc, color='royalblue')
-    plt.fill_between(t, dc-error, dc+error, alpha=0.2, color='royalblue')
+    plt.scatter(t, dc, color="royalblue")
+    plt.fill_between(t, dc - error, dc + error, alpha=0.2, color="royalblue")
 
     imax = dc.argmax()
 
     # Set labels and title
-    plt.xlabel('Distance ($\AA$)')
-    plt.ylabel('Diffusion coefficient ($m^2/s$)')
+    plt.xlabel("Distance ($\AA$)")
+    plt.ylabel("Diffusion coefficient ($m^2/s$)")
 
-    plt.ylim(dc.min(), dc.max()+dc.iloc[imax])
+    plt.ylim(dc.min(), dc.max() + dc.iloc[imax])
     plt.grid()
     plt.show()
-    

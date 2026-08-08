@@ -17,4 +17,4 @@
 
 from .io_mixin import IOMixin
 
-__all__ = ['IOMixin']
+__all__ = ["IOMixin"]

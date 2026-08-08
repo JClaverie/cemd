@@ -40,3 +40,23 @@ dev = [
 [build-system]
 requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.backends.legacy:build"
+
+[tool.ruff]
+line-length = 88  # même défaut que Black
+target-version = "py311"
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "F",   # pyflakes
+    "I",   # isort
+    "N",   # pep8 naming
+    "UP",  # pyupgrade
+]
+ignore = [
+    "E501",  # line too long — géré par le formatter
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"

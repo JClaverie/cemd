@@ -15,20 +15,29 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
+import warnings
 
-import numpy as np
 import MDAnalysis as mda
+import numpy as np
 
-from .base import BaseReader, BaseWriter
 from ...._constants import MASSES_DICT
+from .base import BaseReader, BaseWriter
 
-class PdbReader(BaseReader):
+warnings.filterwarnings(
+    "ignore", category=UserWarning, module="MDAnalysis.coordinates.PDB"
+)
+warnings.filterwarnings(
+    "ignore", category=UserWarning, module="MDAnalysis.topology.PDBParser"
+)
+
+
+class PDBReader(BaseReader):
     """Read PDB files using MDAnalysis."""
 
     @classmethod
     def read(cls, path: str) -> dict:
         """Read PDB file."""
-        from .mda import MdaReader
+        from .mda import MDAReader
 
         universe = mda.Universe(path)
         universe.atoms.types = [name.capitalize() for name in universe.atoms.names]
@@ -36,10 +45,10 @@ class PdbReader(BaseReader):
         masses = [MASSES_DICT.get(t, 1.0) for t in universe.atoms.types]
         universe.atoms.masses = np.array(masses)
 
-        return MdaReader.read(universe)
+        return MDAReader.read(universe)
 
 
-class PdbWriter(BaseWriter):
+class PDBWriter(BaseWriter):
     """Write PDB files."""
 
     @classmethod
@@ -56,8 +65,8 @@ class PdbWriter(BaseWriter):
 
         for idx, row in system.atoms.iterrows():
             pdb_id = idx % 100000
-            atom_name = str(row['type']).upper()[:4].center(4)
-            element = str(row['type']).upper()[:2]
+            atom_name = str(row["type"]).upper()[:4].center(4)
+            element = str(row["type"]).upper()[:2]
 
             lines.append(
                 f"ATOM  {pdb_id:>5} {atom_name} MOL  "
@@ -68,5 +77,5 @@ class PdbWriter(BaseWriter):
             )
 
         lines.append("END")
-        with open(path, 'w', encoding='utf-8') as f:
+        with open(path, "w", encoding="utf-8") as f:
             f.write("\n".join(lines) + "\n")

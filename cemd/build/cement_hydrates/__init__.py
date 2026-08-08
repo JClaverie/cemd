@@ -1,6 +1,3 @@
-from .hydrates import CSHBuilder, AFBuilder
+from .hydrates import AFBuilder, CSHBuilder
 
-__all__ = [
-    'CSHBuilder',
-    'AFBuilder'
-]
+__all__ = ["CSHBuilder", "AFBuilder"]

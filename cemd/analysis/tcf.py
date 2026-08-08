@@ -17,27 +17,30 @@
 
 from __future__ import annotations
 
+import MDAnalysis as mda
 import numpy as np
 import pandas as pd
-import MDAnalysis as mda
-from tqdm import tqdm
-from MDAnalysis.lib.distances import capped_distance, calc_bonds
+from MDAnalysis.lib.distances import calc_bonds, capped_distance
 from scipy.optimize import leastsq
+from tqdm import tqdm
 
-__all__ = ['bondcorr', 'lifetime']
+__all__ = ["bondcorr", "lifetime"]
 
-def bondcorr(universe: mda.Universe, 
-             atom_types_a: str | list, 
-             atom_types_b: str | list, 
-             distance: float, 
-             dt: float=100, 
-             nblocks: int=None, 
-             corrlength: int=5000, 
-             gaplength: int=None) -> pd.DataFrame:
+
+def bondcorr(
+    universe: mda.Universe,
+    atom_types_a: str | list,
+    atom_types_b: str | list,
+    distance: float,
+    dt: float = 100,
+    nblocks: int = None,
+    corrlength: int = 5000,
+    gaplength: int = None,
+) -> pd.DataFrame:
     """Calculate the time correlation function (TCF) of a bond.
 
-    Tracks the survival probability of chemical bonds between two atom types 
-    over a block-averaged trajectory. A bond is considered broken as soon as 
+    Tracks the survival probability of chemical bonds between two atom types
+    over a block-averaged trajectory. A bond is considered broken as soon as
     its length exceeds the defined distance threshold.
 
     Parameters
@@ -64,13 +67,13 @@ def bondcorr(universe: mda.Universe,
     Returns
     -------
     pd.DataFrame
-        A DataFrame containing "t [ps]" (correlation time) and "TCF" 
+        A DataFrame containing "t [ps]" (correlation time) and "TCF"
         (survival probability).
 
     Raises
     ------
     ValueError
-        If `corrlength`, `gaplength`, or `nblocks` are too large for 
+        If `corrlength`, `gaplength`, or `nblocks` are too large for
         the available trajectory length.
     """
 
@@ -84,7 +87,7 @@ def bondcorr(universe: mda.Universe,
     if gaplength is None:
         gaplength = int(len(universe.trajectory) / 50)
 
-    nblocks = int( (len(universe.trajectory) - corrlength) / gaplength )
+    nblocks = int((len(universe.trajectory) - corrlength) / gaplength)
 
     if (gaplength * nblocks + corrlength) > len(universe.trajectory):
         raise ValueError("""Gap between correlation block, correlation length,
@@ -99,26 +102,24 @@ def bondcorr(universe: mda.Universe,
     master_results = np.zeros_like(np.arange(starts[0], ends[0], 1), dtype=np.float32)
     nobs = 0
 
-    for i, (start, end) in enumerate( tqdm(zip(starts, ends), total=len(starts)), 1):
-
+    for i, (start, end) in enumerate(tqdm(zip(starts, ends), total=len(starts)), 1):
         # Initialize the bond recording
         universe.trajectory[start]
 
-        distances = capped_distance(sel_a.positions, sel_b.positions, max_cutoff = distance, box = box)
+        distances = capped_distance(
+            sel_a.positions, sel_b.positions, max_cutoff=distance, box=box
+        )
 
         idx1, idx2 = np.transpose(distances[0])
 
         nbonds = len(idx1)
 
         if nbonds != 0:
-
-            results = np.zeros_like(np.arange(start, end, 1),
-                                    dtype=np.float32)
+            results = np.zeros_like(np.arange(start, end, 1), dtype=np.float32)
 
             # Check if the initial bond still exist during the correlation time
             for j, ts in enumerate(universe.trajectory[start:end]):
-
-                b = calc_bonds(sel_a.positions[idx1], sel_b.positions[idx2], box = box)
+                b = calc_bonds(sel_a.positions[idx1], sel_b.positions[idx2], box=box)
 
                 winners = b < distance
                 results[j] = winners.sum()
@@ -137,16 +138,17 @@ def bondcorr(universe: mda.Universe,
 
     master_results /= nobs
 
-    time = np.arange(starts[0], ends[0], 1) * dt / 1000 # time in ps
-    odf = pd.DataFrame(np.c_[time, master_results], columns = ["t [ps]", "TCF"])   
+    time = np.arange(starts[0], ends[0], 1) * dt / 1000  # time in ps
+    odf = pd.DataFrame(np.c_[time, master_results], columns=["t [ps]", "TCF"])
 
     return odf
+
 
 def lifetime(odf: pd.DataFrame, corrtime: float) -> tuple[float, np.ndarray]:
     """Calculate the bond lifetime by fitting the time correlation function.
 
-    Fits the TCF with a double-exponential decay model using a bounded 
-    least-squares approach. The average lifetime is computed as the 
+    Fits the TCF with a double-exponential decay model using a bounded
+    least-squares approach. The average lifetime is computed as the
     weighted sum of the characteristic decay times.
 
     Parameters
@@ -170,10 +172,10 @@ def lifetime(odf: pd.DataFrame, corrtime: float) -> tuple[float, np.ndarray]:
     """
 
     def double_exp(x, A1, tau1, tau2) -> np.ndarray:
-        """ Sum of two exponential functions """
+        """Sum of two exponential functions"""
         A2 = 1 - A1
         return A1 * np.exp(-x / tau1) + A2 * np.exp(-x / tau2)
-        
+
     def within_bounds(p) -> bool:
         """Returns True/False if boundary conditions are met or not.
         Uses length of p to detect whether it's handling continuous /
@@ -195,7 +197,7 @@ def lifetime(odf: pd.DataFrame, corrtime: float) -> tuple[float, np.ndarray]:
         #     return (A1 > 0.0) & (A1 < 1.0) & (A2 > 0.0) & \
         #             (A2 < 1.0) & ((A1 + A2) < 1.0) & \
         #             (tau1 > 0.0) & (tau2 > 0.0) & (tau3 > 0.0)
-    
+
     def err(p, x, y):
         """Custom residual function, returns real residual if all
         boundaries are met, else returns a large number to trick the
@@ -205,18 +207,16 @@ def lifetime(odf: pd.DataFrame, corrtime: float) -> tuple[float, np.ndarray]:
             return y - double_exp(x, *p)
         else:
             return np.full_like(y, 100000)
-        
+
     p_guess = (0.5, 10 * corrtime, corrtime)
-    
+
     t = odf["t [ps]"]
     tcf = odf["TCF"]
 
-    p, _, _, _, _ = leastsq(
-                err, p_guess, args=(t, tcf), full_output=True)
+    p, _, _, _, _ = leastsq(err, p_guess, args=(t, tcf), full_output=True)
 
     A1, tau1, tau2 = p
     A2 = 1 - A1
-    tau = A1*tau1 + A2*tau2
+    tau = A1 * tau1 + A2 * tau2
 
     return tau, p
-

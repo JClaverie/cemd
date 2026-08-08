@@ -3,10 +3,10 @@
 Format-specific readers and writers for AtomicSystem.
 """
 
-from .lammps import LammpsReader, LammpsWriter
-from .cif import CifReader
-from .pdb import PdbReader, PdbWriter
-from .sdf import SdfReader
-from .mda import MdaReader
+from .cif import CIFReader
+from .lammps import LAMMPSReader, LAMMPSWriter
+from .mda import MDAReader
+from .pdb import PDBReader, PDBWriter
 from .pmg import PmgReader
+from .sdf import SDFReader
 from .smiles import SmilesReader

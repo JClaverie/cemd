@@ -16,14 +16,15 @@
 #
 
 import numpy as np
-from PySide6 import QtWidgets, QtCore
+from PySide6 import QtCore, QtWidgets
+
 
 class AtomicModel(QtCore.QAbstractTableModel):
     def __init__(self, system_obj):
         super().__init__()
         self.system_obj = system_obj
         self._last_known_len = len(system_obj.atoms)
-        self.columns_order = ['type', 'x', 'y', 'z', 'charge']
+        self.columns_order = ["type", "x", "y", "z", "charge"]
 
     def rowCount(self, parent=QtCore.QModelIndex()):
         return len(self.system_obj.atoms)
@@ -42,11 +43,14 @@ class AtomicModel(QtCore.QAbstractTableModel):
     def data(self, index, role=QtCore.Qt.ItemDataRole.DisplayRole):
         if not index.isValid():
             return None
-        
+
         row = index.row()
         col = index.column()
 
-        if role in [QtCore.Qt.ItemDataRole.DisplayRole, QtCore.Qt.ItemDataRole.EditRole]:
+        if role in [
+            QtCore.Qt.ItemDataRole.DisplayRole,
+            QtCore.Qt.ItemDataRole.EditRole,
+        ]:
             if col == 0:
                 return str(self.system_obj.atoms.index[row])
             col_name = self.columns_order[col - 1]
@@ -62,53 +66,67 @@ class AtomicModel(QtCore.QAbstractTableModel):
         """C'est ici que la magie opère : on écrit dans le DataFrame original."""
         if role == QtCore.Qt.ItemDataRole.EditRole:
             col = index.column()
-            if col == 0: return False
-            
+            if col == 0:
+                return False
+
             row = index.row()
             col_name = self.columns_order[col - 1]
 
             try:
-                if col_name in ['x', 'y', 'z', 'charge']:
+                if col_name in ["x", "y", "z", "charge"]:
                     new_value = float(value)
                     if not np.isfinite(new_value):
                         return False
                 else:
                     new_value = str(value)
 
-                self.system_obj.atoms.at[self.system_obj.atoms.index[row], col_name] = new_value
-                
+                self.system_obj.atoms.at[self.system_obj.atoms.index[row], col_name] = (
+                    new_value
+                )
+
                 self.dataChanged.emit(index, index)
-                
+
                 return True
-                
+
             except (ValueError, TypeError):
-                return False 
+                return False
         return False
 
     def headerData(self, section, orientation, role):
-        if role == QtCore.Qt.ItemDataRole.DisplayRole and orientation == QtCore.Qt.Orientation.Horizontal:
-            if section == 0: return "ID"
+        if (
+            role == QtCore.Qt.ItemDataRole.DisplayRole
+            and orientation == QtCore.Qt.Orientation.Horizontal
+        ):
+            if section == 0:
+                return "ID"
             return self.columns_order[section - 1].capitalize()
         return None
 
-class AtomTable(QtWidgets.QTableView): # On change QTableWidget en QTableView
+
+class AtomTable(QtWidgets.QTableView):  # On change QTableWidget en QTableView
     def __init__(self):
         super().__init__()
-        self.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectionBehavior.SelectRows)
-        self.setSelectionMode(QtWidgets.QAbstractItemView.SelectionMode.ExtendedSelection)
-        self.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.ResizeMode.Stretch)
-        self.verticalHeader().setVisible(True) # Optionnel : pour voir les IDs à gauche
+        self.setSelectionBehavior(
+            QtWidgets.QAbstractItemView.SelectionBehavior.SelectRows
+        )
+        self.setSelectionMode(
+            QtWidgets.QAbstractItemView.SelectionMode.ExtendedSelection
+        )
+        self.horizontalHeader().setSectionResizeMode(
+            QtWidgets.QHeaderView.ResizeMode.Stretch
+        )
+        self.verticalHeader().setVisible(True)  # Optionnel : pour voir les IDs à gauche
 
     def update_data(self, system_obj) -> None:
-        # On vérifie si l'objet est différent 
+        # On vérifie si l'objet est différent
         # OU si le nombre d'atomes a changé (preuve de modification in-place)
         current_model = self.model()
         if current_model is not None:
             # On compare l'objet ET la longueur du DataFrame
-            same_obj = getattr(current_model, 'system_obj', None) is system_obj
-            last_len = getattr(current_model, '_last_known_len', 0)
+            same_obj = getattr(current_model, "system_obj", None) is system_obj
+            last_len = getattr(current_model, "_last_known_len", 0)
             current_len = len(system_obj.atoms)
-            
+
             if same_obj and last_len == current_len:
                 return
 
@@ -121,5 +139,6 @@ class AtomTable(QtWidgets.QTableView): # On change QTableWidget en QTableView
 
         # 3. Création du modèle (On force la reconstruction)
         from ui.atom_table import AtomicModel
+
         model = AtomicModel(system_obj)
         self.setModel(model)

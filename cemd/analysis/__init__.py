@@ -15,9 +15,9 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
+from .density import density_map, density_profile, electrostatic_potential
+from .diffusion import diffusion_coefficient, msd, msd_profile
 from .rdf import compute_rdf
-from .diffusion import msd, msd_profile, diffusion_coefficient
-from .density import density_profile, density_map, electrostatic_potential
 from .silicates import analyze_silicates
 
 __all__ = [
@@ -28,5 +28,5 @@ __all__ = [
     "density_profile",
     "density_map",
     "electrostatic_potential",
-    "analyze_silicates"
+    "analyze_silicates",
 ]

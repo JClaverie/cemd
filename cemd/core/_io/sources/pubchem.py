@@ -17,41 +17,46 @@
 
 from __future__ import annotations
 
-import tempfile
-import os
 import json
+import os
+import tempfile
 import webbrowser
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import requests
 
 if TYPE_CHECKING:
     from ...atomic_system import AtomicSystem
 
+
 def pubchem_search_by_name(name: str) -> list[dict[str, Any]]:
     """Search for CIDs by common name or IUPAC."""
     base_url = f"https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/{name}/description/json"
     try:
         response = requests.get(base_url, timeout=10)
-        if response.status_code != 200: return []
-        
+        if response.status_code != 200:
+            return []
+
         data = response.json()
         results = []
-        for info in data.get('InformationList', {}).get('Information', []):
-            cid = info.get('CID')
+        for info in data.get("InformationList", {}).get("Information", []):
+            cid = info.get("CID")
             if cid:
                 # We retrieve the details (Formula, Weight) for display
                 details = get_pubchem_details(cid)
-                results.append({
-                    'id': str(cid),
-                    'common_name': info.get('Title', name),
-                    'formula': details.get('formula', 'N/A'),
-                    'weight': details.get('weight', 'N/A'),
-                    'smiles': details.get('smiles', 'N/A')
-                })
+                results.append(
+                    {
+                        "id": str(cid),
+                        "common_name": info.get("Title", name),
+                        "formula": details.get("formula", "N/A"),
+                        "weight": details.get("weight", "N/A"),
+                        "smiles": details.get("smiles", "N/A"),
+                    }
+                )
         return results
-    except: return []
-    
+    except:
+        return []
+
 
 def pubchem_search_by_formula(formula: str) -> list[dict[str, Any]]:
     """Search for CIDs by chemical formula."""
@@ -59,56 +64,61 @@ def pubchem_search_by_formula(formula: str) -> list[dict[str, Any]]:
     try:
         # Formula search is asynchronous on PubChem (ListKey)
         response = requests.get(base_url, timeout=10)
-        if response.status_code != 200: return []
-        
-        listkey = response.json().get('IdentifierList', {}).get('ListKey')
+        if response.status_code != 200:
+            return []
+
+        listkey = response.json().get("IdentifierList", {}).get("ListKey")
         # We retrieve the first 20 results for the responsiveness of the UI
         fetch_url = f"https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/listkey/{listkey}/cids/json?maxrecords=20"
         fetch_res = requests.get(fetch_url, timeout=10)
-        cids = fetch_res.json().get('IdentifierList', {}).get('CID', [])
+        cids = fetch_res.json().get("IdentifierList", {}).get("CID", [])
 
         results = []
         for cid in cids:
             details = get_pubchem_details(cid)
-            results.append({
-                'id': str(cid),
-                'common_name': details.get('title', 'N/A'),
-                'formula': formula,
-                'weight': details.get('weight', 'N/A'),
-                'smiles': details.get('smiles', 'N/A')
-            })
+            results.append(
+                {
+                    "id": str(cid),
+                    "common_name": details.get("title", "N/A"),
+                    "formula": formula,
+                    "weight": details.get("weight", "N/A"),
+                    "smiles": details.get("smiles", "N/A"),
+                }
+            )
         return results
-    except: return []
+    except:
+        return []
+
 
 def get_pubchem_details(cid: int) -> dict:
     """Retrieves properties. If SMILES is missing, performs a dedicated fallback request."""
     url = f"https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/{cid}/property/MolecularFormula,MolecularWeight,Title,IUPACName,CanonicalSMILES/json"
-    
+
     try:
         r = requests.get(url, timeout=5)
         if r.status_code != 200:
             return {}
-            
-        props = r.json().get('PropertyTable', {}).get('Properties', [{}])[0]
-        smiles = props.get('ConnectivitySMILES')
+
+        props = r.json().get("PropertyTable", {}).get("Properties", [{}])[0]
+        smiles = props.get("ConnectivitySMILES")
 
         if not smiles:
-
             fallback_url = f"https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/{cid}/property/IsomericSMILES/json"
             r_s = requests.get(fallback_url, timeout=3)
             if r_s.status_code == 200:
-                s_props = r_s.json().get('PropertyTable', {}).get('Properties', [{}])[0]
-                smiles = s_props.get('ConnectivitySMILES')
+                s_props = r_s.json().get("PropertyTable", {}).get("Properties", [{}])[0]
+                smiles = s_props.get("ConnectivitySMILES")
 
         return {
-            'formula': props.get('MolecularFormula'),
-            'weight': props.get('MolecularWeight'),
-            'smiles': smiles,
-            'title': props.get('Title'),
-            'iupac': props.get('IUPACName')
+            "formula": props.get("MolecularFormula"),
+            "weight": props.get("MolecularWeight"),
+            "smiles": smiles,
+            "title": props.get("Title"),
+            "iupac": props.get("IUPACName"),
         }
     except:
         return {}
+
 
 def get_structure(cid: int, smiles: str = None) -> AtomicSystem | None:
     """Fetch 3D structure from PubChem, fallback to SMILES generation."""
@@ -118,10 +128,10 @@ def get_structure(cid: int, smiles: str = None) -> AtomicSystem | None:
     response = requests.get(url, timeout=10)
 
     if response.status_code == 200:
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.sdf', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".sdf", delete=False) as f:
             f.write(response.text)
             temp_path = f.name
-        
+
         try:
             system = AtomicSystem.from_file(temp_path)
             os.unlink(temp_path)  # Nettoyer
@@ -135,8 +145,9 @@ def get_structure(cid: int, smiles: str = None) -> AtomicSystem | None:
             return AtomicSystem.from_smiles(smiles)
         except Exception as e:
             print(f"SMILES conversion error: {e}")
-    
+
     return None
+
 
 def pubchem_sdq_search(query: str, limit: int = 50) -> list[dict]:
     """
@@ -156,53 +167,50 @@ def pubchem_sdq_search(query: str, limit: int = 50) -> list[dict]:
         "order": ["relevancescore,desc"],
         "start": 1,
         "limit": limit,
-        "where": {"ands": ands}
+        "where": {"ands": ands},
     }
 
-    params = {
-        "infmt": "json",
-        "outfmt": "json",
-        "query": json.dumps(query_params)
-    }
+    params = {"infmt": "json", "outfmt": "json", "query": json.dumps(query_params)}
 
     url = "https://pubchem.ncbi.nlm.nih.gov/sdq/sphinxql.cgi"
 
     try:
         response = requests.get(url, params=params, timeout=15)
-        response.raise_for_status() # Throw an error if the query fails
-        
+        response.raise_for_status()  # Throw an error if the query fails
+
         data = response.json()
-        
+
         results = []
         for item in data:
             # We map the keys from JSON SDQ to your table format
-            results.append({
-                'id': str(item.get('cid', '')),
-                'common_name': item.get('cmpdname', 'N/A'),
-                'formula': item.get('mf', 'N/A'),
-                'weight': str(item.get('mw', 'N/A')),
-                'smiles': item.get('smiles', 'N/A'),
-                'iupac': item.get('iupacname', 'N/A')
-            })
+            results.append(
+                {
+                    "id": str(item.get("cid", "")),
+                    "common_name": item.get("cmpdname", "N/A"),
+                    "formula": item.get("mf", "N/A"),
+                    "weight": str(item.get("mw", "N/A")),
+                    "smiles": item.get("smiles", "N/A"),
+                    "iupac": item.get("iupacname", "N/A"),
+                }
+            )
         return results
 
     except Exception as e:
         print(f"Error querying SDQ: {e}")
         return []
-    
-def explore_pubchem(visible_rows:int =20) -> Any:
+
+
+def explore_pubchem(visible_rows: int = 20) -> Any:
     """Interactive PubChem Explorer aligned with the COD interface."""
     import questionary
     from prompt_toolkit.application import Application
     from prompt_toolkit.key_binding import KeyBindings
-    from prompt_toolkit.layout import Layout
+    from prompt_toolkit.layout import Layout, ScrollOffsets
     from prompt_toolkit.layout.containers import HSplit, Window
-    from prompt_toolkit.layout import ScrollOffsets
     from prompt_toolkit.layout.controls import FormattedTextControl
-    import webbrowser
-    
+
     query = questionary.text("Enter name or formula:").ask()
-    if not query: 
+    if not query:
         return None
 
     print(f"Searching for '{query}' on PubChem...")
@@ -228,32 +236,36 @@ def explore_pubchem(visible_rows:int =20) -> Any:
             cursor=" ", id="ID", name="NAME", formula="FORMULA", weight="WEIGHT"
         )
         separator = "-" * len(header)
-        
+
         lines = [
-            f"Found {len(results)} structures  [{index+1}/{len(results)}]",
+            f"Found {len(results)} structures  [{index + 1}/{len(results)}]",
             "↑↓ Move   [Enter] Load   [p] PubChem page   [q] Quit",
             "",
             header,
-            separator
+            separator,
         ]
 
         # N'afficher que la fenêtre visible
-        visible = results[scroll_top:scroll_top + visible_rows]
-        
+        visible = results[scroll_top : scroll_top + visible_rows]
+
         for i, r in enumerate(visible):
             real_index = scroll_top + i
             cursor = "➜" if real_index == index else " "
-            lines.append(ROW_FORMAT.format(
-                cursor=cursor,
-                id=r['id'],
-                name=r['common_name'],
-                formula=r['formula'],
-                weight=r['weight']
-            ))
+            lines.append(
+                ROW_FORMAT.format(
+                    cursor=cursor,
+                    id=r["id"],
+                    name=r["common_name"],
+                    formula=r["formula"],
+                    weight=r["weight"],
+                )
+            )
 
         # Indicateur de scroll
         if len(results) > visible_rows:
-            lines.append(f"\n  ↕ {scroll_top+1}-{min(scroll_top+visible_rows, len(results))} of {len(results)}")
+            lines.append(
+                f"\n  ↕ {scroll_top + 1}-{min(scroll_top + visible_rows, len(results))} of {len(results)}"
+            )
 
         return "\n".join(lines)
 
@@ -294,7 +306,7 @@ def explore_pubchem(visible_rows:int =20) -> Any:
     # Hotkey 'p' to open PubChem page
     @kb.add("p")
     def _(e):
-        cid = results[index]['id']
+        cid = results[index]["id"]
         webbrowser.open(f"https://pubchem.ncbi.nlm.nih.gov/compound/{cid}")
 
     @kb.add("q")
@@ -312,6 +324,6 @@ def explore_pubchem(visible_rows:int =20) -> Any:
 
     if selected:
         print(f"Loading CID {selected['id']}...")
-        return get_structure(int(selected['id']), selected['smiles'])
-    
+        return get_structure(int(selected["id"]), selected["smiles"])
+
     return None

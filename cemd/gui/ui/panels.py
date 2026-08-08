@@ -15,18 +15,20 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-import os
 import json
+import os
 
-from PySide6 import QtWidgets, QtCore, QtGui
+from PySide6 import QtCore, QtGui, QtWidgets
 from PySide6Qlementine import ColorButton, ColorMode
+
 from .gui_utils import create_icon_button
+
 
 class SystemSummaryPanel(QtWidgets.QFrame):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setFrameShape(QtWidgets.QFrame.StyledPanel)
-        
+
         layout = QtWidgets.QVBoxLayout(self)
         layout.setContentsMargins(8, 8, 8, 8)
         layout.setSpacing(2)
@@ -50,10 +52,14 @@ class SystemSummaryPanel(QtWidgets.QFrame):
             self.lbl_stats.setText("No system loaded")
             self.lbl_box.clear()
             return
-        
+
         charge = system.total_charge
         is_neutral = abs(charge) < 1e-3
-        charge_style = 'color: #d32f2f; font-weight: bold;' if not is_neutral else 'color: #263238;'
+        charge_style = (
+            "color: #d32f2f; font-weight: bold;"
+            if not is_neutral
+            else "color: #263238;"
+        )
 
         # --- Partie Stats (Utilise tes @property) ---
         stats_html = f"""
@@ -62,7 +68,7 @@ class SystemSummaryPanel(QtWidgets.QFrame):
                 <b>Total charge:</b> 
                 <span style="{charge_style}">{charge:.4f} e</span> 
             </span><br>
-            <b>Volume:</b> {system.volume/1e3:.2f} nm³<br>
+            <b>Volume:</b> {system.volume / 1e3:.2f} nm³<br>
             <b>Density:</b> {system.density:.2f} g/cm³<br>
             <span style="color: #607d8b; font-size: 9pt; display: block; margin-top: 5px;">
                 &lt;AtomicSystem with {system.num_atoms} atoms, {system.num_bonds} bonds, {system.num_angles} angles&gt;
@@ -72,7 +78,7 @@ class SystemSummaryPanel(QtWidgets.QFrame):
         self.lbl_stats.setText(stats_html)
 
         # ---Box part (Uses system.box) ---
-        b = system.box # [a, b, c, alpha, beta, gamma]
+        b = system.box  # [a, b, c, alpha, beta, gamma]
         box_html = f"""
         <b style="color: #455a64; font-size: 9pt;">Box Parameters</b>
         <table width="100%" style="margin-top: 2px; border-collapse: collapse; line-height: 100%;">
@@ -100,8 +106,10 @@ class SystemSummaryPanel(QtWidgets.QFrame):
         """
         self.lbl_box.setText(box_html)
 
+
 class BaseManagerPanel(QtWidgets.QGroupBox):
     """Parent class that manages the look and structure Scroll + Button"""
+
     def __init__(self, title, height):
         super().__init__(title)
         self.setFixedHeight(height)
@@ -113,13 +121,13 @@ class BaseManagerPanel(QtWidgets.QGroupBox):
         # Zone de scroll blanche (le rectangle central)
         self.scroll = QtWidgets.QScrollArea()
         self.scroll.setWidgetResizable(True)
-        
+
         self.scroll_content = QtWidgets.QWidget()
         self.list_layout = QtWidgets.QVBoxLayout(self.scroll_content)
         self.list_layout.setAlignment(QtCore.Qt.AlignTop)
         self.list_layout.setContentsMargins(5, 5, 5, 5)
         self.list_layout.setSpacing(2)
-        
+
         self.scroll.setWidget(self.scroll_content)
         self.main_layout.addWidget(self.scroll)
 
@@ -128,14 +136,15 @@ class BaseManagerPanel(QtWidgets.QGroupBox):
         btn = QtWidgets.QPushButton(text)
         self.main_layout.addWidget(btn)
         return btn
-    
+
+
 class FilterPanel(BaseManagerPanel):
-    type_changed = QtCore.Signal(dict) 
+    type_changed = QtCore.Signal(dict)
 
     def __init__(self):
         # We initialize the base with the title and the height
         super().__init__("Types View Manager", 400)
-        
+
         self.checkboxes = {}
         self.radius_spinboxes = {}
         self.color_buttons = {}
@@ -152,8 +161,8 @@ class FilterPanel(BaseManagerPanel):
         # The Slider
         # Qt sliders use integers, so we will map 10 -> 100 to have precision
         self.global_scale_slider = QtWidgets.QSlider(QtCore.Qt.Horizontal)
-        self.global_scale_slider.setRange(10, 300) # From 0.1x to 3.0x
-        self.global_scale_slider.setValue(100)      # 1.0x by default
+        self.global_scale_slider.setRange(10, 300)  # From 0.1x to 3.0x
+        self.global_scale_slider.setValue(100)  # 1.0x by default
         self.global_scale_slider.valueChanged.connect(self._on_slider_move_only)
         self.global_scale_slider.sliderReleased.connect(self._emit_everything)
 
@@ -180,15 +189,15 @@ class FilterPanel(BaseManagerPanel):
     def get_scale_value(self):
         """Returns the float value of the scale"""
         return self.global_scale_slider.value() / 100.0
-    
+
     def set_scale_value(self, value):
         """Updates the slider and label from a float value (ex: 1.0)."""
-        if hasattr(self, 'global_scale_slider'):
+        if hasattr(self, "global_scale_slider"):
             self.global_scale_slider.blockSignals(True)
             self.global_scale_slider.setValue(int(value * 100))
             self.global_scale_slider.blockSignals(False)
-        
-        if hasattr(self, 'lbl_scale_val'):
+
+        if hasattr(self, "lbl_scale_val"):
             self.lbl_scale_val.setText(f"x{value:.1f}")
 
     def refresh(self, data, color_map, radius_map, global_scale):
@@ -200,7 +209,7 @@ class FilterPanel(BaseManagerPanel):
         count_removed = 0
         while self.list_layout.count():
             item = self.list_layout.takeAt(0)
-            if item.widget(): 
+            if item.widget():
                 item.widget().deleteLater()
 
         self.checkboxes = {}
@@ -210,7 +219,7 @@ class FilterPanel(BaseManagerPanel):
 
         # ---NEW: Calculation of the number of atoms by type ---
         # We count the occurrences in the atoms DataFrame
-        counts = data.atoms['type'].value_counts()
+        counts = data.atoms["type"].value_counts()
         counts.index = counts.index.astype(str)
 
         # We retrieve the properties of the data object
@@ -219,24 +228,28 @@ class FilterPanel(BaseManagerPanel):
         # Adding lines for each type
         for i, atype in enumerate(types):
             atype_str = str(atype)
-            
+
             row_widget = QtWidgets.QWidget()
             row_layout = QtWidgets.QHBoxLayout(row_widget)
             row_layout.setContentsMargins(5, 2, 5, 2)
-            row_layout.setSpacing(5) # Reduced spacing between elements on the left
-            
+            row_layout.setSpacing(5)  # Reduced spacing between elements on the left
+
             # Checkbox (Tight left) ---
             cb = QtWidgets.QCheckBox(atype_str)
             cb.setChecked(True)
             cb.stateChanged.connect(self._emit_everything)
             # Prevent the checkbox from taking up the full width
-            cb.setSizePolicy(QtWidgets.QSizePolicy.Maximum, QtWidgets.QSizePolicy.Preferred)
+            cb.setSizePolicy(
+                QtWidgets.QSizePolicy.Maximum, QtWidgets.QSizePolicy.Preferred
+            )
             self.checkboxes[atype_str] = cb
-            
+
             # The number (Paste right after) ---
             n_atoms = counts.get(atype, 0)
             count_label = QtWidgets.QLabel(f"[{n_atoms}]")
-            count_label.setSizePolicy(QtWidgets.QSizePolicy.Maximum, QtWidgets.QSizePolicy.Preferred)
+            count_label.setSizePolicy(
+                QtWidgets.QSizePolicy.Maximum, QtWidgets.QSizePolicy.Preferred
+            )
 
             # Tooltip on both for added comfort
             tip = f"Total pour {atype_str}: {n_atoms} atomes"
@@ -249,7 +262,9 @@ class FilterPanel(BaseManagerPanel):
             color_btn.setColorMode(ColorMode.RGB)
             current_color = color_map.get(atype_str, "#808080")
             color_btn.setColor(QtGui.QColor(current_color))
-            color_btn.clicked.connect(lambda _, t=atype_str, b=color_btn: self.pick_color(t, b, main_win))
+            color_btn.clicked.connect(
+                lambda _, t=atype_str, b=color_btn: self.pick_color(t, b, main_win)
+            )
             self.color_buttons[atype_str] = color_btn
 
             # Spinbox (Rayon VdW) ---
@@ -267,12 +282,14 @@ class FilterPanel(BaseManagerPanel):
             row_layout.addStretch()
             row_layout.addWidget(color_btn)
             row_layout.addWidget(sp)
-            
+
             self.list_layout.addWidget(row_widget)
 
         # Reconnecting the Reset button
-        try: self.btn_reset_vdw.clicked.disconnect()
-        except: pass
+        try:
+            self.btn_reset_vdw.clicked.disconnect()
+        except:
+            pass
         self.btn_reset_vdw.clicked.connect(self.reset_to_config)
 
         self.global_scale_slider.blockSignals(True)
@@ -283,18 +300,16 @@ class FilterPanel(BaseManagerPanel):
 
     def pick_color(self, atype_str, btn, main_win):
         """Opens the color picker initialized to the current color"""
-        
+
         current_config = main_win.global_config
         color_map = current_config.get("color_map", {})
 
         current_hex = color_map.get(atype_str, "#ffffff")
-        
+
         color = QtWidgets.QColorDialog.getColor(
-            QtGui.QColor(current_hex), 
-            main_win, 
-            f"Select color for {atype_str}"
+            QtGui.QColor(current_hex), main_win, f"Select color for {atype_str}"
         )
-        
+
         if color.isValid():
             new_hex = color.name()
 
@@ -304,26 +319,25 @@ class FilterPanel(BaseManagerPanel):
             if active_tab:
                 active_tab.refresh_tab_view(full_rebuild=False)
 
-    
     def get_settings(self):
         """Returns the settings: real radii, visibility AND scale factor"""
         radii = {}
         visibility = {}
         colors_instat = {t: btn.color().name() for t, btn in self.color_buttons.items()}
-        
+
         # Recover the raw values ​​of the spinboxes
         for atype, sp in self.radius_spinboxes.items():
             radii[atype] = sp.value()
-            
+
         for atype, cb in self.checkboxes.items():
             visibility[atype] = cb.isChecked()
-            
+
         # Add the scale factor to the dictionary
         return {
-            "radii": radii, 
+            "radii": radii,
             "visibility": visibility,
             "colors": colors_instat,
-            "global_scale": self.global_scale_slider.value()
+            "global_scale": self.global_scale_slider.value(),
         }
 
     def reset_to_config(self):
@@ -331,13 +345,13 @@ class FilterPanel(BaseManagerPanel):
 
         base_dir = os.path.dirname(os.path.realpath(__file__))
         default_path = os.path.join(base_dir, "default_config.json")
-        
+
         default_radii = {}
         default_scale = 1.0
 
         if os.path.exists(default_path):
             try:
-                with open(default_path, 'r', encoding='utf-8') as f:
+                with open(default_path, encoding="utf-8") as f:
                     data = json.load(f)
                     default_radii = data.get("radius_map", {})
                     default_scale = data.get("global_scale", 1.0)
@@ -348,7 +362,7 @@ class FilterPanel(BaseManagerPanel):
         self.blockSignals(True)
 
         self.global_scale_slider.setValue(int(default_scale * 100))
-        if hasattr(self, 'lbl_scale_val'):
+        if hasattr(self, "lbl_scale_val"):
             self.lbl_scale_val.setText(f"x{default_scale:.1f}")
 
         for atype, sp in self.radius_spinboxes.items():
@@ -362,7 +376,7 @@ class FilterPanel(BaseManagerPanel):
         """Sends the complete dictionary to the Plotter"""
         settings = self.get_settings()
         self.type_changed.emit(settings)
-        
+
 
 class BondManagerPanel(BaseManagerPanel):
     bond_settings_changed = QtCore.Signal(dict)
@@ -370,10 +384,10 @@ class BondManagerPanel(BaseManagerPanel):
     def __init__(self):
         # Base initialization (Title, Height)
         super().__init__("Bonds View Manager", 400)
-        
+
         self.available_types = []
         self.pair_rules = []
-        
+
         # ---THICKNESS CONTROL (Slider) ---
         self.scale_container = QtWidgets.QWidget()
         scale_layout = QtWidgets.QHBoxLayout(self.scale_container)
@@ -382,8 +396,8 @@ class BondManagerPanel(BaseManagerPanel):
         lbl_title = QtWidgets.QLabel("Bond Radius:")
 
         self.bond_radius_slider = QtWidgets.QSlider(QtCore.Qt.Horizontal)
-        self.bond_radius_slider.setRange(1, 50) # From 0.01 to 0.5
-        self.bond_radius_slider.setValue(10)     # 0.1 by default
+        self.bond_radius_slider.setRange(1, 50)  # From 0.01 to 0.5
+        self.bond_radius_slider.setValue(10)  # 0.1 by default
         self.bond_radius_slider.valueChanged.connect(self._on_slider_move)
         # We emit the final signal when we release to avoid rowing
         self.bond_radius_slider.sliderReleased.connect(self.emit_changes)
@@ -397,7 +411,7 @@ class BondManagerPanel(BaseManagerPanel):
 
         # Insertion above the “Add Bond” button
         self.main_layout.insertWidget(0, self.scale_container)
-        
+
         # Bouton d'action via BaseManagerPanel
         self.btn_add_pair = self.add_action_button("Add bond")
         self.btn_add_pair.clicked.connect(lambda: self.add_pair_row())
@@ -409,14 +423,14 @@ class BondManagerPanel(BaseManagerPanel):
 
     def get_bond_radius(self):
         """Returns the real value of the radius (ex: 0.15)"""
-        return self.bond_radius_slider.value() / 100.0    
+        return self.bond_radius_slider.value() / 100.0
 
     def refresh(self, system, bond_map):
-        if system is not None and hasattr(system, 'atom_types'):
+        if system is not None and hasattr(system, "atom_types"):
             self.available_types = [str(t) for t in system.atom_types]
         else:
             self.available_types = []
-        
+
         self._is_refreshing = True
         try:
             self.set_settings(bond_map)
@@ -445,9 +459,11 @@ class BondManagerPanel(BaseManagerPanel):
             c.addItems(self.available_types)
             c.blockSignals(False)
 
-        if t1 in self.available_types: c1.setCurrentText(t1)
-        if t2 in self.available_types: c2.setCurrentText(t2)
-        
+        if t1 in self.available_types:
+            c1.setCurrentText(t1)
+        if t2 in self.available_types:
+            c2.setCurrentText(t2)
+
         # Distance SpinBox
         dist = QtWidgets.QDoubleSpinBox()
         dist.setRange(0.1, 10.0)
@@ -457,29 +473,29 @@ class BondManagerPanel(BaseManagerPanel):
         dist.blockSignals(False)
         dist.setSuffix(" Å")
         dist.setFixedWidth(85)
-        
+
         # Delete button
         btn_del = create_icon_button("", "trash")
         btn_del.setFixedWidth(30)
-        
+
         # Layout
         for w in [c1, c2, dist, btn_del]:
             row_layout.addWidget(w)
-        
+
         self.list_layout.addWidget(row_widget)
         row_widget.show()
-        
-        rule = {'c1': c1, 'c2': c2, 'dist': dist, 'widget': row_widget}
+
+        rule = {"c1": c1, "c2": c2, "dist": dist, "widget": row_widget}
         self.pair_rules.append(rule)
-        
+
         # Connexions
         c1.currentIndexChanged.connect(self.emit_changes)
         c2.currentIndexChanged.connect(self.emit_changes)
         dist.valueChanged.connect(self.emit_changes)
         btn_del.clicked.connect(lambda: self.remove_pair_row(rule))
-        
+
     def remove_pair_row(self, rule):
-        rule['widget'].deleteLater()
+        rule["widget"].deleteLater()
         if rule in self.pair_rules:
             self.pair_rules.remove(rule)
         self.emit_changes()
@@ -489,18 +505,18 @@ class BondManagerPanel(BaseManagerPanel):
         settings = {}
         for r in self.pair_rules:
             try:
-                t1 = r['c1'].currentText()
-                t2 = r['c2'].currentText()
+                t1 = r["c1"].currentText()
+                t2 = r["c2"].currentText()
                 if t1 and t2:
                     key = "-".join(sorted([t1, t2]))
-                    settings[key] = r['dist'].value()
+                    settings[key] = r["dist"].value()
             except RuntimeError:
                 continue
         settings["global_bond_radius"] = self.get_bond_radius()
         return settings
 
     def set_settings(self, bond_map):
-        
+
         while self.list_layout.count():
             item = self.list_layout.takeAt(0)
             widget = item.widget()
@@ -511,7 +527,7 @@ class BondManagerPanel(BaseManagerPanel):
 
         current_types = set(self.available_types)
         for pair_str, dist_value in bond_map.items():
-            elements = pair_str.split('-')
+            elements = pair_str.split("-")
             if len(elements) == 2:
                 t1, t2 = elements[0], elements[1]
                 if t1 in current_types and t2 in current_types:
@@ -519,6 +535,5 @@ class BondManagerPanel(BaseManagerPanel):
 
     def emit_changes(self, *args):
         # We do not transmit if the panel is emptying (signals blocked)
-        if not getattr(self, '_is_refreshing', False):
+        if not getattr(self, "_is_refreshing", False):
             self.bond_settings_changed.emit(self.get_settings())
-        

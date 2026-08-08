@@ -1,0 +1,48 @@
+# spcfw.toml
+# SPC/Fw water model parameters
+# Reference: http://dx.doi.org/10.1063/1.2136877
+# Units: kcal/mol, Å, degrees
+
+[model]
+name = "SPC/Fw Water Model"
+reference = "http://dx.doi.org/10.1063/1.2136877"
+description = "Flexible SPC water model optimized for use with clay minerals and calcite"
+
+# ============================================================
+# Atom Types
+# ============================================================
+
+[atoms]
+[atoms.Ow]
+element = "O"
+charge = -0.82
+ref = "http://dx.doi.org/10.1063/1.2136877"
+
+[atoms.Hw]
+element = "H"
+charge = 0.41
+ref = "http://dx.doi.org/10.1063/1.2136877"
+
+# ============================================================
+# Lennard-Jones 12-6 Parameters (epsilon in kcal/mol, sigma in Å)
+# ============================================================
+
+[lj]
+[lj."Ow-Ow"]
+epsilon = 0.1554
+sigma = 3.165492
+ref = "http://dx.doi.org/10.1063/1.2136877"
+
+
+[bonds.harmonic]
+[bonds.harmonic."Ow-Hw"]
+k = 529.581
+r0 = 1.012
+ref = "http://dx.doi.org/10.1063/1.2136877"
+
+
+[angles.harmonic]
+[angles.harmonic."Hw-Ow-Hw"]
+k = 37.95
+theta0 = 113.24
+ref = "http://dx.doi.org/10.1063/1.2136877"

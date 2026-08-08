@@ -16,17 +16,20 @@
 #
 
 import shutil
-from typing import Sequence
+from collections.abc import Sequence
 from functools import lru_cache
 
 import numpy as np
 
-def lammps2lattice(box: tuple[
-        tuple[float, float], # [xlo, xhi]
-        tuple[float, float], # [ylo, yhi]
-        tuple[float, float], # [zlo, zhi]
-        tuple[float, float, float]]  # [xy, xz, yz]
-        ) -> np.ndarray:
+
+def lammps2lattice(
+    box: tuple[
+        tuple[float, float],  # [xlo, xhi]
+        tuple[float, float],  # [ylo, yhi]
+        tuple[float, float],  # [zlo, zhi]
+        tuple[float, float, float],
+    ],  # [xy, xz, yz]
+) -> np.ndarray:
     """Return the lattice parameters corresponding to the input LAMMPS box parameters.
 
     Parameters
@@ -42,15 +45,17 @@ def lammps2lattice(box: tuple[
     tilt_xy, tilt_xz, tilt_yz = box[3]
 
     boxa = length_x
-    boxb = ( length_y**2 + tilt_xy**2 ) ** 0.5
-    boxc = ( length_z**2 + tilt_xz**2 + tilt_yz**2 ) ** 0.5
+    boxb = (length_y**2 + tilt_xy**2) ** 0.5
+    boxc = (length_z**2 + tilt_xz**2 + tilt_yz**2) ** 0.5
 
-    alpha = np.acos( (tilt_xy * tilt_xz + length_y * tilt_yz) / boxb / boxc )
-    beta = np.acos( tilt_xz / boxc )
-    gamma = np.acos( tilt_xy / boxb)
+    alpha = np.acos((tilt_xy * tilt_xz + length_y * tilt_yz) / boxb / boxc)
+    beta = np.acos(tilt_xz / boxc)
+    gamma = np.acos(tilt_xy / boxb)
 
-    return np.array([boxa, boxb, boxc, np.degrees(alpha),
-    np.degrees(beta), np.degrees(gamma)])
+    return np.array(
+        [boxa, boxb, boxc, np.degrees(alpha), np.degrees(beta), np.degrees(gamma)]
+    )
+
 
 def lattice2vectors(box: np.ndarray) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """Return the vectors corresponding to box parameters.
@@ -59,7 +64,7 @@ def lattice2vectors(box: np.ndarray) -> tuple[np.ndarray, np.ndarray, np.ndarray
     ----------
         box
             Box parameters in the form: [a, b, c, alpha, beta, gamma]
-    
+
     """
 
     boxa, boxb, boxc, alpha, beta, gamma = box
@@ -72,14 +77,15 @@ def lattice2vectors(box: np.ndarray) -> tuple[np.ndarray, np.ndarray, np.ndarray
     bx = boxb * np.cos(gamma)
     by = boxb * np.sin(gamma)
     cx = boxc * np.cos(beta)
-    cy = ( boxb * boxc * np.cos(alpha) - bx * cx) / by
-    cz = ( boxc**2 - cx**2 - cy**2 ) ** 0.5
+    cy = (boxb * boxc * np.cos(alpha) - bx * cx) / by
+    cz = (boxc**2 - cx**2 - cy**2) ** 0.5
 
     vec_a = np.array([ax, 0.0, 0.0])
     vec_b = np.array([bx, by, 0.0])
     vec_c = np.array([cx, cy, cz])
 
     return vec_a, vec_b, vec_c
+
 
 def vectors2lattice(vectors: Sequence[np.ndarray]) -> np.ndarray:
     """Return the lattice parameters corresponding to box vectors.
@@ -93,17 +99,17 @@ def vectors2lattice(vectors: Sequence[np.ndarray]) -> np.ndarray:
     -------
     box
         Box parameters in the form: [a, b, c, alpha, beta, gamma]
-    
+
     """
 
     vec_a, vec_b, vec_c = vectors
 
-    boxa = ( np.sum(vec_a**2) ) ** (1/2)
-    boxb = ( np.sum(vec_b**2) ) ** (1/2)
-    boxc = ( np.sum(vec_c**2) ) ** (1/2)
-    alpha = np.acos( np.dot(vec_b, vec_c) / (boxb * boxc) )
-    beta = np.acos( np.dot(vec_a, vec_c) / (boxa * boxc) )
-    gamma = np.acos( np.dot(vec_a, vec_b)  / (boxa * boxb) )
+    boxa = (np.sum(vec_a**2)) ** (1 / 2)
+    boxb = (np.sum(vec_b**2)) ** (1 / 2)
+    boxc = (np.sum(vec_c**2)) ** (1 / 2)
+    alpha = np.acos(np.dot(vec_b, vec_c) / (boxb * boxc))
+    beta = np.acos(np.dot(vec_a, vec_c) / (boxa * boxc))
+    gamma = np.acos(np.dot(vec_a, vec_b) / (boxa * boxb))
 
     alpha = np.degrees(alpha)
     beta = np.degrees(beta)
@@ -111,13 +117,15 @@ def vectors2lattice(vectors: Sequence[np.ndarray]) -> np.ndarray:
 
     return np.array([boxa, boxb, boxc, alpha, beta, gamma])
 
-def lattice2lammps(box: np.ndarray | Sequence[float]
-                   ) -> tuple[
-        tuple[float, float], # [xlo, xhi]
-        tuple[float, float], # [ylo, yhi]
-        tuple[float, float], # [zlo, zhi]
-        tuple[float, float, float]  # [xy, xz, yz]
-    ]:
+
+def lattice2lammps(
+    box: np.ndarray | Sequence[float],
+) -> tuple[
+    tuple[float, float],  # [xlo, xhi]
+    tuple[float, float],  # [ylo, yhi]
+    tuple[float, float],  # [zlo, zhi]
+    tuple[float, float, float],  # [xy, xz, yz]
+]:
     """Return the LAMMPS box parameters corresponding to the input lattice parameters.
 
     Parameters
@@ -135,8 +143,9 @@ def lattice2lammps(box: np.ndarray | Sequence[float]
     xy = vec_b[0]
     xz = vec_c[0]
     yz = vec_c[1]
-    
+
     return (0, lx), (0, ly), (0, lz), (xy, xz, yz)
+
 
 @lru_cache
 def require_program(name) -> str:
