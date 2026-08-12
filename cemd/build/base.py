@@ -15,10 +15,27 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
+import shutil
 from abc import ABC, abstractmethod
+from functools import lru_cache
 from typing import Any
 
 from ..core.atomic_system import AtomicSystem
+
+
+@lru_cache
+def require_program(name) -> str:
+    """Return the path of an external executable.
+
+    Raises
+    ------
+    RuntimeError
+        If the executable is not found in PATH.
+    """
+    path = shutil.which(name)
+    if path is None:
+        raise RuntimeError(f"{name} not found")
+    return path
 
 
 class BaseBuilder(ABC):

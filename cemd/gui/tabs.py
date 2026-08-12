@@ -290,7 +290,7 @@ class StructureTabWidget(QtWidgets.QWidget):
         # you must therefore update the FilterPanel counters if necessary.
         self.parent_gui.sync_ui(full_rebuild=True)
 
-    def keyPressEvent(self, event: QKeyEvent) -> None:
+    def key_press_event(self, event: QKeyEvent) -> None:
         """Handles keyboard shortcuts, specifically intercepting the Delete and Backspace keys for atom removal."""
         # Security: If are editing a cell, let the table do its work
         if self.table.state() == QtWidgets.QAbstractItemView.EditingState:

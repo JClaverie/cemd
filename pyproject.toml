@@ -39,22 +39,24 @@ dev = [
 
 [build-system]
 requires = ["setuptools>=68", "wheel"]
-build-backend = "setuptools.backends.legacy:build"
+build-backend = "setuptools.build_meta"
 
 [tool.ruff]
-line-length = 88  # même défaut que Black
+line-length = 88
 target-version = "py311"
 
 [tool.ruff.lint]
 select = [
-    "E",   # pycodestyle errors
-    "F",   # pyflakes
-    "I",   # isort
-    "N",   # pep8 naming
-    "UP",  # pyupgrade
+    "E",    # pycodestyle errors
+    "F",    # Pyflakes
+    "I",    # isort (gestion des imports)
+    "N",    # pep8-naming
+    "UP",   # pyupgrade
 ]
+unfixable = ["F401"]  # Empêche la suppression automatique des imports non utilisés
 ignore = [
-    "E501",  # line too long — géré par le formatter
+    "E501",  # Lignes trop longues (déjà géré par ruff format)
+    "N813",  # CamelCase importé en lowercase
 ]
 
 [tool.ruff.format]

@@ -84,7 +84,7 @@ class LAMMPSReader(BaseReader):
         box = cls._parse_box(path)
 
         topology = {
-            "lmp_box": box,
+            "box": box,
             "atoms": None,
             "bonds": None,
             "angles": None,
@@ -93,7 +93,7 @@ class LAMMPSReader(BaseReader):
             "velocities": None,
             "masses": {},
             "charges": {},
-            "atom_types": [],
+            # "atom_types": [],
             "bond_types": [],
             "angle_types": [],
             "dihedral_types": [],
@@ -136,7 +136,7 @@ class LAMMPSReader(BaseReader):
         starts = [i for i, line in enumerate(lines) if line in LAMMPSReader.HEADERS]
         starts.append(None)
         return {
-            lines[l]: lines[l + 1 : starts[i + 1]] for i, l in enumerate(starts[:-1])
+            lines[j]: lines[j + 1 : starts[i + 1]] for i, j in enumerate(starts[:-1])
         }
 
     @staticmethod
@@ -168,10 +168,8 @@ class LAMMPSReader(BaseReader):
 
         for key, values in sections.items():
             if key == "Atom Type Labels":
-                topology["atom_types"] = [
-                    v.split()[1] for v in values if len(v.split()) >= 2
-                ]
-            elif key == "Bond Type Labels":
+                atom_types = [v.split()[1] for v in values if len(v.split()) >= 2]
+            if key == "Bond Type Labels":
                 topology["bond_types"] = [
                     v.split()[1] for v in values if len(v.split()) >= 2
                 ]
@@ -209,7 +207,7 @@ class LAMMPSReader(BaseReader):
                 cls._parse_masses(array, topology)
             elif key in ("Pair Coeffs", "PairIJ Coeffs"):
                 cls._parse_coeffs(
-                    array, topology, "pair_params", target_types=topology["atom_types"]
+                    array, topology, "pair_params", target_types=atom_types
                 )
             elif key == "Bond Coeffs":
                 cls._parse_coeffs(
@@ -268,85 +266,183 @@ class LAMMPSReader(BaseReader):
     @staticmethod
     def _parse_atoms(array: np.ndarray, topology: dict) -> None:
         """
-        Parse Atoms section, supporting multiple LAMMPS atom styles.
+        Parse the LAMMPS ``Atoms`` section.
 
-        Supports:
-        - atomic: id type x y z (5 columns)
-        - charge: id type q x y z (6 columns)
-        -full: id mol type q x y z (7 columns) -> on IGNORE mol
+        Supported styles
+        ----------------
+        atomic
+            ``id type x y z``
+
+        charge
+            ``id type q x y z``
+
+        full
+            ``id mol type q x y z``
+
+        Image flags ``ix iy iz`` are automatically detected and removed
+        when the last three values of a line are integers.
         """
+
+        # ------------------------------------------------------------------
+        # Detect image flags
+        # ------------------------------------------------------------------
+
         n_cols = array.shape[1]
 
-        # Format detection
+        if n_cols >= 8:
+            try:
+                last_three = np.asarray(
+                    array[:, -3:],
+                    dtype=float,
+                )
+
+                # All three values must be integers.
+                is_integer = np.all(
+                    np.isfinite(last_three) & (last_three == np.round(last_three))
+                )
+
+            except (ValueError, TypeError):
+                is_integer = False
+
+            if is_integer:
+                # Remove ix, iy, iz
+                array = array[:, :-3]
+                n_cols -= 3
+
+        # ------------------------------------------------------------------
+        # Detect atom style from the cleaned data
+        # ------------------------------------------------------------------
+
         if n_cols == 5:
-            # Atomic format: id type x y z (no load)
-            keep = [0, 1, 2, 3, 4]
-            columns = ["id", "type", "x", "y", "z"]
+            # --------------------------------------------------------------
+            # atomic
+            #
+            # id type x y z
+            # --------------------------------------------------------------
+
+            atom_style = "atomic"
+
+            array = array[:, [0, 1, 2, 3, 4]]
+
+            columns = [
+                "id",
+                "type",
+                "x",
+                "y",
+                "z",
+            ]
+
             has_charge = False
 
         elif n_cols == 6:
-            # Format charge: id type q x y z
-            keep = [0, 1, 2, 3, 4, 5]
-            columns = ["id", "type", "charge", "x", "y", "z"]
+            # --------------------------------------------------------------
+            # charge
+            #
+            # id type q x y z
+            # --------------------------------------------------------------
+
+            atom_style = "charge"
+
+            array = array[:, [0, 1, 2, 3, 4, 5]]
+
+            columns = [
+                "id",
+                "type",
+                "charge",
+                "x",
+                "y",
+                "z",
+            ]
+
             has_charge = True
 
         elif n_cols == 7:
-            # Format full: id mol type q x y z
-            # On IGNORE mol (colonne 1)
-            keep = [0, 2, 3, 4, 5, 6]  # id, type, charge, x, y, z
-            columns = ["id", "type", "charge", "x", "y", "z"]
-            has_charge = True
+            # --------------------------------------------------------------
+            # full
+            #
+            # id mol type q x y z
+            #
+            # mol is ignored.
+            # --------------------------------------------------------------
 
-        elif n_cols >= 8 and n_cols <= 10:
-            # Format with images: we ignore soft and images
-            # We take: id, type, charge, x, y, z
-            # In full: id, mol, type, q, x, y, z, ix, iy, iz
-            # We take columns 0, 2, 3, 4, 5, 6
-            keep = [0, 2, 3, 4, 5, 6]
-            columns = ["id", "type", "charge", "x", "y", "z"]
+            atom_style = "full"
+
+            array = array[:, [0, 2, 3, 4, 5, 6]]
+
+            columns = [
+                "id",
+                "type",
+                "charge",
+                "x",
+                "y",
+                "z",
+            ]
+
             has_charge = True
 
         else:
             raise ValueError(
-                f"Unsupported Atoms format: {n_cols} columns. "
-                "Expected 5-10 columns for atomic/charge/full styles."
+                f"Unsupported LAMMPS Atoms format: {n_cols} columns "
+                "after removing image flags. "
+                "Expected 5, 6, or 7 columns."
             )
 
-        # Extract columns
-        array = array[:, keep]
+        # ------------------------------------------------------------------
+        # Create DataFrame
+        # ------------------------------------------------------------------
 
-        # Create the DataFrame -NO molten!
-        df = pd.DataFrame(array, columns=columns)
+        df = pd.DataFrame(
+            array,
+            columns=columns,
+        )
 
+        # ------------------------------------------------------------------
         # Convert columns
-        df["id"] = pd.to_numeric(df["id"], errors="coerce")
+        # ------------------------------------------------------------------
 
-        # Handle type (can be string or numeric)
+        df["id"] = pd.to_numeric(
+            df["id"],
+            errors="raise",
+        ).astype(int)
+
+        # Atom types can be numerical or strings.
         try:
-            df["type"] = pd.to_numeric(df["type"], errors="raise")
+            df["type"] = pd.to_numeric(
+                df["type"],
+                errors="raise",
+            ).astype(int)
         except (ValueError, TypeError):
-            # Types are strings (ex: 'Ca', 'C', 'O')
-            # We keep them as they are
-            pass
+            df["type"] = df["type"].astype(str)
 
-        # Convert coordinates and load
-        df["x"] = df["x"].astype(float)
-        df["y"] = df["y"].astype(float)
-        df["z"] = df["z"].astype(float)
+        # Coordinates
+        df[["x", "y", "z"]] = df[["x", "y", "z"]].astype(float)
 
-        if has_charge and "charge" in df.columns:
+        # ------------------------------------------------------------------
+        # Charges
+        # ------------------------------------------------------------------
+
+        if has_charge:
             df["charge"] = df["charge"].astype(float)
-            topology["charges"] = dict(zip(df["type"], df["charge"]))
+
+            topology["charges"] = {
+                atom_type: float(charge)
+                for atom_type, charge in zip(
+                    df["type"],
+                    df["charge"],
+                )
+            }
         else:
             df["charge"] = 0.0
             topology["charges"] = {}
 
-        # Store atom type
-        topology["atom_types"] = list(df["type"].unique())
+        # ------------------------------------------------------------------
+        # Finalize
+        # ------------------------------------------------------------------
 
-        # NO SOFT COLUMN!
         df.set_index("id", inplace=True)
+
         topology["atoms"] = df
+        topology["atom_style"] = atom_style
 
     @staticmethod
     def _parse_velocities(array: np.ndarray, topology: dict) -> None:
@@ -430,7 +526,7 @@ class LAMMPSReader(BaseReader):
                     params[label] = LJParams(epsilon=coeffs[0], sigma=coeffs[1])
                 elif len(coeffs) == 3:
                     params[label] = BuckinghamParams(
-                        A=coeffs[0], rho=coeffs[1], C=coeffs[2]
+                        a=coeffs[0], rho=coeffs[1], c=coeffs[2]
                     )
                 else:
                     params[label] = coeffs
@@ -561,7 +657,7 @@ class LAMMPSWriter(BaseWriter):
         if isinstance(params, LJParams):
             return f"{params.epsilon:>12.6e} {params.sigma:>10.5f}"
         elif isinstance(params, BuckinghamParams):
-            return f"{params.A:>12.6e} {params.rho:>10.5f} {params.C:>12.6e}"
+            return f"{params.a:>12.6e} {params.rho:>10.5f} {params.c:>12.6e}"
         elif isinstance(params, HarmonicBondParams):
             return f"{params.k:>12.4f} {params.r0:>10.4f}"
         elif isinstance(params, MorseBondParams):
@@ -792,14 +888,14 @@ class LAMMPSWriter(BaseWriter):
     @staticmethod
     def _write_box(f, system) -> None:
         """Write box parameters."""
-        xlo, xhi = system._lmp_box[0]
-        ylo, yhi = system._lmp_box[1]
-        zlo, zhi = system._lmp_box[2]
+        xlo, xhi = system._box_lmp[0]
+        ylo, yhi = system._box_lmp[1]
+        zlo, zhi = system._box_lmp[2]
         f.write(f"   {xlo:>14.6f} {xhi:>14.6f} xlo xhi\n")
         f.write(f"   {ylo:>14.6f} {yhi:>14.6f} ylo yhi\n")
         f.write(f"   {zlo:>14.6f} {zhi:>14.6f} zlo zhi\n")
 
-        xy, xz, yz = system._lmp_box[3]
+        xy, xz, yz = system._box_lmp[3]
         if any(abs(v) > 1e-8 for v in (xy, xz, yz)):
             f.write(f"   {xy:>14.6f} {xz:>14.6f} {yz:>14.6f} xy xz yz\n")
 

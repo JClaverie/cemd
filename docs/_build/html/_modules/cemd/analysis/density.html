@@ -404,32 +404,36 @@
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">scipy</span><span class="w"> </span><span class="kn">import</span> <span class="n">integrate</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">tqdm</span><span class="w"> </span><span class="kn">import</span> <span class="n">tqdm</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">dask</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">MDAnalysis</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">mda</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy</span><span class="w"> </span><span class="kn">import</span> <span class="n">integrate</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tqdm</span><span class="w"> </span><span class="kn">import</span> <span class="n">tqdm</span>
 
 <span class="n">_AXIS_MAP</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;axid&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;axida&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;axidb&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">},</span>
-    <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;axid&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;axida&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;axidb&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">},</span>
-    <span class="s1">&#39;z&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;axid&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span><span class="s1">&#39;axida&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;axidb&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span>
+    <span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;axid&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;axida&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;axidb&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">},</span>
+    <span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;axid&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;axida&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;axidb&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">},</span>
+    <span class="s2">&quot;z&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;axid&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;axida&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;axidb&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span>
 <span class="p">}</span>
+
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_get_axis_ids</span><span class="p">(</span><span class="n">axis</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
     <span class="k">if</span> <span class="n">axis</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">_AXIS_MAP</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;axis must be &#39;x&#39;, &#39;y&#39; or &#39;z&#39;, got &#39;</span><span class="si">{</span><span class="n">axis</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">_AXIS_MAP</span><span class="p">[</span><span class="n">axis</span><span class="p">]</span>
 
+
 <div class="viewcode-block" id="density_profile">
 <a class="viewcode-back" href="../../../api/generated/cemd.analysis.density_profile.html#cemd.analysis.density_profile">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">density_profile</span><span class="p">(</span><span class="n">universe</span><span class="p">:</span> <span class="n">mda</span><span class="o">.</span><span class="n">Universe</span><span class="p">,</span> 
-              <span class="n">atom_types</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="nb">int</span><span class="p">],</span> 
-              <span class="n">axis</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;z&quot;</span><span class="p">,</span> 
-              <span class="n">start</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> 
-              <span class="n">end</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> 
-              <span class="n">bin_size</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">density_profile</span><span class="p">(</span>
+    <span class="n">universe</span><span class="p">:</span> <span class="n">mda</span><span class="o">.</span><span class="n">Universe</span><span class="p">,</span>
+    <span class="n">atom_types</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="nb">int</span><span class="p">],</span>
+    <span class="n">axis</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;z&quot;</span><span class="p">,</span>
+    <span class="n">start</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="n">end</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span>
+    <span class="n">bin_size</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a DataFrame with the average density of atoms of given types along a given axis.</span>
 
 <span class="sd">    Parameters</span>
@@ -456,8 +460,8 @@
     <span class="n">box</span> <span class="o">=</span> <span class="n">universe</span><span class="o">.</span><span class="n">dimensions</span>
 
     <span class="n">ids</span> <span class="o">=</span> <span class="n">_get_axis_ids</span><span class="p">(</span><span class="n">axis</span><span class="p">)</span>
-    <span class="n">axid</span> <span class="o">=</span> <span class="n">ids</span><span class="p">[</span><span class="s1">&#39;axid&#39;</span><span class="p">]</span>
-    <span class="n">axida</span><span class="p">,</span> <span class="n">axidb</span> <span class="o">=</span> <span class="n">ids</span><span class="p">[</span><span class="s1">&#39;axida&#39;</span><span class="p">],</span> <span class="n">ids</span><span class="p">[</span><span class="s1">&#39;axidb&#39;</span><span class="p">]</span>
+    <span class="n">axid</span> <span class="o">=</span> <span class="n">ids</span><span class="p">[</span><span class="s2">&quot;axid&quot;</span><span class="p">]</span>
+    <span class="n">axida</span><span class="p">,</span> <span class="n">axidb</span> <span class="o">=</span> <span class="n">ids</span><span class="p">[</span><span class="s2">&quot;axida&quot;</span><span class="p">],</span> <span class="n">ids</span><span class="p">[</span><span class="s2">&quot;axidb&quot;</span><span class="p">]</span>
     <span class="n">slice_vol</span> <span class="o">=</span> <span class="n">bin_size</span> <span class="o">*</span> <span class="n">box</span><span class="p">[</span><span class="n">axida</span><span class="p">]</span> <span class="o">*</span> <span class="n">box</span><span class="p">[</span><span class="n">axidb</span><span class="p">]</span>
 
     <span class="n">bins</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">box</span><span class="p">[</span><span class="n">axid</span><span class="p">],</span> <span class="n">bin_size</span><span class="p">)</span>
@@ -469,7 +473,7 @@
 
         <span class="n">sel</span><span class="o">.</span><span class="n">universe</span><span class="o">.</span><span class="n">trajectory</span><span class="p">[</span><span class="n">frame_index</span><span class="p">]</span>
 
-        <span class="n">posi</span> <span class="o">=</span> <span class="n">sel</span><span class="o">.</span><span class="n">positions</span><span class="p">[:,</span><span class="n">axid</span><span class="p">]</span>
+        <span class="n">posi</span> <span class="o">=</span> <span class="n">sel</span><span class="o">.</span><span class="n">positions</span><span class="p">[:,</span> <span class="n">axid</span><span class="p">]</span>
 
         <span class="n">posi</span> <span class="o">=</span> <span class="n">posi</span> <span class="o">%</span> <span class="n">box</span><span class="p">[</span><span class="n">axid</span><span class="p">]</span>
 
@@ -481,10 +485,9 @@
         <span class="n">atom_types</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">universe</span><span class="o">.</span><span class="n">atoms</span><span class="o">.</span><span class="n">types</span><span class="p">)</span>
 
     <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">atom_types</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Compute 1D atomic density of </span><span class="si">{</span><span class="n">t</span><span class="si">}</span><span class="s2"> atoms...&quot;</span><span class="p">)</span>
 
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Compute 1D atomic density of </span><span class="si">{}</span><span class="s2"> atoms...&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">t</span><span class="p">))</span>
-
-        <span class="n">sel</span> <span class="o">=</span> <span class="n">universe</span><span class="o">.</span><span class="n">select_atoms</span><span class="p">(</span><span class="s2">&quot;type </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">t</span><span class="p">))</span>
+        <span class="n">sel</span> <span class="o">=</span> <span class="n">universe</span><span class="o">.</span><span class="n">select_atoms</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;type </span><span class="si">{</span><span class="n">t</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
         <span class="c1"># nframes = len(universe.trajectory[start:end])</span>
 
@@ -492,11 +495,17 @@
         <span class="c1"># for frame_index in tqdm( range(nframes) ):</span>
         <span class="c1">#     job_list.append(dask.delayed(count_pframe)(frame_index, sel))</span>
 
-        <span class="n">frames</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">universe</span><span class="o">.</span><span class="n">trajectory</span><span class="p">))[</span><span class="n">start</span><span class="p">:</span><span class="n">end</span><span class="p">]</span> <span class="k">if</span> <span class="n">end</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span> <span class="k">else</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">universe</span><span class="o">.</span><span class="n">trajectory</span><span class="p">))[</span><span class="n">start</span><span class="p">:]</span>
+        <span class="n">frames</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">universe</span><span class="o">.</span><span class="n">trajectory</span><span class="p">))[</span><span class="n">start</span><span class="p">:</span><span class="n">end</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">end</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span>
+            <span class="k">else</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">universe</span><span class="o">.</span><span class="n">trajectory</span><span class="p">))[</span><span class="n">start</span><span class="p">:]</span>
+        <span class="p">)</span>
         <span class="n">nframes</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">frames</span><span class="p">)</span>
-        
+
         <span class="k">if</span> <span class="n">nframes</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Le slice de la trajectoire [start:end] ne contient aucune frame.&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;Le slice de la trajectoire [start:end] ne contient aucune frame.&quot;</span>
+            <span class="p">)</span>
 
         <span class="n">job_list</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">frame_index</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">frames</span><span class="p">):</span>
@@ -509,19 +518,22 @@
 
         <span class="n">density_total</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">density</span><span class="p">)</span>
 
-        <span class="n">columns</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">t</span><span class="p">))</span>
+        <span class="n">columns</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">t</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">density_total</span><span class="p">)</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">columns</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">pos</span><span class="p">)</span></div>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">density_map</span><span class="p">(</span><span class="n">univ</span><span class="p">:</span> <span class="n">mda</span><span class="o">.</span><span class="n">Universe</span><span class="p">,</span> 
-              <span class="n">atom_types</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="nb">int</span><span class="p">],</span>
-              <span class="n">interface_coordinate</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
-              <span class="n">axis</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;z&quot;</span><span class="p">,</span>
-              <span class="n">eps</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">3.0</span><span class="p">,</span> 
-              <span class="n">start</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> 
-              <span class="n">end</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> 
-              <span class="n">bin_size</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">density_map</span><span class="p">(</span>
+    <span class="n">univ</span><span class="p">:</span> <span class="n">mda</span><span class="o">.</span><span class="n">Universe</span><span class="p">,</span>
+    <span class="n">atom_types</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="nb">int</span><span class="p">],</span>
+    <span class="n">interface_coordinate</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">axis</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;z&quot;</span><span class="p">,</span>
+    <span class="n">eps</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">3.0</span><span class="p">,</span>
+    <span class="n">start</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="n">end</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span>
+    <span class="n">bin_size</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a 2D density map of atoms within a specified distance of an interface.</span>
 
 <span class="sd">    Parameters</span>
@@ -553,30 +565,28 @@
 
     <span class="n">type_str</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">atom_types</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">atom_types</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="k">else</span> <span class="n">atom_types</span>
     <span class="n">sel</span> <span class="o">=</span> <span class="n">univ</span><span class="o">.</span><span class="n">select_atoms</span><span class="p">(</span>
-        <span class="sa">f</span><span class="s2">&quot;type </span><span class="si">{</span><span class="n">type_str</span><span class="si">}</span><span class="s2"> and prop </span><span class="si">{</span><span class="n">axis</span><span class="si">}</span><span class="s2"> &lt; </span><span class="si">{</span><span class="n">interface_coordinate</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">eps</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
-        <span class="n">updating</span><span class="o">=</span><span class="kc">True</span>
+        <span class="sa">f</span><span class="s2">&quot;type </span><span class="si">{</span><span class="n">type_str</span><span class="si">}</span><span class="s2"> and prop </span><span class="si">{</span><span class="n">axis</span><span class="si">}</span><span class="s2"> &lt; </span><span class="si">{</span><span class="n">interface_coordinate</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">eps</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">updating</span><span class="o">=</span><span class="kc">True</span>
     <span class="p">)</span>
 
     <span class="n">ids</span> <span class="o">=</span> <span class="n">_get_axis_ids</span><span class="p">(</span><span class="n">axis</span><span class="p">)</span>
-    <span class="n">axida</span><span class="p">,</span> <span class="n">axidb</span> <span class="o">=</span> <span class="n">ids</span><span class="p">[</span><span class="s1">&#39;axida&#39;</span><span class="p">],</span> <span class="n">ids</span><span class="p">[</span><span class="s1">&#39;axidb&#39;</span><span class="p">]</span>
+    <span class="n">axida</span><span class="p">,</span> <span class="n">axidb</span> <span class="o">=</span> <span class="n">ids</span><span class="p">[</span><span class="s2">&quot;axida&quot;</span><span class="p">],</span> <span class="n">ids</span><span class="p">[</span><span class="s2">&quot;axidb&quot;</span><span class="p">]</span>
     <span class="n">bins_a</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">box</span><span class="p">[</span><span class="n">axida</span><span class="p">],</span> <span class="n">bin_size</span><span class="p">)</span>
     <span class="n">bins_b</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">box</span><span class="p">[</span><span class="n">axidb</span><span class="p">],</span> <span class="n">bin_size</span><span class="p">)</span>
     <span class="n">slice_vol</span> <span class="o">=</span> <span class="n">bin_size</span> <span class="o">*</span> <span class="n">box</span><span class="p">[</span><span class="n">axida</span><span class="p">]</span> <span class="o">*</span> <span class="n">box</span><span class="p">[</span><span class="n">axidb</span><span class="p">]</span>
 
     <span class="n">nframes</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">univ</span><span class="o">.</span><span class="n">trajectory</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">end</span><span class="p">])</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Compute 2D atomic density of </span><span class="si">{}</span><span class="s2"> atoms...&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">type_str</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Compute 2D atomic density of </span><span class="si">{</span><span class="n">type_str</span><span class="si">}</span><span class="s2"> atoms...&quot;</span><span class="p">)</span>
 
     <span class="n">pos_a_list</span><span class="p">,</span> <span class="n">pos_b_list</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">ts</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span> <span class="n">univ</span><span class="o">.</span><span class="n">trajectory</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">end</span><span class="p">]</span> <span class="p">):</span>
-
-        <span class="n">posi</span><span class="p">,</span> <span class="n">posj</span> <span class="o">=</span> <span class="n">sel</span><span class="o">.</span><span class="n">positions</span><span class="p">[:,</span><span class="n">axida</span><span class="p">],</span> <span class="n">sel</span><span class="o">.</span><span class="n">positions</span><span class="p">[:,</span><span class="n">axidb</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">ts</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">univ</span><span class="o">.</span><span class="n">trajectory</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">end</span><span class="p">]):</span>
+        <span class="n">posi</span><span class="p">,</span> <span class="n">posj</span> <span class="o">=</span> <span class="n">sel</span><span class="o">.</span><span class="n">positions</span><span class="p">[:,</span> <span class="n">axida</span><span class="p">],</span> <span class="n">sel</span><span class="o">.</span><span class="n">positions</span><span class="p">[:,</span> <span class="n">axidb</span><span class="p">]</span>
 
         <span class="n">posi</span> <span class="o">=</span> <span class="n">sel</span><span class="o">.</span><span class="n">positions</span><span class="p">[:,</span> <span class="n">axida</span><span class="p">]</span> <span class="o">%</span> <span class="n">box</span><span class="p">[</span><span class="n">axida</span><span class="p">]</span>
         <span class="n">posj</span> <span class="o">=</span> <span class="n">sel</span><span class="o">.</span><span class="n">positions</span><span class="p">[:,</span> <span class="n">axidb</span><span class="p">]</span> <span class="o">%</span> <span class="n">box</span><span class="p">[</span><span class="n">axidb</span><span class="p">]</span>
 
-        <span class="n">pos_a_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">posi</span><span class="p">)</span>        
-        <span class="n">pos_b_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">posj</span><span class="p">)</span> 
+        <span class="n">pos_a_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">posi</span><span class="p">)</span>
+        <span class="n">pos_b_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">posj</span><span class="p">)</span>
 
     <span class="n">pos_a</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">pos_a_list</span><span class="p">)</span>
     <span class="n">pos_b</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">pos_b_list</span><span class="p">)</span>
@@ -591,10 +601,9 @@
     <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">density</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">ra</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">rb</span><span class="p">)</span>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">find_interfaces_coordinates</span><span class="p">(</span><span class="n">input_df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
-               <span class="n">solid_types</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="nb">int</span><span class="p">],</span> 
-               <span class="n">liquid_types</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="nb">int</span><span class="p">]</span>
-               <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">find_interfaces_coordinates</span><span class="p">(</span>
+    <span class="n">input_df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">solid_types</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="nb">int</span><span class="p">],</span> <span class="n">liquid_types</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="nb">int</span><span class="p">]</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Calculate the solid/liquid interface coordinates for an interfacial system.</span>
 
 <span class="sd">    Parameters</span>
@@ -609,7 +618,7 @@
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    tuple</span>
-<span class="sd">        Left liquid interface, left solid interface, right solid interface, </span>
+<span class="sd">        Left liquid interface, left solid interface, right solid interface,</span>
 <span class="sd">        and right liquid interface coordinates.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
@@ -629,9 +638,9 @@
     <span class="k">return</span> <span class="n">solution_left</span><span class="p">,</span> <span class="n">solid_left</span><span class="p">,</span> <span class="n">solid_right</span><span class="p">,</span> <span class="n">solution_right</span>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">shift_profile</span><span class="p">(</span><span class="n">input_df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> 
-                  <span class="n">shift</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> 
-                  <span class="n">csv_output</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;new_density_profile.csv&quot;</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">shift_profile</span><span class="p">(</span>
+    <span class="n">input_df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">shift</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">csv_output</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;new_density_profile.csv&quot;</span>
+<span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Shift the coordinates of a 1D density profile.</span>
 
 <span class="sd">    Parameters</span>
@@ -660,7 +669,7 @@
     <span class="n">idx</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">shift</span> <span class="o">/</span> <span class="n">dr</span><span class="p">)</span>
     <span class="n">new_densities</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">roll</span><span class="p">(</span><span class="n">densities</span><span class="p">,</span> <span class="n">idx</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 
-    <span class="n">new_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">r</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">size</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="n">new_densities</span><span class="p">))</span>
+    <span class="n">new_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">r</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">new_densities</span><span class="p">))</span>
 
     <span class="n">output_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">new_data</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">columns</span><span class="p">)</span>
 
@@ -669,11 +678,12 @@
 
     <span class="k">return</span> <span class="n">output_df</span>
 
+
 <div class="viewcode-block" id="electrostatic_potential">
 <a class="viewcode-back" href="../../../api/generated/cemd.analysis.electrostatic_potential.html#cemd.analysis.electrostatic_potential">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">electrostatic_potential</span><span class="p">(</span><span class="n">input_df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> 
-               <span class="n">list_charges</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span>
-               <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">]:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">electrostatic_potential</span><span class="p">(</span>
+    <span class="n">input_df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">list_charges</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Calculate charge distribution, electric field, and electrostatic potential.</span>
 
 <span class="sd">    Parameters</span>
@@ -693,21 +703,20 @@
 <span class="sd">        Calculated electrostatic potential profile.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">shift_constant</span><span class="p">(</span><span class="n">array</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">threshold</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="mf">0.1</span>
-                       <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">shift_constant</span><span class="p">(</span><span class="n">array</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">threshold</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Shifts the array by subtracting the mean of its constant (flat) regions.</span>
 
 <span class="sd">        This function automatically detects stationary or flat regions within a 1D signal by analyzing relative consecutive differences. It computes the average intensity of the signal across these stable baselines and subtracts it from the entire array, effectively centering the baseline/background around zero.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">            array </span>
+<span class="sd">            array</span>
 <span class="sd">            The 1D input array containing the signal to be corrected.</span>
 <span class="sd">            threshold</span>
 <span class="sd">            The maximum relative difference between consecutive elements to consider a region as &#39;constant&#39; or flat. Evaluated after scaling the array by its maximum value.</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            np.ndarray: The baseline-corrected array where the flat regions </span>
+<span class="sd">            np.ndarray: The baseline-corrected array where the flat regions</span>
 <span class="sd">                are centered around zero.</span>
 
 <span class="sd">        Example:</span>
@@ -716,21 +725,21 @@
 <span class="sd">            array([-0.025,  0.075, -0.025, 14.975, 39.975,  0.175, -0.025])</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="n">narr</span> <span class="o">=</span> <span class="n">array</span><span class="o">/</span><span class="n">array</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+        <span class="n">narr</span> <span class="o">=</span> <span class="n">array</span> <span class="o">/</span> <span class="n">array</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
         <span class="c1"># Calculate the absolute differences between consecutive elements</span>
         <span class="n">differences</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">narr</span><span class="p">))</span>
-        
+
         <span class="c1"># Identify indices where the difference is within the threshold</span>
         <span class="n">constant_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">differences</span> <span class="o">&lt;=</span> <span class="n">threshold</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
-        
+
         <span class="c1"># Adjust indices to include the next element in the array</span>
         <span class="n">constant_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">constant_indices</span><span class="p">,</span> <span class="n">constant_indices</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
-        
+
         <span class="c1"># Get unique indices and sort them</span>
         <span class="n">constant_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">constant_indices</span><span class="p">)</span>
 
         <span class="n">result_array</span> <span class="o">=</span> <span class="n">array</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">array</span><span class="p">[</span><span class="n">constant_indices</span><span class="p">])</span>
-        
+
         <span class="k">return</span> <span class="n">result_array</span>
 
     <span class="n">charge</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">list_charges</span><span class="p">)</span>
@@ -738,21 +747,21 @@
     <span class="n">r</span> <span class="o">=</span> <span class="n">input_df</span><span class="o">.</span><span class="n">index</span>
     <span class="n">dr</span> <span class="o">=</span> <span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">r</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">*</span> <span class="mf">1e-10</span>
 
-    <span class="n">charge_density</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">input_df</span><span class="o">.</span><span class="n">values</span> <span class="o">*</span> <span class="n">charge</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">axis</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">charge_density</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">input_df</span><span class="o">.</span><span class="n">values</span> <span class="o">*</span> <span class="n">charge</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
     <span class="n">charge_density_series</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">charge_density</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">r</span><span class="p">)</span>
-    
-    <span class="n">efield</span> <span class="o">=</span> <span class="n">integrate</span><span class="o">.</span><span class="n">cumulative_trapezoid</span><span class="p">(</span><span class="n">charge_density</span> <span class="o">*</span> <span class="mf">1.602e-19</span> <span class="o">*</span> <span class="mf">1e27</span><span class="p">,</span> <span class="n">dx</span> <span class="o">=</span> <span class="n">dr</span><span class="p">)</span> <span class="o">/</span> <span class="mf">8.854e-12</span>
+
+    <span class="n">efield</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">integrate</span><span class="o">.</span><span class="n">cumulative_trapezoid</span><span class="p">(</span><span class="n">charge_density</span> <span class="o">*</span> <span class="mf">1.602e-19</span> <span class="o">*</span> <span class="mf">1e27</span><span class="p">,</span> <span class="n">dx</span><span class="o">=</span><span class="n">dr</span><span class="p">)</span>
+        <span class="o">/</span> <span class="mf">8.854e-12</span>
+    <span class="p">)</span>
     <span class="n">r</span> <span class="o">=</span> <span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">+</span> <span class="n">r</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">/</span> <span class="mi">2</span>
     <span class="n">efield_series</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">shift_constant</span><span class="p">(</span><span class="n">efield</span><span class="p">),</span> <span class="n">index</span><span class="o">=</span><span class="n">r</span><span class="p">)</span>
 
-    <span class="n">potential</span> <span class="o">=</span> <span class="o">-</span> <span class="n">integrate</span><span class="o">.</span><span class="n">cumulative_trapezoid</span><span class="p">(</span><span class="n">efield</span><span class="p">,</span> <span class="n">dx</span> <span class="o">=</span> <span class="n">dr</span><span class="p">)</span>
+    <span class="n">potential</span> <span class="o">=</span> <span class="o">-</span><span class="n">integrate</span><span class="o">.</span><span class="n">cumulative_trapezoid</span><span class="p">(</span><span class="n">efield</span><span class="p">,</span> <span class="n">dx</span><span class="o">=</span><span class="n">dr</span><span class="p">)</span>
     <span class="n">r</span> <span class="o">=</span> <span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">+</span> <span class="n">r</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">/</span> <span class="mi">2</span>
     <span class="n">potential_series</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">shift_constant</span><span class="p">(</span><span class="n">potential</span><span class="p">),</span> <span class="n">index</span><span class="o">=</span><span class="n">r</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">charge_density_series</span><span class="p">,</span> <span class="n">efield_series</span><span class="p">,</span> <span class="n">potential_series</span></div>
-
-
-
 
 </pre></div>
 

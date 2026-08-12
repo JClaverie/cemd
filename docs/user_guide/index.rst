@@ -52,21 +52,16 @@ This guide explains how to build and analyze your atomistic models.
 
       Building a calcite surface slab from COD.
 
-      +++
-      .. button-ref:: Building a calcite slab
-         :expand:
-         :color: primary
-         :click-parent:
-
    .. grid-item-card:: :material-regular:`school;2em` Tutorial
       :link: tuto_topo_ff
       :link-type: doc
       :text-align: center
 
       Applying topology and forcefield parameters to a calcite surface slab.
+      
+   .. grid-item-card:: :material-regular:`school;2em` Tutorial
+      :link: tuto_caffeine_solvation
+      :link-type: doc
+      :text-align: center
 
-      +++
-      .. button-ref:: Applying topology and forcefield parameters 
-         :expand:
-         :color: primary
-         :click-parent:
+      Solvating caffeine molecules in an NaCl solution.

@@ -24,6 +24,7 @@
       ~GlassBuilder.get_elemental_composition
       ~GlassBuilder.get_mass_per_formula_unit
       ~GlassBuilder.get_num_formula_units
+      ~GlassBuilder.get_total_charge
       ~GlassBuilder.is_pure
       ~GlassBuilder.normalize
    

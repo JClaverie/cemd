@@ -24,14 +24,13 @@ import numpy as np
 import pandas as pd
 
 from ...._constants import CHARGES_DICT, MASSES_DICT
-from ...._utils import lattice2lammps
 from .base import BaseReader
 
 if TYPE_CHECKING:
     from pymatgen.core import Structure
 
 
-class PmgReader(BaseReader):
+class PMGReader(BaseReader):
     """Read from Pymatgen Structure."""
 
     @classmethod
@@ -89,11 +88,10 @@ class PmgReader(BaseReader):
         # Apply reindexing if order has changed
         if best_mapping != [0, 1, 2]:
             warnings.warn(
-                f"Axes reindexed: original {original_abc} -> refined {abc} "
-                f"with mapping {best_mapping}",
-                UserWarning,
+                f"Axes reindexed: original {original_abc} -> refined {abc} with mapping {best_mapping}",
+                category=UserWarning,
+                stacklevel=2,
             )
-
             abc = [abc[i] for i in best_mapping]
             angles = [angles[i] for i in best_mapping]
             positions = positions[:, best_mapping].copy()
@@ -130,10 +128,9 @@ class PmgReader(BaseReader):
 
         # 8. Assemble the topology
         topology = {
-            "lmp_box": lattice2lammps(abc + angles),
+            "box": abc + angles,
             "masses": masses_dict,
             "charges": charges_dict,
-            "atom_types": unique_types,
             "atoms": df_atoms,
             "bonds": None,
             "angles": None,

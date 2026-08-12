@@ -405,20 +405,20 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">shutil</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">subprocess</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">tempfile</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">shutil</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Sequence</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">TYPE_CHECKING</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">TYPE_CHECKING</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">..base</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseBuilder</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">..._utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">require_program</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">..._paths</span><span class="w"> </span><span class="kn">import</span> <span class="n">STRUCTURES_DIR</span><span class="p">,</span> <span class="n">PYCSH_DIR</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">...core.atomic_system</span><span class="w"> </span><span class="kn">import</span> <span class="n">AtomicSystem</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..._paths</span><span class="w"> </span><span class="kn">import</span> <span class="n">PYCSH_DIR</span><span class="p">,</span> <span class="n">STRUCTURES_DIR</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">...analysis</span><span class="w"> </span><span class="kn">import</span> <span class="n">analyze_silicates</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">...core.atomic_system</span><span class="w"> </span><span class="kn">import</span> <span class="n">AtomicSystem</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..base</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseBuilder</span><span class="p">,</span> <span class="n">require_program</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">._silicate_helpers</span><span class="w"> </span><span class="kn">import</span> <span class="n">substitute_si_by_al</span>
 
 <span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
@@ -429,17 +429,18 @@
 <span class="c1"># CSHBuilder</span>
 <span class="c1"># =============================================================================</span>
 
+
 <div class="viewcode-block" id="CSHBuilder">
 <a class="viewcode-back" href="../../../../api/generated/cemd.build.CSHBuilder.html#cemd.build.CSHBuilder">[docs]</a>
 <span class="nd">@dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">CSHBuilder</span><span class="p">(</span><span class="n">BaseBuilder</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Builder for creating C-S-H (Calcium-Silicate-Hydrate) structures.</span>
-<span class="sd">    </span>
+
 <span class="sd">    This builder creates C-S-H models using either:</span>
 <span class="sd">    - build()          : Classic tobermorite-based approach with interlayer filling</span>
 <span class="sd">    - build_pycsh()    : Full atomistic model using pyCSH</span>
-<span class="sd">    </span>
+
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    cs_ratio : float</span>
@@ -448,7 +449,7 @@
 <span class="sd">        Water/Silicate ratio.</span>
 <span class="sd">    progress_callback : Callable, optional</span>
 <span class="sd">        Progress callback function.</span>
-<span class="sd">    </span>
+
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>
 <span class="sd">    &gt;&gt;&gt; # Create C-S-H with classic method (tobermorite)</span>
@@ -457,7 +458,7 @@
 <span class="sd">    ...     supercell=[4,1,1],</span>
 <span class="sd">    ...     model=&#39;tob11a_merlino.cif&#39;</span>
 <span class="sd">    ... )</span>
-<span class="sd">    &gt;&gt;&gt; </span>
+<span class="sd">    &gt;&gt;&gt;</span>
 <span class="sd">    &gt;&gt;&gt; # Create C-S-H with pyCSH</span>
 <span class="sd">    &gt;&gt;&gt; builder = CSHBuilder(cs_ratio=1.2, ws_ratio=0.8)</span>
 <span class="sd">    &gt;&gt;&gt; systems = builder.build_pycsh(</span>
@@ -466,19 +467,19 @@
 <span class="sd">    ...     seed=42</span>
 <span class="sd">    ... )</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    
+
     <span class="c1"># Required parameters</span>
     <span class="n">cs_ratio</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
     <span class="n">ws_ratio</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
-    
+
     <span class="c1"># Optional parameter (commun)</span>
-    <span class="n">progress_callback</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="kc">None</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span>
-    
+    <span class="n">progress_callback</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="kc">None</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+
     <span class="c1"># Internal state</span>
-    <span class="n">_system</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">AtomicSystem</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">init</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="nb">repr</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-    <span class="n">_analysis</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">init</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="nb">repr</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">_system</span><span class="p">:</span> <span class="n">AtomicSystem</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">init</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="nb">repr</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">_analysis</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">init</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="nb">repr</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
     <span class="n">_is_built</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">init</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="nb">repr</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-    
+
     <span class="k">def</span><span class="w"> </span><span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize and validate the builder.&quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
@@ -486,7 +487,7 @@
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;cs_ratio must be positive, got </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">cs_ratio</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ws_ratio</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">ws_ratio</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ws_ratio must be &gt;= 0, got </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">ws_ratio</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-    
+
     <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return a styled string representation.&quot;&quot;&quot;</span>
         <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;&lt;CSHBuilder&gt;&quot;</span><span class="p">]</span>
@@ -494,65 +495,83 @@
         <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;┌─ Configuration&quot;</span><span class="p">)</span>
 
         <span class="n">cs_display</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cs_ratio</span>
-        <span class="k">if</span> <span class="n">cs_display</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_analysis</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="s1">&#39;Ca/Si&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_analysis</span><span class="p">:</span>
-            <span class="n">cs_display</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_analysis</span><span class="p">[</span><span class="s1">&#39;Ca/Si&#39;</span><span class="p">]</span>
-        
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="n">cs_display</span> <span class="ow">is</span> <span class="kc">None</span>
+            <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_analysis</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="ow">and</span> <span class="s2">&quot;Ca/Si&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_analysis</span>
+        <span class="p">):</span>
+            <span class="n">cs_display</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_analysis</span><span class="p">[</span><span class="s2">&quot;Ca/Si&quot;</span><span class="p">]</span>
+
         <span class="c1"># Déterminer ws_ratio à afficher</span>
         <span class="n">ws_display</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ws_ratio</span>
-        <span class="k">if</span> <span class="n">ws_display</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_analysis</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="s1">&#39;H2O/Si&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_analysis</span><span class="p">:</span>
-            <span class="n">ws_display</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_analysis</span><span class="p">[</span><span class="s1">&#39;H2O/Si&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="n">ws_display</span> <span class="ow">is</span> <span class="kc">None</span>
+            <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_analysis</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="ow">and</span> <span class="s2">&quot;H2O/Si&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_analysis</span>
+        <span class="p">):</span>
+            <span class="n">ws_display</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_analysis</span><span class="p">[</span><span class="s2">&quot;H2O/Si&quot;</span><span class="p">]</span>
 
-        <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;│   Ca/Si ratio  : </span><span class="si">{</span><span class="n">cs_display</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">if</span> <span class="n">cs_display</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="s2">&quot;│   Ca/Si ratio  : None&quot;</span><span class="p">)</span>
-        <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;│   H2O/Si ratio : </span><span class="si">{</span><span class="n">ws_display</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">if</span> <span class="n">cs_display</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="s2">&quot;│   H2O/Si ratio : None&quot;</span><span class="p">)</span>
-        
+        <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;│   Ca/Si ratio  : </span><span class="si">{</span><span class="n">cs_display</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="k">if</span> <span class="n">cs_display</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="k">else</span> <span class="s2">&quot;│   Ca/Si ratio  : None&quot;</span>
+        <span class="p">)</span>
+        <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;│   H2O/Si ratio : </span><span class="si">{</span><span class="n">ws_display</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="k">if</span> <span class="n">cs_display</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="k">else</span> <span class="s2">&quot;│   H2O/Si ratio : None&quot;</span>
+        <span class="p">)</span>
+
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_system</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;│   System       : </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_system</span><span class="o">.</span><span class="n">num_atoms</span><span class="si">}</span><span class="s2"> atoms&quot;</span><span class="p">)</span>
-            
+
             <span class="c1"># Analyse automatique si elle n&#39;existe pas encore</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_analysis</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">try</span><span class="p">:</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_analysis</span> <span class="o">=</span> <span class="n">analyze_silicates</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_system</span><span class="p">)</span>
                 <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_analysis</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;error&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)}</span>
-            
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_analysis</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="s1">&#39;error&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_analysis</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_analysis</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)}</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_analysis</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="s2">&quot;error&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_analysis</span><span class="p">:</span>
                 <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;│&quot;</span><span class="p">)</span>
                 <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;├─ Analysis&quot;</span><span class="p">)</span>
                 <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;│   Ca/(Si+Al)   : </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_analysis</span><span class="p">[</span><span class="s1">&#39;Ca/(Si+Al)&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
                 <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;│   Al/Si        : </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_analysis</span><span class="p">[</span><span class="s1">&#39;Al/Si&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
                 <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;│   H2O/(Si+Al)  : </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_analysis</span><span class="p">[</span><span class="s1">&#39;H2O/(Si+Al)&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-                <span class="n">mcl</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_analysis</span><span class="p">[</span><span class="s1">&#39;MCL&#39;</span><span class="p">]</span>
-                <span class="n">mcl_str</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">mcl</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">if</span> <span class="n">mcl</span> <span class="o">!=</span> <span class="nb">float</span><span class="p">(</span><span class="s1">&#39;inf&#39;</span><span class="p">)</span> <span class="k">else</span> <span class="s2">&quot;∞&quot;</span>
+                <span class="n">mcl</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_analysis</span><span class="p">[</span><span class="s2">&quot;MCL&quot;</span><span class="p">]</span>
+                <span class="n">mcl_str</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">mcl</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">if</span> <span class="n">mcl</span> <span class="o">!=</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;inf&quot;</span><span class="p">)</span> <span class="k">else</span> <span class="s2">&quot;∞&quot;</span>
                 <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;│   MCL          : </span><span class="si">{</span><span class="n">mcl_str</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-                <span class="n">qn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_analysis</span><span class="p">[</span><span class="s1">&#39;Qn_distribution&#39;</span><span class="p">]</span>
-                <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;│   Qⁿ dist      : Q0=</span><span class="si">{</span><span class="n">qn</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">% Q1=</span><span class="si">{</span><span class="n">qn</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">% Q2=</span><span class="si">{</span><span class="n">qn</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">% Q3=</span><span class="si">{</span><span class="n">qn</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">% Q4=</span><span class="si">{</span><span class="n">qn</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">%&quot;</span><span class="p">)</span>
-            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_analysis</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="s1">&#39;error&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_analysis</span><span class="p">:</span>
+                <span class="n">qn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_analysis</span><span class="p">[</span><span class="s2">&quot;Qn_distribution&quot;</span><span class="p">]</span>
+                <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;│   Qⁿ dist      : Q0=</span><span class="si">{</span><span class="n">qn</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">% Q1=</span><span class="si">{</span><span class="n">qn</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">% Q2=</span><span class="si">{</span><span class="n">qn</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">% Q3=</span><span class="si">{</span><span class="n">qn</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">% Q4=</span><span class="si">{</span><span class="n">qn</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">%&quot;</span>
+                <span class="p">)</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_analysis</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="s2">&quot;error&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_analysis</span><span class="p">:</span>
                 <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;│&quot;</span><span class="p">)</span>
                 <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;├─ Analysis&quot;</span><span class="p">)</span>
                 <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;│   ⚠️ </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_analysis</span><span class="p">[</span><span class="s1">&#39;error&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;│   System       : None&quot;</span><span class="p">)</span>
-        
+
         <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;└─&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
 
     <span class="nd">@classmethod</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">from_system</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">system</span><span class="p">:</span> <span class="n">AtomicSystem</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;CSHBuilder&quot;</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_system</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">system</span><span class="p">:</span> <span class="n">AtomicSystem</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CSHBuilder</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Create a builder from an existing AtomicSystem.</span>
-<span class="sd">        </span>
+
 <span class="sd">        This is useful for analyzing or modifying existing C-S-H structures.</span>
-<span class="sd">        </span>
+
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        system : AtomicSystem</span>
 <span class="sd">            The existing C-S-H system.</span>
-<span class="sd">        </span>
+
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        CSHBuilder</span>
 <span class="sd">            A builder instance configured with the given system.</span>
-<span class="sd">        </span>
+
 <span class="sd">        Examples</span>
 <span class="sd">        --------</span>
 <span class="sd">        &gt;&gt;&gt; system = AtomicSystem.from_file(&quot;csh.lmp&quot;)</span>
@@ -565,18 +584,18 @@
         <span class="k">try</span><span class="p">:</span>
             <span class="n">builder</span><span class="o">.</span><span class="n">_analysis</span> <span class="o">=</span> <span class="n">analyze_silicates</span><span class="p">(</span><span class="n">system</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-            <span class="n">builder</span><span class="o">.</span><span class="n">_analysis</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;error&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)}</span>
+            <span class="n">builder</span><span class="o">.</span><span class="n">_analysis</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)}</span>
         <span class="k">return</span> <span class="n">builder</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">analyze</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">types_map</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">cutoff</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.85</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">analyze</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">types_map</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">cutoff</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.85</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Analyze the silicate network of the current system.</span>
-<span class="sd">        </span>
+
 <span class="sd">        This method uses `analyze_silicates` to compute:</span>
 <span class="sd">        - Stoichiometric ratios (Ca/(Si+Al), Al/Si, H2O/(Si+Al))</span>
 <span class="sd">        - Q^n distribution (polymerization)</span>
 <span class="sd">        - Mean Chain Length (MCL)</span>
-<span class="sd">        </span>
+
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        types_map : dict, optional</span>
@@ -584,13 +603,13 @@
 <span class="sd">            Defaults to TYPES_PRESET.</span>
 <span class="sd">        cutoff : float, default=1.85</span>
 <span class="sd">            Distance cutoff for neighbor selection in Å.</span>
-<span class="sd">        </span>
+
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        dict</span>
 <span class="sd">            Analysis results containing &#39;Ca/(Si+Al)&#39;, &#39;Al/Si&#39;, &#39;H2O/(Si+Al)&#39;,</span>
 <span class="sd">            &#39;MCL&#39;, and &#39;Qn_distribution&#39;.</span>
-<span class="sd">        </span>
+
 <span class="sd">        Examples</span>
 <span class="sd">        --------</span>
 <span class="sd">        &gt;&gt;&gt; builder = CSHBuilder.from_system(system)</span>
@@ -599,10 +618,12 @@
 <span class="sd">        &gt;&gt;&gt; print(f&quot;Qn distribution: {analysis[&#39;Qn_distribution&#39;]}&quot;)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_system</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;No system available. Build one first or use from_system().&quot;</span><span class="p">)</span>
-        
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                <span class="s2">&quot;No system available. Build one first or use from_system().&quot;</span>
+            <span class="p">)</span>
+
         <span class="n">system</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_system</span>
-        
+
         <span class="bp">self</span><span class="o">.</span><span class="n">_analysis</span> <span class="o">=</span> <span class="n">analyze_silicates</span><span class="p">(</span><span class="n">system</span><span class="p">,</span> <span class="n">types_map</span><span class="o">=</span><span class="n">types_map</span><span class="p">,</span> <span class="n">cutoff</span><span class="o">=</span><span class="n">cutoff</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_analysis</span>
 
@@ -612,21 +633,23 @@
             <span class="k">try</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_analysis</span> <span class="o">=</span> <span class="n">analyze_silicates</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_system</span><span class="p">)</span>
             <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_analysis</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;error&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)}</span>
-    
+                <span class="bp">self</span><span class="o">.</span><span class="n">_analysis</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)}</span>
+
     <span class="c1"># ------------------------------------------------------------------</span>
     <span class="c1"># Classic method (tobermorite)</span>
     <span class="c1"># ------------------------------------------------------------------</span>
-    
-    <span class="k">def</span><span class="w"> </span><span class="nf">build</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
-              <span class="n">supercell</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-              <span class="n">model</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;tob11a_merlino.cif&#39;</span><span class="p">,</span>
-              <span class="n">min_mcl</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">3.0</span><span class="p">,</span>
-              <span class="n">symmetry</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-              <span class="n">_progress_callback</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="kc">None</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AtomicSystem</span><span class="p">:</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">build</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">supercell</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">model</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;tob11a_merlino.cif&quot;</span><span class="p">,</span>
+        <span class="n">min_mcl</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">3.0</span><span class="p">,</span>
+        <span class="n">symmetry</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">_progress_callback</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="kc">None</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AtomicSystem</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Build C-S-H using the classic tobermorite-based approach.</span>
-<span class="sd">        </span>
+
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        supercell : Sequence[int], optional</span>
@@ -638,12 +661,12 @@
 <span class="sd">            Minimum mean chain length.</span>
 <span class="sd">        symmetry : bool, default=True</span>
 <span class="sd">            Remove bridging silicates symmetrically.</span>
-<span class="sd">        </span>
+
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        AtomicSystem</span>
 <span class="sd">            The built C-S-H structure.</span>
-<span class="sd">        </span>
+
 <span class="sd">        Examples</span>
 <span class="sd">        --------</span>
 <span class="sd">        &gt;&gt;&gt; builder = CSHBuilder(cs_ratio=1.5, ws_ratio=1.0)</span>
@@ -653,26 +676,26 @@
 <span class="sd">        ... )</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="kn">from</span><span class="w"> </span><span class="nn">._silicate_helpers</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
-            <span class="n">remove_bridging_silicates</span><span class="p">,</span> 
-            <span class="n">calculate_csh_modifiers</span><span class="p">,</span>
-            <span class="n">neutralize_csh_charge</span>
-        <span class="p">)</span>
-        <span class="kn">from</span><span class="w"> </span><span class="nn">._interlayer_helpers</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
-            <span class="n">distribute_species_in_layers</span><span class="p">,</span> 
-            <span class="n">fill_csh_interlayers</span>
-<span class="p">)</span>
+        <span class="n">require_program</span><span class="p">(</span><span class="s2">&quot;packmol&quot;</span><span class="p">)</span>
 
-        <span class="n">require_program</span><span class="p">(</span><span class="s1">&#39;packmol&#39;</span><span class="p">)</span>
-        
+        <span class="kn">from</span><span class="w"> </span><span class="nn">._interlayer_helpers</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+            <span class="n">distribute_species_in_layers</span><span class="p">,</span>
+            <span class="n">fill_csh_interlayers</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">._silicate_helpers</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+            <span class="n">calculate_csh_modifiers</span><span class="p">,</span>
+            <span class="n">neutralize_csh_charge</span><span class="p">,</span>
+            <span class="n">remove_bridging_silicates</span><span class="p">,</span>
+        <span class="p">)</span>
+
         <span class="c1"># Validate classic-specific parameters</span>
-        <span class="k">if</span> <span class="n">model</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;tob11a_hamid.cif&#39;</span><span class="p">,</span> <span class="s1">&#39;tob11a_merlino.cif&#39;</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="n">model</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;tob11a_hamid.cif&quot;</span><span class="p">,</span> <span class="s2">&quot;tob11a_merlino.cif&quot;</span><span class="p">]:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unsupported model: </span><span class="si">{</span><span class="n">model</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">min_mcl</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;min_mcl must be &gt;= 2, got </span><span class="si">{</span><span class="n">min_mcl</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        
+
         <span class="n">system</span> <span class="o">=</span> <span class="n">AtomicSystem</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">STRUCTURES_DIR</span><span class="p">,</span> <span class="n">model</span><span class="p">))</span>
-        
+
         <span class="c1"># Apply supercell</span>
         <span class="k">if</span> <span class="n">model</span> <span class="o">==</span> <span class="s2">&quot;tob11a_hamid.cif&quot;</span><span class="p">:</span>
             <span class="n">supercell</span> <span class="o">=</span> <span class="n">supercell</span> <span class="ow">or</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
@@ -682,73 +705,85 @@
             <span class="n">system</span><span class="o">.</span><span class="n">orthogonalize</span><span class="p">()</span>
             <span class="n">supercell</span> <span class="o">=</span> <span class="n">supercell</span> <span class="ow">or</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
             <span class="n">system</span><span class="o">.</span><span class="n">replicate</span><span class="p">(</span><span class="n">supercell</span><span class="p">)</span>
-        
+
         <span class="n">univ</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">to_mda</span><span class="p">()</span>
         <span class="n">box</span> <span class="o">=</span> <span class="n">univ</span><span class="o">.</span><span class="n">dimensions</span>
-        
+
         <span class="c1"># Calculate modifications</span>
         <span class="n">nsi</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">univ</span><span class="o">.</span><span class="n">select_atoms</span><span class="p">(</span><span class="s2">&quot;type Si&quot;</span><span class="p">))</span>
         <span class="n">nca</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">univ</span><span class="o">.</span><span class="n">select_atoms</span><span class="p">(</span><span class="s2">&quot;type Ca&quot;</span><span class="p">))</span>
         <span class="n">nsi_to_remove</span><span class="p">,</span> <span class="n">nca_to_add</span><span class="p">,</span> <span class="n">vacancy_fraction</span> <span class="o">=</span> <span class="n">calculate_csh_modifiers</span><span class="p">(</span>
             <span class="n">nsi</span><span class="p">,</span> <span class="n">nca</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cs_ratio</span><span class="p">,</span> <span class="n">min_mcl</span>
         <span class="p">)</span>
-        
+
         <span class="k">if</span> <span class="n">_progress_callback</span><span class="p">:</span>
             <span class="n">_progress_callback</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="s2">&quot;Removing bridging silicates...&quot;</span><span class="p">)</span>
-        
+
         <span class="n">univ</span> <span class="o">=</span> <span class="n">remove_bridging_silicates</span><span class="p">(</span><span class="n">univ</span><span class="p">,</span> <span class="n">nsi_to_remove</span><span class="p">,</span> <span class="n">symmetry</span><span class="p">)</span>
-        
+
         <span class="c1"># Update Si count</span>
         <span class="n">si_sel</span> <span class="o">=</span> <span class="n">univ</span><span class="o">.</span><span class="n">select_atoms</span><span class="p">(</span><span class="s2">&quot;type Si&quot;</span><span class="p">)</span>
         <span class="n">nsi</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">si_sel</span><span class="p">)</span>
-        
+
         <span class="c1"># Calculate water count</span>
         <span class="n">num_water</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">nsi</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">ws_ratio</span><span class="p">)</span> <span class="o">+</span> <span class="n">nca_to_add</span>
-        
+
         <span class="k">if</span> <span class="n">num_water</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">final_system</span> <span class="o">=</span> <span class="n">AtomicSystem</span><span class="o">.</span><span class="n">from_mda</span><span class="p">(</span><span class="n">univ</span><span class="p">)</span>
             <span class="n">final_system</span><span class="o">.</span><span class="n">set_box</span><span class="p">(</span><span class="n">box</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">final_system</span>
-        
+
         <span class="c1"># Distribute species in layers</span>
         <span class="n">si_layers_pos</span><span class="p">,</span> <span class="n">nw_layers</span><span class="p">,</span> <span class="n">nca_layers</span><span class="p">,</span> <span class="n">nlayers</span> <span class="o">=</span> <span class="n">distribute_species_in_layers</span><span class="p">(</span>
-            <span class="n">num_water</span><span class="p">,</span> <span class="n">nca_to_add</span><span class="p">,</span> <span class="n">si_sel</span><span class="o">.</span><span class="n">positions</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">],</span> 
-            <span class="n">supercell</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="k">if</span> <span class="n">supercell</span> <span class="k">else</span> <span class="mi">1</span><span class="p">,</span> <span class="n">box</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+            <span class="n">num_water</span><span class="p">,</span>
+            <span class="n">nca_to_add</span><span class="p">,</span>
+            <span class="n">si_sel</span><span class="o">.</span><span class="n">positions</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">],</span>
+            <span class="n">supercell</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="k">if</span> <span class="n">supercell</span> <span class="k">else</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="n">box</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span>
         <span class="p">)</span>
-        
-        <span class="k">with</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">TemporaryDirectory</span><span class="p">(</span><span class="nb">dir</span><span class="o">=</span><span class="s1">&#39;.&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">tmp</span><span class="p">:</span>
+
+        <span class="k">with</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">TemporaryDirectory</span><span class="p">(</span><span class="nb">dir</span><span class="o">=</span><span class="s2">&quot;.&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">tmp</span><span class="p">:</span>
             <span class="n">final_pdb</span> <span class="o">=</span> <span class="n">fill_csh_interlayers</span><span class="p">(</span>
-                <span class="n">univ</span><span class="p">,</span> <span class="n">box</span><span class="p">,</span> <span class="n">si_layers_pos</span><span class="p">,</span> <span class="n">nw_layers</span><span class="p">,</span> <span class="n">nca_layers</span><span class="p">,</span>
-                <span class="n">nca_to_add</span><span class="p">,</span> <span class="n">nlayers</span><span class="p">,</span> <span class="n">tmp</span><span class="p">,</span> <span class="n">_progress_callback</span>
+                <span class="n">univ</span><span class="p">,</span>
+                <span class="n">box</span><span class="p">,</span>
+                <span class="n">si_layers_pos</span><span class="p">,</span>
+                <span class="n">nw_layers</span><span class="p">,</span>
+                <span class="n">nca_layers</span><span class="p">,</span>
+                <span class="n">nca_to_add</span><span class="p">,</span>
+                <span class="n">nlayers</span><span class="p">,</span>
+                <span class="n">tmp</span><span class="p">,</span>
+                <span class="n">_progress_callback</span><span class="p">,</span>
             <span class="p">)</span>
-            
+
             <span class="k">if</span> <span class="n">nca_to_add</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="n">neutralize_csh_charge</span><span class="p">(</span><span class="n">final_pdb</span><span class="p">)</span>
-            
+
             <span class="n">final_system</span> <span class="o">=</span> <span class="n">AtomicSystem</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="n">final_pdb</span><span class="p">)</span>
-        
+
         <span class="n">final_system</span><span class="o">.</span><span class="n">set_box</span><span class="p">(</span><span class="n">box</span><span class="p">)</span>
-        
+
         <span class="k">if</span> <span class="n">_progress_callback</span><span class="p">:</span>
             <span class="n">_progress_callback</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="s2">&quot;Structure complete&quot;</span><span class="p">)</span>
-        
+
         <span class="bp">self</span><span class="o">.</span><span class="n">_system</span> <span class="o">=</span> <span class="n">final_system</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_update_analysis</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">final_system</span>
-    
+
     <span class="c1"># ------------------------------------------------------------------</span>
     <span class="c1"># pyCSH method</span>
     <span class="c1"># ------------------------------------------------------------------</span>
-    
-    <span class="k">def</span><span class="w"> </span><span class="nf">build_pycsh</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
-                    <span class="n">supercell</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
-                    <span class="n">nsamples</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
-                    <span class="n">name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-                    <span class="n">seed</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-                    <span class="n">_progress_callback</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="kc">None</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">AtomicSystem</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="n">AtomicSystem</span><span class="p">]]:</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">build_pycsh</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">supercell</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
+        <span class="n">nsamples</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">_progress_callback</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="kc">None</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AtomicSystem</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="n">AtomicSystem</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Build C-S-H using pyCSH (full atomistic model).</span>
-<span class="sd">        </span>
+
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        supercell : Sequence[int], default=(3,5,2)</span>
@@ -759,13 +794,13 @@
 <span class="sd">            Prefix for output files.</span>
 <span class="sd">        seed : int, optional</span>
 <span class="sd">            Random seed for reproducibility.</span>
-<span class="sd">        </span>
+
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        AtomicSystem or list[AtomicSystem]</span>
 <span class="sd">            The built C-S-H structure(s). Returns a single AtomicSystem if</span>
 <span class="sd">            nsamples=1, otherwise a list.</span>
-<span class="sd">        </span>
+
 <span class="sd">        Examples</span>
 <span class="sd">        --------</span>
 <span class="sd">        &gt;&gt;&gt; builder = CSHBuilder(cs_ratio=1.2, ws_ratio=0.8)</span>
@@ -774,7 +809,7 @@
 <span class="sd">        ...     nsamples=1,</span>
 <span class="sd">        ...     seed=42</span>
 <span class="sd">        ... )</span>
-<span class="sd">        &gt;&gt;&gt; </span>
+<span class="sd">        &gt;&gt;&gt;</span>
 <span class="sd">        &gt;&gt;&gt; # Generate multiple samples</span>
 <span class="sd">        &gt;&gt;&gt; systems = builder.build_pycsh(</span>
 <span class="sd">        ...     supercell=[3,5,2],</span>
@@ -784,124 +819,129 @@
         <span class="c1"># Validate pycsh-specific parameters</span>
         <span class="k">if</span> <span class="n">nsamples</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;nsamples must be &gt;= 1, got </span><span class="si">{</span><span class="n">nsamples</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        
+
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">supercell</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">3</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;supercell must have 3 elements, got </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">supercell</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        
+
         <span class="n">output_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">PYCSH_DIR</span><span class="p">,</span> <span class="s2">&quot;output&quot;</span><span class="p">)</span>
-        
+
         <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">output_path</span><span class="p">):</span>
             <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="n">output_path</span><span class="p">)</span>
         <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">output_path</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        
-        <span class="n">seed</span> <span class="o">=</span> <span class="n">seed</span> <span class="ow">or</span> <span class="nb">int</span><span class="o">.</span><span class="n">from_bytes</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">urandom</span><span class="p">(</span><span class="mi">4</span><span class="p">),</span> <span class="s1">&#39;big&#39;</span><span class="p">)</span>
+
+        <span class="n">seed</span> <span class="o">=</span> <span class="n">seed</span> <span class="ow">or</span> <span class="nb">int</span><span class="o">.</span><span class="n">from_bytes</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">urandom</span><span class="p">(</span><span class="mi">4</span><span class="p">),</span> <span class="s2">&quot;big&quot;</span><span class="p">)</span>
         <span class="n">name</span> <span class="o">=</span> <span class="n">name</span> <span class="ow">or</span> <span class="sa">f</span><span class="s2">&quot;cs</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">cs_ratio</span><span class="si">}</span><span class="s2">_ws</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">ws_ratio</span><span class="si">}</span><span class="s2">&quot;</span>
-        
-        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">PYCSH_DIR</span><span class="p">,</span> <span class="s2">&quot;parameters.py&quot;</span><span class="p">),</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">PYCSH_DIR</span><span class="p">,</span> <span class="s2">&quot;parameters.py&quot;</span><span class="p">),</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
             <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;seed = </span><span class="si">{</span><span class="n">seed</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;shape = </span><span class="si">{</span><span class="n">supercell</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Ca_Si_ratio = </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">cs_ratio</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;W_Si_ratio = </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">ws_ratio</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;N_samples = </span><span class="si">{</span><span class="n">nsamples</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
-            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;create = True</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
-            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;write_lammps = True</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
-            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;write_lammps_erica = False</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
-            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;write_vasp = False</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
-            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;write_siesta = False</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;create = True</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;write_lammps = True</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;write_lammps_erica = False</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;write_vasp = False</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;write_siesta = False</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;prefix = &quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1">&quot;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
-        
+
         <span class="k">try</span><span class="p">:</span>
             <span class="n">pattern</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;Structure\s+(\d+)\s+converged&quot;</span><span class="p">)</span>
-            
+
             <span class="n">process</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">(</span>
-                <span class="p">[</span><span class="s1">&#39;python&#39;</span><span class="p">,</span> <span class="s1">&#39;-u&#39;</span><span class="p">,</span> <span class="s2">&quot;main_brick.py&quot;</span><span class="p">],</span>
+                <span class="p">[</span><span class="s2">&quot;python&quot;</span><span class="p">,</span> <span class="s2">&quot;-u&quot;</span><span class="p">,</span> <span class="s2">&quot;main_brick.py&quot;</span><span class="p">],</span>
                 <span class="n">cwd</span><span class="o">=</span><span class="n">PYCSH_DIR</span><span class="p">,</span>
                 <span class="n">stdout</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">,</span>
                 <span class="n">stderr</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">STDOUT</span><span class="p">,</span>
-                <span class="n">text</span><span class="o">=</span><span class="kc">True</span>
+                <span class="n">text</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
             <span class="p">)</span>
-            
+
             <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">process</span><span class="o">.</span><span class="n">stdout</span><span class="p">:</span>
                 <span class="n">match</span> <span class="o">=</span> <span class="n">pattern</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">match</span> <span class="ow">and</span> <span class="n">_progress_callback</span><span class="p">:</span>
                     <span class="n">current_id</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span> <span class="o">+</span> <span class="mi">1</span>
-                    <span class="n">_progress_callback</span><span class="p">(</span><span class="n">current_id</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;pyCSH: structure </span><span class="si">{</span><span class="n">current_id</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">nsamples</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-            
+                    <span class="n">_progress_callback</span><span class="p">(</span>
+                        <span class="n">current_id</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;pyCSH: structure </span><span class="si">{</span><span class="n">current_id</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">nsamples</span><span class="si">}</span><span class="s2">&quot;</span>
+                    <span class="p">)</span>
+
             <span class="n">process</span><span class="o">.</span><span class="n">wait</span><span class="p">()</span>
-            
+
         <span class="k">except</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">CalledProcessError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error executing pyCSH: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        
+
         <span class="c1"># Collect results</span>
         <span class="n">atomic_systems</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">nsamples</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
             <span class="n">reax_name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">_reax</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">.data&quot;</span>
             <span class="n">lmp_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">output_path</span><span class="p">,</span> <span class="n">reax_name</span><span class="p">)</span>
-            
+
             <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">lmp_path</span><span class="p">):</span>
                 <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;pyCSH did not generate </span><span class="si">{</span><span class="n">reax_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-            
+
             <span class="n">data</span> <span class="o">=</span> <span class="n">AtomicSystem</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="n">lmp_path</span><span class="p">)</span>
             <span class="n">data</span><span class="o">.</span><span class="n">reset_types</span><span class="p">()</span>
             <span class="n">atomic_systems</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
-        
+
         <span class="n">result</span> <span class="o">=</span> <span class="n">atomic_systems</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">atomic_systems</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="n">atomic_systems</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_system</span> <span class="o">=</span> <span class="n">result</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">AtomicSystem</span><span class="p">)</span> <span class="k">else</span> <span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_update_analysis</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">result</span>
-    
+
     <span class="c1"># ------------------------------------------------------------------</span>
     <span class="c1"># Conversion to C-A-S-H</span>
     <span class="c1"># ------------------------------------------------------------------</span>
-    
-    <span class="k">def</span><span class="w"> </span><span class="nf">to_cash</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> 
-            <span class="n">as_ratio</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> 
-            <span class="n">supercell_factor</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">AtomicSystem</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">],</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">]]:</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">to_cash</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">as_ratio</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">supercell_factor</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">AtomicSystem</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Convert C-S-H to C-A-S-H by substituting Si with Al.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_system</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;No system available. Build one first or use from_system().&quot;</span><span class="p">)</span>
-        
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                <span class="s2">&quot;No system available. Build one first or use from_system().&quot;</span>
+            <span class="p">)</span>
+
         <span class="n">system</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_system</span>
-        
+
         <span class="n">universe</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">to_mda</span><span class="p">()</span>
         <span class="n">si_sel</span> <span class="o">=</span> <span class="n">universe</span><span class="o">.</span><span class="n">select_atoms</span><span class="p">(</span><span class="s2">&quot;type Si&quot;</span><span class="p">)</span>
-        
+
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">si_sel</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No silicon atoms found in the system.&quot;</span><span class="p">)</span>
-        
+
         <span class="n">nsi</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">si_sel</span><span class="p">)</span>
         <span class="n">nal_target</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">as_ratio</span> <span class="o">*</span> <span class="n">nsi</span><span class="p">)</span>
-        
+
         <span class="n">universe</span><span class="p">,</span> <span class="n">substituted_ids</span> <span class="o">=</span> <span class="n">substitute_si_by_al</span><span class="p">(</span>
             <span class="n">universe</span><span class="p">,</span> <span class="n">nal_target</span><span class="p">,</span> <span class="n">supercell_factor</span>
         <span class="p">)</span>
-        
+
         <span class="n">system</span><span class="o">.</span><span class="n">set_type2atoms</span><span class="p">(</span><span class="n">substituted_ids</span><span class="p">,</span> <span class="s2">&quot;Al&quot;</span><span class="p">)</span>
         <span class="n">system</span><span class="o">.</span><span class="n">keep_connection_types</span><span class="p">(</span>
-            <span class="n">bond_types</span><span class="o">=</span><span class="p">[(</span><span class="s1">&#39;Hsi&#39;</span><span class="p">,</span> <span class="s1">&#39;Osih&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;Ha&#39;</span><span class="p">,</span> <span class="s1">&#39;Oah&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;Hh&#39;</span><span class="p">,</span> <span class="s1">&#39;Oh&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;Hw&#39;</span><span class="p">,</span> <span class="s1">&#39;Ow&#39;</span><span class="p">)],</span>
-            <span class="n">angle_types</span><span class="o">=</span><span class="p">[(</span><span class="s1">&#39;Hw&#39;</span><span class="p">,</span> <span class="s1">&#39;Ow&#39;</span><span class="p">,</span> <span class="s1">&#39;Hw&#39;</span><span class="p">)]</span>
+            <span class="n">bond_types</span><span class="o">=</span><span class="p">[(</span><span class="s2">&quot;Hsi&quot;</span><span class="p">,</span> <span class="s2">&quot;Osih&quot;</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;Ha&quot;</span><span class="p">,</span> <span class="s2">&quot;Oah&quot;</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;Hh&quot;</span><span class="p">,</span> <span class="s2">&quot;Oh&quot;</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;Hw&quot;</span><span class="p">,</span> <span class="s2">&quot;Ow&quot;</span><span class="p">)],</span>
+            <span class="n">angle_types</span><span class="o">=</span><span class="p">[(</span><span class="s2">&quot;Hw&quot;</span><span class="p">,</span> <span class="s2">&quot;Ow&quot;</span><span class="p">,</span> <span class="s2">&quot;Hw&quot;</span><span class="p">)],</span>
         <span class="p">)</span>
-        
+
         <span class="bp">self</span><span class="o">.</span><span class="n">_system</span> <span class="o">=</span> <span class="n">system</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_update_analysis</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">system</span></div>
+
 
 
 <span class="nd">@dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">AFBuilder</span><span class="p">(</span><span class="n">BaseBuilder</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Builder for creating AFt (Ettringite) or AFm structures.</span>
-<span class="sd">    </span>
+
 <span class="sd">    This builder creates AFt/AFm structures by adding water molecules to</span>
 <span class="sd">    a sulfate-containing framework.</span>
-<span class="sd">    </span>
+
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    ws_ratio : float</span>
 <span class="sd">        Water/Sulfate ratio.</span>
 <span class="sd">    progress_callback : Callable, optional</span>
 <span class="sd">        Progress callback function.</span>
-<span class="sd">    </span>
+
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>
 <span class="sd">    &gt;&gt;&gt; # Create AFt</span>
@@ -909,29 +949,29 @@
 <span class="sd">    &gt;&gt;&gt; system = builder.build_aft(</span>
 <span class="sd">    ...     supercell=[2,2,1]</span>
 <span class="sd">    ... )</span>
-<span class="sd">    &gt;&gt;&gt; </span>
+<span class="sd">    &gt;&gt;&gt;</span>
 <span class="sd">    &gt;&gt;&gt; # Create AFm</span>
 <span class="sd">    &gt;&gt;&gt; builder = AFBuilder(ws_ratio=8.0)</span>
 <span class="sd">    &gt;&gt;&gt; system = builder.build_afm(</span>
 <span class="sd">    ...     supercell=[3,1,1]</span>
 <span class="sd">    ... )</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    
+
     <span class="c1"># Required parameters</span>
     <span class="n">ws_ratio</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
-    
+
     <span class="c1"># Optional parameter (commun)</span>
-    <span class="n">progress_callback</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="kc">None</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span>
-    
+    <span class="n">progress_callback</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="kc">None</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+
     <span class="c1"># Internal state</span>
-    <span class="n">_result</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">AtomicSystem</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">init</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="nb">repr</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-    
+    <span class="n">_result</span><span class="p">:</span> <span class="n">AtomicSystem</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">init</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="nb">repr</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
     <span class="k">def</span><span class="w"> </span><span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize and validate the builder.&quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ws_ratio</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">ws_ratio</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ws_ratio must be &gt;= 0, got </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">ws_ratio</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-    
+
     <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return a styled string representation.&quot;&quot;&quot;</span>
         <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;&lt;AFBuilder&gt;&quot;</span><span class="p">]</span>
@@ -940,107 +980,112 @@
         <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;│   ws_ratio   : </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">ws_ratio</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;└─&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
-    
+
     <span class="c1"># ------------------------------------------------------------------</span>
     <span class="c1"># Build methods</span>
     <span class="c1"># ------------------------------------------------------------------</span>
-    
-    <span class="k">def</span><span class="w"> </span><span class="nf">build_aft</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
-                  <span class="n">supercell</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-                  <span class="n">model_file</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;aft_moore.cif&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AtomicSystem</span><span class="p">:</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">build_aft</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">supercell</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">model_file</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;aft_moore.cif&quot;</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AtomicSystem</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Build AFt (Ettringite) structure.</span>
-<span class="sd">        </span>
+
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        supercell : Sequence[int], optional</span>
 <span class="sd">            Supercell dimensions [a, b, c].</span>
 <span class="sd">        model_file : str, default=&#39;aft_moore.cif&#39;</span>
 <span class="sd">            CIF file for the AFt structure.</span>
-<span class="sd">        </span>
+
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        AtomicSystem</span>
 <span class="sd">            The built AFt structure.</span>
-<span class="sd">        </span>
+
 <span class="sd">        Examples</span>
 <span class="sd">        --------</span>
 <span class="sd">        &gt;&gt;&gt; builder = AFBuilder(ws_ratio=10.0)</span>
 <span class="sd">        &gt;&gt;&gt; system = builder.build_aft(supercell=[2,2,1])</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build_af</span><span class="p">(</span><span class="s1">&#39;aft&#39;</span><span class="p">,</span> <span class="n">supercell</span><span class="p">,</span> <span class="n">model_file</span><span class="p">)</span>
-    
-    <span class="k">def</span><span class="w"> </span><span class="nf">build_afm</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
-                  <span class="n">supercell</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-                  <span class="n">model_file</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;afm.cif&#39;</span><span class="p">,</span>
-                  <span class="n">_progress_callback</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="kc">None</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AtomicSystem</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build_af</span><span class="p">(</span><span class="s2">&quot;aft&quot;</span><span class="p">,</span> <span class="n">supercell</span><span class="p">,</span> <span class="n">model_file</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">build_afm</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">supercell</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">model_file</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;afm.cif&quot;</span><span class="p">,</span>
+        <span class="n">_progress_callback</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="kc">None</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AtomicSystem</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Build AFm structure.</span>
-<span class="sd">        </span>
+
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        supercell : Sequence[int], optional</span>
 <span class="sd">            Supercell dimensions [a, b, c].</span>
 <span class="sd">        model_file : str, default=&#39;afm.cif&#39;</span>
 <span class="sd">            CIF file for the AFm structure.</span>
-<span class="sd">        </span>
+
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        AtomicSystem</span>
 <span class="sd">            The built AFm structure.</span>
-<span class="sd">        </span>
+
 <span class="sd">        Examples</span>
 <span class="sd">        --------</span>
 <span class="sd">        &gt;&gt;&gt; builder = AFBuilder(ws_ratio=8.0)</span>
 <span class="sd">        &gt;&gt;&gt; system = builder.build_afm(supercell=[3,1,1])</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build_af</span><span class="p">(</span><span class="s1">&#39;afm&#39;</span><span class="p">,</span> <span class="n">supercell</span><span class="p">,</span> <span class="n">model_file</span><span class="p">,</span> <span class="n">_progress_callback</span><span class="p">)</span>
-    
-    <span class="k">def</span><span class="w"> </span><span class="nf">_build_af</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
-                  <span class="n">structure_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-                  <span class="n">supercell</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-                  <span class="n">model_file</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;aft_moore.cif&#39;</span><span class="p">,</span>
-                  <span class="n">_progress_callback</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="kc">None</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AtomicSystem</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Internal method to build AFt/AFm structures.&quot;&quot;&quot;</span>
-        <span class="n">require_program</span><span class="p">(</span><span class="s1">&#39;packmol&#39;</span><span class="p">)</span>
 
-        <span class="kn">from</span><span class="w"> </span><span class="nn">.._packmol</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_structure_path</span><span class="p">,</span> <span class="n">add_packmol_structure</span><span class="p">,</span> <span class="n">run_packmol</span>
-        
+        <span class="n">require_program</span><span class="p">(</span><span class="s2">&quot;packmol&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build_af</span><span class="p">(</span><span class="s2">&quot;afm&quot;</span><span class="p">,</span> <span class="n">supercell</span><span class="p">,</span> <span class="n">model_file</span><span class="p">,</span> <span class="n">_progress_callback</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_build_af</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">structure_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">supercell</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">model_file</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;aft_moore.cif&quot;</span><span class="p">,</span>
+        <span class="n">_progress_callback</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="kc">None</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AtomicSystem</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Internal method to build AFt/AFm structures.&quot;&quot;&quot;</span>
+        <span class="n">require_program</span><span class="p">(</span><span class="s2">&quot;packmol&quot;</span><span class="p">)</span>
+
+        <span class="kn">from</span><span class="w"> </span><span class="nn">.._packmol</span><span class="w"> </span><span class="kn">import</span> <span class="n">add_packmol_structure</span><span class="p">,</span> <span class="n">get_structure_path</span><span class="p">,</span> <span class="n">run_packmol</span>
+
         <span class="k">if</span> <span class="n">supercell</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">supercell</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">3</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;supercell must have 3 elements, got </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">supercell</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        
+
         <span class="c1"># Load base structure</span>
-        <span class="n">input_system</span> <span class="o">=</span> <span class="n">AtomicSystem</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span>
-            <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">STRUCTURES_DIR</span><span class="p">,</span> <span class="n">model_file</span><span class="p">)</span>
-        <span class="p">)</span>
-        
+        <span class="n">input_system</span> <span class="o">=</span> <span class="n">AtomicSystem</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">STRUCTURES_DIR</span><span class="p">,</span> <span class="n">model_file</span><span class="p">))</span>
+
         <span class="k">if</span> <span class="n">supercell</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">input_system</span><span class="o">.</span><span class="n">replicate</span><span class="p">(</span><span class="n">supercell</span><span class="p">)</span>
-        
+
         <span class="n">input_system</span><span class="o">.</span><span class="n">orthogonalize</span><span class="p">()</span>
-        
+
         <span class="c1"># Get information with MDAnalysis</span>
         <span class="n">univ</span> <span class="o">=</span> <span class="n">input_system</span><span class="o">.</span><span class="n">to_mda</span><span class="p">()</span>
         <span class="n">box</span> <span class="o">=</span> <span class="n">univ</span><span class="o">.</span><span class="n">dimensions</span>
-        
+
         <span class="c1"># Count sulfur atoms</span>
         <span class="n">s_sel</span> <span class="o">=</span> <span class="n">univ</span><span class="o">.</span><span class="n">select_atoms</span><span class="p">(</span><span class="s2">&quot;type S&quot;</span><span class="p">)</span>
         <span class="n">num_s</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">s_sel</span><span class="p">)</span>
         <span class="n">num_water</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">num_s</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">ws_ratio</span><span class="p">)</span>
-        
+
         <span class="c1"># Get reference atom for Packmol</span>
         <span class="n">sel</span> <span class="o">=</span> <span class="n">univ</span><span class="o">.</span><span class="n">select_atoms</span><span class="p">(</span><span class="s2">&quot;all&quot;</span><span class="p">)</span>
         <span class="n">idmin</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">sel</span><span class="o">.</span><span class="n">positions</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">])</span> <span class="o">+</span> <span class="mi">1</span>
-        
+
         <span class="k">if</span> <span class="n">_progress_callback</span><span class="p">:</span>
             <span class="n">_progress_callback</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;Building </span><span class="si">{</span><span class="n">structure_type</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span><span class="si">}</span><span class="s2">...&quot;</span><span class="p">)</span>
-        
-        <span class="k">with</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">TemporaryDirectory</span><span class="p">(</span><span class="nb">dir</span><span class="o">=</span><span class="s1">&#39;.&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">tmp</span><span class="p">:</span>
-            <span class="n">tempfile_ipdb</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmp</span><span class="p">,</span> <span class="s1">&#39;itmp.pdb&#39;</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">TemporaryDirectory</span><span class="p">(</span><span class="nb">dir</span><span class="o">=</span><span class="s2">&quot;.&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">tmp</span><span class="p">:</span>
+            <span class="n">tempfile_ipdb</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmp</span><span class="p">,</span> <span class="s2">&quot;itmp.pdb&quot;</span><span class="p">)</span>
             <span class="n">sel</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">tempfile_ipdb</span><span class="p">)</span>
-            
-            <span class="n">h2o_pdb</span> <span class="o">=</span> <span class="n">get_structure_path</span><span class="p">(</span><span class="s1">&#39;h2o&#39;</span><span class="p">,</span> <span class="n">tmp</span><span class="p">)</span>
-            
+
+            <span class="n">h2o_pdb</span> <span class="o">=</span> <span class="n">get_structure_path</span><span class="p">(</span><span class="s2">&quot;h2o&quot;</span><span class="p">,</span> <span class="n">tmp</span><span class="p">)</span>
+
             <span class="n">structures</span> <span class="o">=</span> <span class="p">[</span>
                 <span class="n">add_packmol_structure</span><span class="p">(</span>
                     <span class="n">tempfile_ipdb</span><span class="p">,</span>
@@ -1048,27 +1093,27 @@
                     <span class="sa">f</span><span class="s2">&quot;inside box 0 0 0 </span><span class="si">{</span><span class="n">box</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">box</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">box</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
                     <span class="sa">f</span><span class="s2">&quot;atoms </span><span class="si">{</span><span class="n">idmin</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
                     <span class="s2">&quot;fixed 0 0 0 0 0 0&quot;</span><span class="p">,</span>
-                    <span class="s2">&quot;end atoms&quot;</span>
+                    <span class="s2">&quot;end atoms&quot;</span><span class="p">,</span>
                 <span class="p">),</span>
                 <span class="n">add_packmol_structure</span><span class="p">(</span>
                     <span class="n">h2o_pdb</span><span class="p">,</span>
                     <span class="n">num_water</span><span class="p">,</span>
-                    <span class="sa">f</span><span class="s2">&quot;inside box 0 0 0 </span><span class="si">{</span><span class="n">box</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">box</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">box</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span>
-                <span class="p">)</span>
+                    <span class="sa">f</span><span class="s2">&quot;inside box 0 0 0 </span><span class="si">{</span><span class="n">box</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">box</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">box</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                <span class="p">),</span>
             <span class="p">]</span>
-            
+
             <span class="k">if</span> <span class="n">_progress_callback</span><span class="p">:</span>
                 <span class="n">_progress_callback</span><span class="p">(</span><span class="mi">50</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;Adding </span><span class="si">{</span><span class="n">num_water</span><span class="si">}</span><span class="s2"> water molecules...&quot;</span><span class="p">)</span>
-            
+
             <span class="n">output_system</span> <span class="o">=</span> <span class="n">run_packmol</span><span class="p">(</span><span class="n">structures</span><span class="p">)</span>
-        
+
         <span class="c1"># Set box and topology</span>
         <span class="n">output_system</span><span class="o">.</span><span class="n">set_box</span><span class="p">(</span><span class="n">box</span><span class="p">)</span>
         <span class="n">output_system</span><span class="o">.</span><span class="n">set_topo</span><span class="p">()</span>
-        
+
         <span class="k">if</span> <span class="n">_progress_callback</span><span class="p">:</span>
             <span class="n">_progress_callback</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">structure_type</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span><span class="si">}</span><span class="s2"> complete&quot;</span><span class="p">)</span>
-        
+
         <span class="bp">self</span><span class="o">.</span><span class="n">_result</span> <span class="o">=</span> <span class="n">output_system</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_result</span>
 </pre></div>

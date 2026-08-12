@@ -170,5 +170,5 @@ class DihedralRule:
     i: str  # selection atome i
     j: str  # selection atome j
     k: str  # selection atome k
-    l: str  # selection atome l
+    l_: str  # selection atome l
     cutoffs: list[float] = field(default_factory=lambda: [2.0, 2.0, 2.0])

@@ -18,18 +18,38 @@
 from __future__ import annotations
 
 import os
+import shutil
 import subprocess
 import tempfile
+from functools import lru_cache
+from typing import TYPE_CHECKING
 
-from ..._utils import require_program
 from .config import (
     VMD_BOND_CUTOFFS,
     VMD_ELEMENT_COLORS,
     VMD_ELEMENT_RADII,
-    VMD_ELEMENT_TYPES,
     VMD_MATERIAL_OPTIONS,
     VMD_MATERIAL_SETTINGS,
 )
+
+if TYPE_CHECKING:
+    from ..atomic_system import AtomicSystem
+
+
+@lru_cache
+def require_program(name) -> str:
+    """Return the path of an external executable.
+
+    Raises
+    ------
+    RuntimeError
+        If the executable is not found in PATH.
+    """
+    path = shutil.which(name)
+    if path is None:
+        raise RuntimeError(f"{name} not found")
+    return path
+
 
 # ============================================================================
 # Helpers: Color Conversion
@@ -60,22 +80,57 @@ class TCLGenerator:
     """Generate TCL configuration for VMD."""
 
     @staticmethod
-    def element_map(elements: list) -> str:
-        """Generate element map TCL code."""
+    def element_map(elements: dict[str | int, str] | list | set) -> str:
+        """
+        Generate element map TCL code.
+
+        Groups all atom types belonging to the same element symbol.
+
+        Parameters
+        ----------
+        elements : dict or list or set
+            Dictionary mapping atom types to element symbols (system.elements),
+            or a list/set of unique elements.
+
+        Returns
+        -------
+        str
+            TCL script defining the array 'element_map'.
+        """
         lines = ["array set element_map {"]
-        for element in elements:
-            types = VMD_ELEMENT_TYPES.get(element, element)
-            lines.append(f'    {element}  "{" ".join(types)}"')
+
+        # if isinstance(elements, dict):
+        elem_to_types: dict[str, list[str]] = {}
+        for atom_type, elem_symbol in elements.items():
+            elem_to_types.setdefault(str(elem_symbol), []).append(str(atom_type))
+
+        for elem_symbol, type_list in sorted(elem_to_types.items()):
+            types_str = " ".join(type_list)
+            lines.append(f'    {elem_symbol}  "{types_str}"')
+
+        # else:
+        #     # Fallback si une simple liste/ensemble d'éléments est fournie
+        #     for element in sorted(set(elements)):
+        #         types = VMD_ELEMENT_TYPES.get(element, [element])
+        #         types_str = " ".join(types) if isinstance(types, list) else str(types)
+        #         lines.append(f'    {element}  "{types_str}"')
+
         lines.append("}")
         return "\n".join(lines)
 
     @staticmethod
-    def element_colors(elements: list) -> str:
+    def element_colors(elements: dict | list | set) -> str:
         """Generate element colors TCL code."""
         lines = []
         color_id = 20
 
-        for element in elements:
+        # Extraction des symboles d'éléments uniques
+        if isinstance(elements, dict):
+            unique_elements = sorted(set(elements.values()))
+        else:
+            unique_elements = sorted(set(elements))
+
+        for element in unique_elements:
             if element in VMD_ELEMENT_COLORS:
                 color = VMD_ELEMENT_COLORS[element]
                 r, g, b = _hex_to_vmd_rgb(color)
@@ -97,33 +152,17 @@ class TCLGenerator:
         return "\n".join(lines)
 
     @staticmethod
-    def representations(resolution: int, atom_types: set[str] = None) -> str:
+    def representations(resolution: int, atomic_system: AtomicSystem) -> str:
         """Generate representations TCL code."""
         lines = []
 
         element_to_types = {}
 
-        if atom_types is None:
-            # Si pas d'atom_types, utiliser VMD_ELEMENT_TYPES
-            for element, types in VMD_ELEMENT_TYPES.items():
-                element_to_types[element] = types
-        else:
-            # Grouper les types par élément
-            for atom_type in atom_types:
-                # Essayer de trouver l'élément correspondant
-                element = None
-                for elem, types in VMD_ELEMENT_TYPES.items():
-                    if atom_type in types:
-                        element = elem
-                        break
+        atom_types = atomic_system.atom_types
+        elements = atomic_system.elements
 
-                # Si pas trouvé, utiliser le type comme élément
-                if element is None:
-                    element = atom_type
-
-                if element not in element_to_types:
-                    element_to_types[element] = []
-                element_to_types[element].append(atom_type)
+        for atom_type, element in elements.items():
+            element_to_types.setdefault(element, []).append(atom_type)
 
         # Atom representations
         for element, types in element_to_types.items():
@@ -145,15 +184,33 @@ class TCLGenerator:
 
         # Bond representations
         for pair, cutoff in VMD_BOND_CUTOFFS.items():
-            types = pair.split("-")
-            types_sorted = sorted(types)
+            if "-" not in pair:
+                continue
 
-            # Filtrer uniquement par atom_types
+            elem1, elem2 = pair.split("-")
+
+            print(elem1, elem2)
+
+            types_elem1 = element_to_types.get(elem1, [])
+            types_elem2 = element_to_types.get(elem2, [])
+
+            print(types_elem1, types_elem2)
+
+            if not types_elem1 or not types_elem2:
+                continue
+
+            if elem1 == elem2:
+                selected_types = sorted(set(types_elem1))
+            else:
+                selected_types = sorted(set(types_elem1 + types_elem2))
+
             if atom_types is not None:
-                if not all(t in atom_types for t in types_sorted):
-                    continue
+                selected_types = [t for t in selected_types if t in atom_types]
 
-            selection = " ".join(types_sorted)
+            if not selected_types:
+                continue
+
+            selection = " ".join(selected_types)
             lines.extend(
                 [
                     f'mol selection "type {selection}"',
@@ -178,7 +235,7 @@ class TCLGenerator:
 
     @classmethod
     def generate_representations(
-        cls, material: str, resolution: int, atom_types: set[str] = None
+        cls, material: str, resolution: int, atomic_system: AtomicSystem
     ) -> str:
         """Generate full representations TCL."""
         if material not in VMD_MATERIAL_OPTIONS:
@@ -189,14 +246,14 @@ class TCLGenerator:
             "\n".join(
                 [
                     cls.material(material),
-                    cls.representations(resolution, atom_types),
+                    cls.representations(resolution, atomic_system),
                 ]
             )
         )
         return "\n".join(
             [
                 cls.material(material),
-                cls.representations(resolution, atom_types),
+                cls.representations(resolution, atomic_system),
             ]
         )
 
@@ -317,14 +374,12 @@ def view(
         topology_file = tmp.create_file("tmp.data", "")
         system.write(topology_file)
 
-        atom_types = set(system.atom_types)
-
         config_file = tmp.create_file(
             "vmd_config.tcl", TCLGenerator.generate_config(system)
         )
         rep_file = tmp.create_file(
             "vmd_rep.tcl",
-            TCLGenerator.generate_representations(material, resolution, atom_types),
+            TCLGenerator.generate_representations(material, resolution, system),
         )
 
         VMDLauncher().launch(topology_file, trajectory, config_file, rep_file)

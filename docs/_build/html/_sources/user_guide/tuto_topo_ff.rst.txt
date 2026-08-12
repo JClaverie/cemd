@@ -16,19 +16,36 @@ Prerequisites
 
 .. code-block:: python
 
-   import numpy as np
-   from cemd import AtomicSystem
-   from cemd.builders import TopologyRule, NeighborCriterion
+   from cemd import AtomicSystem, TopologyRule, NeighborCriterion
 
 Step 1: Load Calcite Structure
 ===============================
 
-Load a calcite structure and understand what we're working with.
+Load the calcite structure from :ref:`tutorial_calcite_surface` and understand what we're working with.
 
 .. code-block:: python
 
    # Load calcite structure
    system = AtomicSystem.from_file("calcite_104.data")
+   print(system)
+
+.. code-block:: text
+
+    <AtomicSystem with 2520 atoms>
+
+    Box
+    a (Å)  b (Å)  c (Å)  α (°)  β (°)  γ (°)
+    34.86  24.36  60.89  90.00  90.00  90.00
+
+    Atoms
+    type  number     %     mass  charge
+    C     504 20.00 12.01078     4.0
+    Ca     504 20.00 40.07840     2.0
+    O    1512 60.00 15.99943    -2.0
+
+    Total charge: 0.000e
+    Volume: 51.69 nm3
+    Density: 1.62 g/cm3
 
 Step 2: Create Topology Rules for Calcite
 =========================================
@@ -38,234 +55,44 @@ Now we create topology rules using the known bond distances.
 .. code-block:: python
 
    # Carbon atom bonded to exactly 3 oxygen atoms at 1.4 Å
-   carbonate = TopologyRule(
+   carbonate_topo_rule = TopologyRule(
        center="type C",
        neighbors=NeighborCriterion("type O", 1.4, 3),
-       bonds=True
+       bonds=True,
        angles=True
    )
 
-Step 4: Apply Rules and Inspect Results
+   print(system)
+
+.. code-block:: text
+
+    <AtomicSystem with 2520 atoms, 1512 bonds, 1512 angles>
+
+    Box
+    a (Å)  b (Å)  c (Å)  α (°)  β (°)  γ (°)
+    34.86  24.36  60.89  90.00  90.00  90.00
+
+    Atoms
+    type  number     %     mass  charge
+       C     504 20.00 12.01078     4.0
+      Ca     504 20.00 40.07840     2.0
+       O    1512 60.00 15.99943    -2.0
+
+    Bonds
+    type  number
+     C-O    1512
+
+    Angles
+    type  number
+    O-C-O   1512
+
+    Total charge: 0.000e
+    Volume: 51.69 nm3
+    Density: 1.62 g/cm3
+
+Step 3: Apply Rules and Inspect Results
 =======================================
 
 Apply each rule to the system and inspect the results.
 
-.. code-block:: python
 
-   print(carbonate)
-
-Step 5: Add Angles for Carbonate Group
-======================================
-
-Carbonate groups have specific angles (O-C-O = 120°) that we can add.
-
-.. code-block:: python
-
-   # Add angles for carbonate groups
-   # Find all carbonate carbon atoms
-   carbonate_carbons = system.atoms[system.atoms['type'] == 'C_carbonate']
-   
-   for idx, row in carbonate_carbons.iterrows():
-       # Find bonded oxygens
-       bonded_oxygens = []
-       for _, bond in system.bonds.iterrows():
-           if bond['atom_1'] == idx:
-               bonded_oxygens.append(bond['atom_2'])
-           elif bond['atom_2'] == idx:
-               bonded_oxygens.append(bond['atom_1'])
-       
-       # Create O-C-O angles
-       if len(bonded_oxygens) >= 3:
-           for i in range(len(bonded_oxygens)):
-               for j in range(i+1, len(bonded_oxygens)):
-                   system.add_angle(
-                       [bonded_oxygens[i], idx, bonded_oxygens[j]], 
-                       'O-C-O'
-                   )
-   
-   print(f"Number of angles after adding carbonate angles: {system.num_angles}")
-
-.. code-block:: text
-
-   Number of angles after adding carbonate angles: 360
-
-Step 6: Complete Topology Rule Set for Calcite
-==============================================
-
-Here's a complete rule set for calcite:
-
-.. code-block:: python
-
-   def get_calcite_rules():
-       """Return complete topology rules for calcite."""
-       
-       # Carbonate group
-       carbonate = TopologyRule(
-           center="type C",
-           neighbors=NeighborCriterion("type O", 1.28, 3),
-           new_type="C_carbonate",
-           bonds=True
-       )
-       
-       # Oxygen in carbonate
-       carbonate_oxygen = TopologyRule(
-           center="type O",
-           neighbors=NeighborCriterion("type C", 1.28, 1),
-           new_type="O_carbonate"
-       )
-       
-       # Calcium-oxygen
-       calcium_oxygen = TopologyRule(
-           center="type O",
-           neighbors=NeighborCriterion("type Ca", 2.36, 1),
-           new_type="O_ca"
-       )
-       
-       # Calcium coordination
-       calcium_coordination = TopologyRule(
-           center="type Ca",
-           neighbors=NeighborCriterion("type O", 2.36, 6),
-           new_type="Ca_calcite"
-       )
-       
-       # Oxygen-oxygen in carbonate (optional)
-       oxygen_oxygen = TopologyRule(
-           center="type O",
-           neighbors=NeighborCriterion("type O", 2.20, 2),
-           new_type="O_carbonate_pair"
-       )
-       
-       return [carbonate, carbonate_oxygen, calcium_oxygen, 
-               calcium_coordination, oxygen_oxygen]
-
-   # Apply all rules
-   calcite_rules = get_calcite_rules()
-   for rule in calcite_rules:
-       system.set_topology(rule.to_dict())
-
-Step 7: Complete Workflow Example
-=================================
-
-Full workflow for calcite topology building:
-
-.. code-block:: python
-
-   from cemd import AtomicSystem
-   from cemd.builders import TopologyRule, NeighborCriterion
-
-   # 1. Load calcite structure
-   system = AtomicSystem.from_file("calcite.lmp")
-
-   # 2. Define rules with known distances
-   calcite_rules = [
-       # Carbonate group (C-O = 1.28 Å)
-       TopologyRule(
-           center="type C",
-           neighbors=NeighborCriterion("type O", 1.28, 3),
-           new_type="C_carbonate",
-           bonds=True
-       ),
-       
-       # Oxygen in carbonate
-       TopologyRule(
-           center="type O",
-           neighbors=NeighborCriterion("type C", 1.28, 1),
-           new_type="O_carbonate"
-       ),
-       
-       # Calcium-oxygen (Ca-O = 2.36 Å)
-       TopologyRule(
-           center="type O",
-           neighbors=NeighborCriterion("type Ca", 2.36, 1),
-           new_type="O_ca"
-       ),
-       
-       # Calcium coordination
-       TopologyRule(
-           center="type Ca",
-           neighbors=NeighborCriterion("type O", 2.36, 6),
-           new_type="Ca_calcite"
-       ),
-   ]
-
-   # 3. Apply all rules
-   for rule in calcite_rules:
-       system.set_topology(rule.to_dict())
-
-   # 4. Add angles for carbonate groups
-   carbonate_carbons = system.atoms[system.atoms['type'] == 'C_carbonate']
-   for idx, row in carbonate_carbons.iterrows():
-       # Find bonded oxygens
-       bonded_oxygens = []
-       for _, bond in system.bonds.iterrows():
-           if bond['atom_1'] == idx:
-               bonded_oxygens.append(bond['atom_2'])
-           elif bond['atom_2'] == idx:
-               bonded_oxygens.append(bond['atom_1'])
-       
-       # Add O-C-O angles (120°)
-       if len(bonded_oxygens) >= 3:
-           for i in range(len(bonded_oxygens)):
-               for j in range(i+1, len(bonded_oxygens)):
-                   system.add_angle([bonded_oxygens[i], idx, bonded_oxygens[j]], 'O-C-O')
-
-   # 5. Keep only desired connections
-   system.keep_connection_types(
-       bond_types=['C-O', 'Ca-O'],
-       angle_types=['O-C-O']
-   )
-
-   # 6. Inspect final topology
-   print(f"Final atom types: {system.atom_types}")
-   print(f"Number of bonds: {system.num_bonds}")
-   print(f"Number of angles: {system.num_angles}")
-   print(f"Bond types: {system.bond_types}")
-   print(f"Angle types: {system.angle_types}")
-
-   # 7. Visualize
-   system.view()
-
-.. code-block:: text
-
-   Final atom types: ['C_carbonate', 'Ca_calcite', 'O_ca', 'O_carbonate']
-   Number of bonds: 540
-   Number of angles: 360
-   Bond types: ['C-O', 'Ca-O']
-   Angle types: ['O-C-O']
-
-Summary of Calcite Topology Rules
-=================================
-
-.. list-table::
-   :header-rows: 1
-   :widths: 30 20 20 30
-
-   * - Rule
-     - Center
-     - Neighbor
-     - Cutoff (Å)
-   * - Carbonate
-     - C
-     - O (×3)
-     - 1.28
-   * - Carbonate oxygen
-     - O
-     - C (×1)
-     - 1.28
-   * - Calcium-oxygen
-     - O
-     - Ca (×1)
-     - 2.36
-   * - Calcium coordination
-     - Ca
-     - O (×6)
-     - 2.36
-
-.. note::
-
-   These distances are well established for calcite (CaCO₃):
-   - C-O bond: 1.28 Å (carbonate group)
-   - Ca-O bond: 2.36 Å (calcium coordination)
-   
-   The topology rules use these known distances as cutoffs to correctly
-   identify the chemical environments in the structure.

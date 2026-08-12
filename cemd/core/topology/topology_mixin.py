@@ -17,10 +17,12 @@
 
 from __future__ import annotations
 
+import itertools
 from collections.abc import Sequence
 from typing import TYPE_CHECKING
 
 import numpy as np
+import pandas as pd
 
 from ..._constants import MASSES_DICT
 from ._apply import (
@@ -66,7 +68,7 @@ class TopologyMixin:
         setattr(self, connection_type + "s", df)
 
     def set_types(
-        self: AtomicSystem, new_types: Sequence[str | int] | dict[str | int, str | int]
+        self, new_types: Sequence[str | int] | dict[str | int, str | int]
     ) -> AtomicSystem:
         """Assign types to atoms, supporting both full lists and partial dictionaries.
 
@@ -121,30 +123,25 @@ class TopologyMixin:
 
         return self
 
-    def reset_types(
-        self: AtomicSystem, prevent: Sequence[str | int] = None
+    def set_types_from_elements(
+        self, prevent: Sequence[str | int] = None
     ) -> AtomicSystem:
         """
-        Reset atom types to elements based on masses.
-        Finds the closest element in masses_dic to avoid proximity errors (eg: Ar/Ca).
+        Reset atom types to their corresponding chemical elements.
         """
 
         self._cache = {}
-
-        if prevent is None:
-            prevent = []
-
-        element_map = dict(zip(self.atom_types, self.elements))
+        prevent = set(prevent or [])
 
         new_types = [
-            atype if atype in prevent else element_map.get(atype, str(atype))
+            atype if atype in prevent else self.elements[int(atype)]
             for atype in self.atom_types
         ]
 
         return self.set_types(new_types)
 
     def set_type2atoms(
-        self: AtomicSystem, indices: Sequence[int], atom_type: str | int
+        self, indices: Sequence[int], atom_type: str | int
     ) -> AtomicSystem:
         """
         Assign a new type to a specific subset of atoms.
@@ -189,7 +186,9 @@ class TopologyMixin:
 
         return self
 
-    def add_bond(self, atom_list: Sequence[int], bond_type: str | int) -> None:
+    def add_bond(
+        self, atom_list: Sequence[int], bond_type: str | int | None = None
+    ) -> None:
         """Set a bond between two atoms.
 
         Parameters
@@ -200,9 +199,11 @@ class TopologyMixin:
                 Type of the bond (numerical or alphabetical)
         """
 
-        self._set_connection("bond", atom_list, bond_type)
+        self._set_connection("bond", atom_list, bond_type=None)
 
-    def add_angle(self, atom_list: Sequence[int], angle_type: str | int) -> None:
+    def add_angle(
+        self, atom_list: Sequence[int], angle_type: str | int | None = None
+    ) -> None:
         """Set a angle between two atoms.
 
         Parameters
@@ -213,9 +214,11 @@ class TopologyMixin:
                 Type of the angle (numerical or alphabetical)
         """
 
-        self._set_connection("angle", atom_list, angle_type)
+        self._set_connection("angle", atom_list, angle_type=None)
 
-    def add_dihedral(self, atom_list: Sequence[int], dihedral_type: str | int) -> None:
+    def add_dihedral(
+        self, atom_list: Sequence[int], dihedral_type: str | int | None = None
+    ) -> None:
         """Set a dihedral between two atoms.
 
         Parameters
@@ -226,9 +229,11 @@ class TopologyMixin:
                 Type of the dihedral (numerical or alphabetical)
         """
 
-        self._set_connection("dihedral", atom_list, dihedral_type)
+        self._set_connection("dihedral", atom_list, dihedral_type=None)
 
-    def add_improper(self, atom_list: Sequence[int], improper_type: str | int) -> None:
+    def add_improper(
+        self, atom_list: Sequence[int], improper_type: str | int | None = None
+    ) -> None:
         """Set a improper between two atoms.
 
         Parameters
@@ -239,13 +244,13 @@ class TopologyMixin:
                 Type of the improper (numerical or alphabetical)
         """
 
-        self._set_connection("improper", atom_list, improper_type)
+        self._set_connection("improper", atom_list, improper_type=None)
 
     def _set_connection(
-        self: AtomicSystem,
+        self,
         connection_class: str,
         atom_list: list[int],
-        connection_type: str | int = None,
+        connection_type: str | int | None,
     ) -> AtomicSystem:
         """
         Factorized version to manage connections dynamically.
@@ -309,7 +314,7 @@ class TopologyMixin:
         return self
 
     def remove_connection_types(
-        self: AtomicSystem,
+        self,
         bond_types: Sequence[str | int] = None,
         angle_types: Sequence[str | int] = None,
         dihedral_types: Sequence[str | int] = None,
@@ -422,7 +427,7 @@ class TopologyMixin:
                 self.impropers = None
 
     def keep_connection_types(
-        self: AtomicSystem,
+        self,
         bond_types: Sequence[str | int] = None,
         angle_types: Sequence[str | int] = None,
         dihedral_types: Sequence[str | int] = None,
@@ -452,10 +457,10 @@ class TopologyMixin:
 
         Notes
         -----
-        - If a connection type is specified as a string, it will match the
+        -If a connection type is specified as a string, it will match the
           type name in the topology.
-        - If specified as an integer, it will match the type index (1-based).
-        - This operation modifies the system in place.
+        -If specified as an integer, it will match the type index (1-based).
+        -This operation modifies the system in place.
 
         Examples
         --------
@@ -527,7 +532,7 @@ class TopologyMixin:
         self.impropers = None
 
     def set_topology(
-        self: AtomicSystem,
+        self,
         r: str | TopologyRule | DihedralRule | list[TopologyRule | DihedralRule],
     ) -> AtomicSystem:
         """
@@ -536,9 +541,9 @@ class TopologyMixin:
         Parameters
         ----------
         r : str | TopologyRule | DihedralRule | list[TopologyRule | DihedralRule]
-            - str: Name of predefined rule set (e.g., 'clayff', 'cshff')
-            - TopologyRule: Single topology rule
-            - DihedralRule: Single dihedral rule
+            -str: Name of predefined rule set (e.g., 'clayff', 'cshff')
+            -TopologyRule: Single topology rule
+            -DihedralRule: Single dihedral rule
             - list[TopologyRule | DihedralRule]: Mixed list of rules
         """
         universe = self.to_mda()
@@ -584,20 +589,159 @@ class TopologyMixin:
 
         return self
 
-    def reset_topology(self, prevent: Sequence[str | int] = None) -> None:
-        """Both reset atom types and remove connectivity.
+    def guess_connections(
+        self,
+        guess_angles: bool = True,
+        guess_dihedrals: bool = True,
+        guess_impropers: bool = True,
+    ) -> AtomicSystem:
+        """Guess angles, dihedrals and/or impropers directly from existing bonds.
 
         Parameters
         ----------
-            prevent
-                Atom types that will be prevented from the reset
+        guess_angles : bool, default=True
+            If True, guess angles.
+        guess_dihedrals : bool, default=True
+            If True, guess dihedrals.
+        guess_impropers : bool, default=True
+            If True, guess impropers.
 
+        Returns
+        -------
+        AtomicSystem
+            The updated system.
         """
-        self.remove_all_connections()
-        self.reset_types(prevent)
+        if self.bonds is None or self.bonds.empty:
+            print(
+                "WARNING: No bonds found in system. Cannot guess higher-order topology."
+            )
+            return self
+
+        # 1. Dictionnaire d'accès rapide pour les types d'atomes (Supporte l'indexation par ID ou position)
+        atom_type_map = dict(zip(self.atoms.index, self.atoms["type"].astype(str)))
+
+        # 2. Construction du graphe d'adjacence
+        graph = {}
+        for _, row in self.bonds.iterrows():
+            a1, a2 = int(row["atom_1"]), int(row["atom_2"])
+            graph.setdefault(a1, set()).add(a2)
+            graph.setdefault(a2, set()).add(a1)
+
+        # 3. Traitement des Angles et Impropers
+        if guess_angles or guess_impropers:
+            angles_list = []
+            impropers_list = []
+
+            for center, neighbors in graph.items():
+                # Angles (A - B - C)
+                if guess_angles and len(neighbors) >= 2:
+                    for a1, a3 in itertools.combinations(sorted(neighbors), 2):
+                        t1 = atom_type_map.get(a1, "X")
+                        t2 = atom_type_map.get(center, "X")
+                        t3 = atom_type_map.get(a3, "X")
+
+                        # Standardisation de l'ordre canonique des types
+                        if t1 > t3:
+                            conn_type = f"{t3}-{t2}-{t1}"
+                        else:
+                            conn_type = f"{t1}-{t2}-{t3}"
+
+                        angles_list.append(
+                            {
+                                "type": conn_type,
+                                "atom_1": a1,
+                                "atom_2": center,
+                                "atom_3": a3,
+                            }
+                        )
+
+                # Impropers (B central lié à A, C, D)
+                if guess_impropers and len(neighbors) == 3:
+                    a, c, d = sorted(neighbors)
+                    t_center = atom_type_map.get(center, "X")
+                    t_a = atom_type_map.get(a, "X")
+                    t_c = atom_type_map.get(c, "X")
+                    t_d = atom_type_map.get(d, "X")
+                    conn_type = f"{t_center}-{t_a}-{t_c}-{t_d}"
+
+                    impropers_list.append(
+                        {
+                            "type": conn_type,
+                            "atom_1": center,
+                            "atom_2": a,
+                            "atom_3": c,
+                            "atom_4": d,
+                        }
+                    )
+
+            if guess_angles and angles_list:
+                df_angles = pd.DataFrame(angles_list)
+                df_angles.index = range(1, len(df_angles) + 1)
+                self.angles = df_angles
+
+            if guess_impropers and impropers_list:
+                df_imp = pd.DataFrame(impropers_list)
+                df_imp.index = range(1, len(df_imp) + 1)
+                self.impropers = df_imp
+
+        # 4. Traitement des Dièdres (A - B - C - D)
+        if guess_dihedrals:
+            dihedrals_list = []
+            for _, row in self.bonds.iterrows():
+                b, c = int(row["atom_1"]), int(row["atom_2"])
+                neighbors_b = graph[b] - {c}
+                neighbors_c = graph[c] - {b}
+
+                for a in neighbors_b:
+                    for d in neighbors_c:
+                        if a != d:
+                            t_a = atom_type_map.get(a, "X")
+                            t_b = atom_type_map.get(b, "X")
+                            t_c = atom_type_map.get(c, "X")
+                            t_d = atom_type_map.get(d, "X")
+                            conn_type = f"{t_a}-{t_b}-{t_c}-{t_d}"
+
+                            dihedrals_list.append(
+                                {
+                                    "type": conn_type,
+                                    "atom_1": a,
+                                    "atom_2": b,
+                                    "atom_3": c,
+                                    "atom_4": d,
+                                }
+                            )
+
+            if dihedrals_list:
+                df_dih = pd.DataFrame(dihedrals_list)
+                df_dih.index = range(1, len(df_dih) + 1)
+                self.dihedrals = df_dih
 
         return self
 
+    def guess_angles(self) -> AtomicSystem:
+        """Guess only angles from existing bonds."""
+        return self.guess_connections(
+            guess_angles=True,
+            guess_dihedrals=False,
+            guess_impropers=False,
+        )
+
+    def guess_dihedrals(self) -> AtomicSystem:
+        """Guess only dihedrals from existing bonds."""
+        return self.guess_connections(
+            guess_angles=False,
+            guess_dihedrals=True,
+            guess_impropers=False,
+        )
+
+    def guess_impropers(self) -> AtomicSystem:
+        """Guess only impropers from existing bonds."""
+        return self.guess_connections(
+            guess_angles=False,
+            guess_dihedrals=False,
+            guess_impropers=True,
+        )
+
     # Aliases
     set_topo = set_topology
-    reset_topo = reset_topology
+    guess_topo = guess_connections

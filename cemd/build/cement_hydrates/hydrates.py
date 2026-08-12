@@ -29,10 +29,9 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from ..._paths import PYCSH_DIR, STRUCTURES_DIR
-from ..._utils import require_program
 from ...analysis import analyze_silicates
 from ...core.atomic_system import AtomicSystem
-from ..base import BaseBuilder
+from ..base import BaseBuilder, require_program
 from ._silicate_helpers import substitute_si_by_al
 
 if TYPE_CHECKING:
@@ -288,6 +287,8 @@ class CSHBuilder(BaseBuilder):
         ... )
         """
 
+        require_program("packmol")
+
         from ._interlayer_helpers import (
             distribute_species_in_layers,
             fill_csh_interlayers,
@@ -297,8 +298,6 @@ class CSHBuilder(BaseBuilder):
             neutralize_csh_charge,
             remove_bridging_silicates,
         )
-
-        require_program("packmol")
 
         # Validate classic-specific parameters
         if model not in ["tob11a_hamid.cif", "tob11a_merlino.cif"]:
@@ -647,6 +646,9 @@ class AFBuilder(BaseBuilder):
         >>> builder = AFBuilder(ws_ratio=8.0)
         >>> system = builder.build_afm(supercell=[3,1,1])
         """
+
+        require_program("packmol")
+
         return self._build_af("afm", supercell, model_file, _progress_callback)
 
     def _build_af(

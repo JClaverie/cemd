@@ -405,16 +405,17 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">TYPE_CHECKING</span><span class="p">,</span> <span class="n">Optional</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">TYPE_CHECKING</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
+<span class="kn">from</span><span class="w"> </span><span class="nn">..core._format</span><span class="w"> </span><span class="kn">import</span> <span class="n">lattice2vectors</span><span class="p">,</span> <span class="n">vectors2lattice</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseBuilder</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">.._utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">lattice2vectors</span><span class="p">,</span> <span class="n">vectors2lattice</span>
 
 <span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">..core.atomic_system</span><span class="w"> </span><span class="kn">import</span> <span class="n">AtomicSystem</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">.solution</span><span class="w"> </span><span class="kn">import</span> <span class="n">SolutionBuilder</span>
+
 
 <div class="viewcode-block" id="Splitter">
 <a class="viewcode-back" href="../../../api/generated/cemd.build.Splitter.html#cemd.build.Splitter">[docs]</a>
@@ -427,12 +428,12 @@
 <span class="sd">    --------</span>
 <span class="sd">    &gt;&gt;&gt; # Simple split</span>
 <span class="sd">    &gt;&gt;&gt; result = Splitter(system, axis=&#39;z&#39;, gap_size=20.0).split()</span>
-<span class="sd">    </span>
+
 <span class="sd">    &gt;&gt;&gt; # Split with solution (fluent API)</span>
 <span class="sd">    &gt;&gt;&gt; result = (Splitter(system, axis=&#39;z&#39;, gap_size=30.0)</span>
 <span class="sd">    ...           .add_solution(blueprint, padding=2.0)</span>
 <span class="sd">    ...           .split())</span>
-<span class="sd">    </span>
+
 <span class="sd">    &gt;&gt;&gt; # Or with the convenience function</span>
 <span class="sd">    &gt;&gt;&gt; result = split(system, axis=&#39;z&#39;, gap_size=30.0,</span>
 <span class="sd">    ...                solution=blueprint, padding=2.0)</span>
@@ -442,37 +443,36 @@
     <span class="n">coordinate</span><span class="p">:</span> <span class="nb">float</span>
     <span class="n">axis</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">=</span> <span class="mi">2</span>
     <span class="n">gap_size</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">20.0</span>
-    
+
     <span class="c1"># Solution options (default: no solution)</span>
-    <span class="n">_solution_blueprint</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">&quot;SolutionBuilder&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="nb">repr</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">_solution_blueprint</span><span class="p">:</span> <span class="n">SolutionBuilder</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="nb">repr</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
     <span class="n">_padding</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="nb">repr</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
     <span class="n">_vacuum</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="nb">repr</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
     <span class="n">_has_solution</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="nb">repr</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-    
+
     <span class="c1"># Internal state (non-serializable)</span>
-    <span class="n">_unit_norm</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="nb">repr</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">init</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-    <span class="n">_vec_list</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">list</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="nb">repr</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">init</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-    <span class="n">_axis_name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="nb">repr</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">init</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">_unit_norm</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="nb">repr</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">init</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">_vec_list</span><span class="p">:</span> <span class="nb">list</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="nb">repr</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">init</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">_axis_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="nb">repr</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">init</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize derived attributes.&quot;&quot;&quot;</span>
         <span class="c1"># Convert axis if string</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">axis</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
-            <span class="n">axis_map</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;z&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">}</span>
+            <span class="n">axis_map</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;z&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">}</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">axis</span> <span class="o">=</span> <span class="n">axis_map</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">axis</span><span class="o">.</span><span class="n">lower</span><span class="p">()]</span>
-        
-        <span class="bp">self</span><span class="o">.</span><span class="n">_axis_name</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="s1">&#39;z&#39;</span><span class="p">][</span><span class="bp">self</span><span class="o">.</span><span class="n">axis</span><span class="p">]</span>
-        
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_axis_name</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="s2">&quot;z&quot;</span><span class="p">][</span><span class="bp">self</span><span class="o">.</span><span class="n">axis</span><span class="p">]</span>
+
         <span class="c1"># Compute axis information</span>
         <span class="n">vec_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">lattice2vectors</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">box</span><span class="p">))</span>
         <span class="n">target_vec</span> <span class="o">=</span> <span class="n">vec_list</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">axis</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_unit_norm</span> <span class="o">=</span> <span class="n">target_vec</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">target_vec</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_vec_list</span> <span class="o">=</span> <span class="n">vec_list</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">add_solution</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
-                     <span class="n">blueprint</span><span class="p">:</span> <span class="s2">&quot;SolutionBuilder&quot;</span><span class="p">,</span>
-                     <span class="n">padding</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">2.0</span><span class="p">,</span>
-                     <span class="n">vacuum</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Splitter&quot;</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_solution</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">blueprint</span><span class="p">:</span> <span class="n">SolutionBuilder</span><span class="p">,</span> <span class="n">padding</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">2.0</span><span class="p">,</span> <span class="n">vacuum</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Splitter</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Add a liquid solution in the gap.</span>
 
@@ -496,7 +496,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_has_solution</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="k">return</span> <span class="bp">self</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">with_coordinate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinate</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Splitter&quot;</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">with_coordinate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinate</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Splitter</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Set the cutting position.</span>
 
@@ -527,7 +527,9 @@
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_update_box</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Update the simulation box after splitting.&quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_vec_list</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_axis</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vec_list</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_axis</span><span class="p">]</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unit_norm</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gap_size</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_vec_list</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_axis</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_vec_list</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_axis</span><span class="p">]</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unit_norm</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gap_size</span>
+        <span class="p">)</span>
         <span class="n">new_box</span> <span class="o">=</span> <span class="n">vectors2lattice</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_vec_list</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_system</span><span class="o">.</span><span class="n">set_box</span><span class="p">(</span><span class="n">new_box</span><span class="p">)</span>
 
@@ -549,7 +551,9 @@
         <span class="n">liquid_thickness</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calculate_solution_thickness</span><span class="p">()</span>
 
         <span class="c1"># Calculate the box for the liquid</span>
-        <span class="n">liquid_box</span> <span class="o">=</span> <span class="n">_calculate_liquid_box</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_system</span><span class="p">,</span> <span class="n">liquid_thickness</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_axis_name</span><span class="p">)</span>
+        <span class="n">liquid_box</span> <span class="o">=</span> <span class="n">_calculate_liquid_box</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_system</span><span class="p">,</span> <span class="n">liquid_thickness</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_axis_name</span>
+        <span class="p">)</span>
 
         <span class="c1"># Build the liquid</span>
         <span class="n">liquid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solution_blueprint</span><span class="o">.</span><span class="n">build</span><span class="p">(</span><span class="n">liquid_box</span><span class="p">)</span>
@@ -566,13 +570,13 @@
             <span class="n">liquid</span><span class="p">,</span>
             <span class="n">distance</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
             <span class="n">axis</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_axis_name</span><span class="p">,</span>
-            <span class="n">vacuum</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_vacuum</span>
+            <span class="n">vacuum</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_vacuum</span><span class="p">,</span>
         <span class="p">)</span>
 
         <span class="c1"># Replace the system with the merged result</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_system</span><span class="o">.</span><span class="n">atoms</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">atoms</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_system</span><span class="o">.</span><span class="n">set_box</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">box</span><span class="p">)</span>
-        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="s1">&#39;bonds&#39;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="s2">&quot;bonds&quot;</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_system</span><span class="o">.</span><span class="n">bonds</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">bonds</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">split</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AtomicSystem</span><span class="p">:</span>
@@ -596,16 +600,18 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_insert_solution</span><span class="p">()</span>
 
         <span class="c1"># 4. Store metadata</span>
-        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_system</span><span class="p">,</span> <span class="s1">&#39;metadata&#39;</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_system</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;split_info&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
-                <span class="s1">&#39;axis&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_axis</span><span class="p">,</span>
-                <span class="s1">&#39;axis_name&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_axis_name</span><span class="p">,</span>
-                <span class="s1">&#39;coordinate&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coordinate</span><span class="p">,</span>
-                <span class="s1">&#39;gap_size&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gap_size</span><span class="p">,</span>
-                <span class="s1">&#39;has_solution&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_has_solution</span><span class="p">,</span>
-                <span class="s1">&#39;solution_padding&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_padding</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_has_solution</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
-                <span class="s1">&#39;solution_thickness&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calculate_solution_thickness</span><span class="p">()</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_has_solution</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
-                <span class="s1">&#39;solution_vacuum&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vacuum</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_has_solution</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_system</span><span class="p">,</span> <span class="s2">&quot;metadata&quot;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_system</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s2">&quot;split_info&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s2">&quot;axis&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_axis</span><span class="p">,</span>
+                <span class="s2">&quot;axis_name&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_axis_name</span><span class="p">,</span>
+                <span class="s2">&quot;coordinate&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coordinate</span><span class="p">,</span>
+                <span class="s2">&quot;gap_size&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gap_size</span><span class="p">,</span>
+                <span class="s2">&quot;has_solution&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_has_solution</span><span class="p">,</span>
+                <span class="s2">&quot;solution_padding&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_padding</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_has_solution</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="s2">&quot;solution_thickness&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calculate_solution_thickness</span><span class="p">()</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_has_solution</span>
+                <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="s2">&quot;solution_vacuum&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vacuum</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_has_solution</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
             <span class="p">}</span>
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_system</span></div>

@@ -122,7 +122,7 @@ def apply_single_dihedral_rule_to_universe(
     universe: mda.Universe,
     dihedral_rules: list[DihedralRule],
     default_cutoff: float = 2.0,
-) -> list[Sequence[int, int, int, int]]:
+) -> Sequence[int]:
     """Generate proper dihedrals using temporary bonds when needed.
 
     Parameters
@@ -136,8 +136,8 @@ def apply_single_dihedral_rule_to_universe(
 
     Returns
     -------
-    List[Tuple[int, int, int, int]]
-        List of dihedral indices (i, j, k, l).
+    Sequence[int]
+        Sequence of dihedral indices (i, j, k, l).
     """
 
     from MDAnalysis.lib.distances import capped_distance
@@ -150,7 +150,7 @@ def apply_single_dihedral_rule_to_universe(
         sel_i = universe.select_atoms(rule.i)
         sel_j = universe.select_atoms(rule.j)
         sel_k = universe.select_atoms(rule.k)
-        sel_l = universe.select_atoms(rule.l)
+        sel_l = universe.select_atoms(rule.l_)
 
         # Récupérer les cutoffs
         cutoffs = rule.cutoffs
@@ -189,23 +189,23 @@ def apply_single_dihedral_rule_to_universe(
         # Convertir en indices globaux
         idx_ij = {(sel_i.indices[i], sel_j.indices[j]) for i, j in pairs_ij}
         idx_jk = {(sel_j.indices[j], sel_k.indices[k]) for j, k in pairs_jk}
-        idx_kl = {(sel_k.indices[k], sel_l.indices[l]) for k, l in pairs_kl}
+        idx_kl = {(sel_k.indices[k], sel_l.indices[l_]) for k, l_ in pairs_kl}
 
         # Construire les dihedrals i-j-k-l
         for i, j in idx_ij:
             for j2, k in idx_jk:
                 if j != j2:
                     continue
-                for k2, l in idx_kl:
+                for k2, l_ in idx_kl:
                     if k != k2:
                         continue
-                    if i == l:  # Éviter les dihedrals où i et l sont le même atome
+                    if i == l_:  # Éviter les dihedrals où i et l sont le même atome
                         continue
 
-                    dih = (i, j, k, l)
+                    dih = (i, j, k, l_)
 
                     # Vérifier les doublons (i-j-k-l et l-k-j-i sont équivalents)
-                    dih_rev = (l, k, j, i)
+                    dih_rev = (l_, k, j, i)
                     if dih not in seen_dihedrals and dih_rev not in seen_dihedrals:
                         seen_dihedrals.add(dih)
                         dihedrals.append(dih)
@@ -235,11 +235,11 @@ def _generate_dihedrals_from_bonds(universe: mda.Universe) -> list[tuple]:
 
     for j, k in universe.bonds.indices:
         for i in neighbors[j] - {k}:
-            for l in neighbors[k] - {j}:
-                if i == l:
+            for l_ in neighbors[k] - {j}:
+                if i == l_:
                     continue
-                dih = (i, j, k, l)
-                dih_rev = (l, k, j, i)
+                dih = (i, j, k, l_)
+                dih_rev = (l_, k, j, i)
                 if dih_rev not in dihedrals:
                     dihedrals.add(dih)
 
@@ -255,7 +255,7 @@ def apply_clayff_rules(universe: mda.Universe) -> tuple[mda.Universe, dict]:
 
 def apply_cshff_rules(universe: mda.Universe) -> tuple[mda.Universe, dict]:
     """Applies CSHFF to the universe and returns the calcium indices to modify."""
-    from ...build_old._silicate_helpers import get_interlayer_ca_indices
+    from ...build.cement_hydrates._silicate_helpers import get_interlayer_ca_indices
 
     universe, _ = apply_clayff_rules(universe)
     list_ids_cw = get_interlayer_ca_indices(universe)

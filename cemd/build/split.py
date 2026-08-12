@@ -22,7 +22,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from .._utils import lattice2vectors, vectors2lattice
+from ..core._format import lattice2vectors, vectors2lattice
 from .base import BaseBuilder
 
 if TYPE_CHECKING:

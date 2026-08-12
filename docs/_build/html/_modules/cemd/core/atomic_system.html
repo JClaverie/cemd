@@ -405,28 +405,26 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">copy</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Self</span><span class="p">,</span> <span class="n">TYPE_CHECKING</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Sequence</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">TYPE_CHECKING</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Self</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">.topology</span><span class="w"> </span><span class="kn">import</span> <span class="n">TopologyMixin</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.._constants</span><span class="w"> </span><span class="kn">import</span> <span class="n">AVOGADRO</span><span class="p">,</span> <span class="n">INV_MASSES</span><span class="p">,</span> <span class="n">MASS_KEYS</span><span class="p">,</span> <span class="n">MASSES_DICT</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">._edit</span><span class="w"> </span><span class="kn">import</span> <span class="n">EditMixin</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">._io</span><span class="w"> </span><span class="kn">import</span> <span class="n">IOMixin</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">._forcefield</span><span class="w"> </span><span class="kn">import</span> <span class="n">ForceFieldMixin</span>
-
+<span class="kn">from</span><span class="w"> </span><span class="nn">._format</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">ANGLES_COLUMNS</span><span class="p">,</span>
+    <span class="n">ATOMS_COLUMNS</span><span class="p">,</span>
+    <span class="n">BONDS_COLUMNS</span><span class="p">,</span>
+    <span class="n">DIHEDRALS_COLUMNS</span><span class="p">,</span>
+    <span class="n">IMPROPERS_COLUMNS</span><span class="p">,</span>
+    <span class="n">VELOCITIES_COLUMNS</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">._io</span><span class="w"> </span><span class="kn">import</span> <span class="n">IOMixin</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">._view</span><span class="w"> </span><span class="kn">import</span> <span class="n">view</span>
-
-<span class="kn">from</span><span class="w"> </span><span class="nn">.._constants</span><span class="w"> </span><span class="kn">import</span><span class="p">(</span>
-    <span class="n">AVOGADRO</span><span class="p">,</span>
-    <span class="n">MASSES_DICT</span><span class="p">,</span> 
-    <span class="n">INV_MASSES</span><span class="p">,</span> 
-    <span class="n">MASS_KEYS</span>
-<span class="p">)</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">.._utils</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
-    <span class="n">lammps2lattice</span><span class="p">,</span> 
-    <span class="n">lattice2vectors</span><span class="p">,</span> 
-<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.topology</span><span class="w"> </span><span class="kn">import</span> <span class="n">TopologyMixin</span>
 
 <span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">..build</span><span class="w"> </span><span class="kn">import</span> <span class="n">SolutionBuilder</span>
@@ -450,7 +448,7 @@
 <span class="sd">    ----------</span>
 <span class="sd">    topology : dict[str, Any]</span>
 <span class="sd">        Dictionary containing the complete system data.</span>
-<span class="sd">        </span>
+
 <span class="sd">        Required keys:</span>
 <span class="sd">            - coordinates : np.ndarray</span>
 <span class="sd">                Atomic coordinates (N, 3)</span>
@@ -462,7 +460,7 @@
 <span class="sd">                Atomic masses</span>
 <span class="sd">            - charges : list or np.ndarray</span>
 <span class="sd">                Atomic charges</span>
-<span class="sd">        </span>
+
 <span class="sd">        Optional keys:</span>
 <span class="sd">            - bonds : np.ndarray</span>
 <span class="sd">                Bond connectivity (N_bonds, 2)</span>
@@ -516,25 +514,38 @@
     <span class="n">impropers</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">|</span> <span class="kc">None</span>
     <span class="n">velocities</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">|</span> <span class="kc">None</span>
 
-    <span class="n">_types</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="nb">int</span><span class="p">]</span>
     <span class="n">_masses_storage</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span>
     <span class="n">_charges_storage</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span>
     <span class="n">_atom_style</span><span class="p">:</span> <span class="nb">str</span>
 
-    <span class="n">_lmp_box</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span>
-        <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span> <span class="c1"># [xlo]</span>
-        <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span> <span class="c1"># [yellow, this one]</span>
-        <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span> <span class="c1"># awl, abode</span>
-        <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span>  <span class="c1"># [xy, xz, yz]</span>
+    <span class="n">_box_lmp</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span>
+        <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span>
+        <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span>
+        <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span>
+        <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span>
     <span class="p">]</span>
     <span class="n">_box</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span>
-    <span class="n">_box_vectors</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span>
+    <span class="n">_box_vectors</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span>
 
     <span class="n">pair_params</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>
     <span class="n">bond_params</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>
     <span class="n">angle_params</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>
     <span class="n">dihedral_params</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>
     <span class="n">improper_params</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>
+
+    <span class="n">bondbond_params</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>
+    <span class="n">bondangle_params</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>
+    <span class="n">middlebondtorsion_params</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>
+    <span class="n">endbondtorsion_params</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>
+    <span class="n">angletorsion_params</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>
+    <span class="n">angleangletorsion_params</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>
+    <span class="n">angleangle_params</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>
+
+    <span class="n">_atom_ff_mapping</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span>
+    <span class="n">_bond_ff_mapping</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span>
+    <span class="n">_angle_ff_mapping</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span>
+    <span class="n">_dihedral_ff_mapping</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span>
+    <span class="n">_improper_ff_mapping</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">topology</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -550,74 +561,185 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_finalize_data</span><span class="p">()</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__setattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;atoms&#39;</span><span class="p">,</span> <span class="s1">&#39;bonds&#39;</span><span class="p">,</span> <span class="s1">&#39;angles&#39;</span><span class="p">,</span> <span class="s1">&#39;dihedrals&#39;</span><span class="p">,</span> <span class="s1">&#39;impropers&#39;</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="s1">&#39;_cache&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;atoms&quot;</span><span class="p">,</span> <span class="s2">&quot;bonds&quot;</span><span class="p">,</span> <span class="s2">&quot;angles&quot;</span><span class="p">,</span> <span class="s2">&quot;dihedrals&quot;</span><span class="p">,</span> <span class="s2">&quot;impropers&quot;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="s2">&quot;_cache&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return a concise string representation of the AtomicSystem.&quot;&quot;&quot;</span>
+        <span class="n">sections</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">(</span><span class="s2">&quot;bonds&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_bonds</span><span class="p">),</span>
+            <span class="p">(</span><span class="s2">&quot;angles&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_angles</span><span class="p">),</span>
+            <span class="p">(</span><span class="s2">&quot;dihedrals&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_dihedrals</span><span class="p">),</span>
+            <span class="p">(</span><span class="s2">&quot;impropers&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_impropers</span><span class="p">),</span>
+        <span class="p">]</span>
+
+        <span class="n">interactions</span> <span class="o">=</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">count</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">count</span> <span class="ow">in</span> <span class="n">sections</span> <span class="k">if</span> <span class="n">count</span> <span class="o">&gt;</span> <span class="mi">0</span>
+        <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">interactions</span><span class="p">:</span>
+            <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;&lt;AtomicSystem with </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">num_atoms</span><span class="si">}</span><span class="s2"> atoms, </span><span class="si">{</span><span class="n">interactions</span><span class="si">}</span><span class="s2">&gt;&quot;</span>
+
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;&lt;AtomicSystem with </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">num_atoms</span><span class="si">}</span><span class="s2"> atoms&gt;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the string representation of the object.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        str</span>
+<span class="sd">            Equivalent to __repr__.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__repr__</span><span class="p">()</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_assign_topology</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">topology</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Helper to map the topology dictionary to class attributes.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">atoms</span> <span class="o">=</span> <span class="n">topology</span><span class="p">[</span><span class="s1">&#39;atoms&#39;</span><span class="p">]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">bonds</span> <span class="o">=</span> <span class="n">topology</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;bonds&#39;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">angles</span> <span class="o">=</span> <span class="n">topology</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;angles&#39;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">dihedrals</span> <span class="o">=</span> <span class="n">topology</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;dihedrals&#39;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">impropers</span> <span class="o">=</span> <span class="n">topology</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;impropers&#39;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">velocities</span> <span class="o">=</span> <span class="n">topology</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;velocities&#39;</span><span class="p">)</span>
-        
-        <span class="bp">self</span><span class="o">.</span><span class="n">_lmp_box</span> <span class="o">=</span> <span class="n">topology</span><span class="p">[</span><span class="s1">&#39;lmp_box&#39;</span><span class="p">]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_types</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">topology</span><span class="p">[</span><span class="s1">&#39;atom_types&#39;</span><span class="p">])</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_masses_storage</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">topology</span><span class="p">[</span><span class="s1">&#39;masses&#39;</span><span class="p">])</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_charges_storage</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">topology</span><span class="p">[</span><span class="s1">&#39;charges&#39;</span><span class="p">])</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_atom_style</span> <span class="o">=</span> <span class="n">topology</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;atom_style&#39;</span><span class="p">,</span> <span class="s1">&#39;full&#39;</span><span class="p">)</span>
-        
-        <span class="bp">self</span><span class="o">.</span><span class="n">_box</span> <span class="o">=</span> <span class="n">lammps2lattice</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_lmp_box</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_box_vectors</span> <span class="o">=</span> <span class="n">lattice2vectors</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_box</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">atoms</span> <span class="o">=</span> <span class="n">topology</span><span class="p">[</span><span class="s2">&quot;atoms&quot;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bonds</span> <span class="o">=</span> <span class="n">topology</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;bonds&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">angles</span> <span class="o">=</span> <span class="n">topology</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;angles&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dihedrals</span> <span class="o">=</span> <span class="n">topology</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;dihedrals&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">impropers</span> <span class="o">=</span> <span class="n">topology</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;impropers&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">velocities</span> <span class="o">=</span> <span class="n">topology</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;velocities&quot;</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">_pmg_struct</span> <span class="o">=</span> <span class="n">topology</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;_pmg_struct&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_box</span><span class="p">(</span><span class="n">topology</span><span class="p">[</span><span class="s2">&quot;box&quot;</span><span class="p">])</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">pair_params</span> <span class="o">=</span> <span class="n">topology</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;pair_params&#39;</span><span class="p">,</span> <span class="p">{})</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">bond_params</span> <span class="o">=</span> <span class="n">topology</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;bond_params&#39;</span><span class="p">,</span> <span class="p">{})</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">angle_params</span> <span class="o">=</span> <span class="n">topology</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;angle_params&#39;</span><span class="p">,</span> <span class="p">{})</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">dihedral_params</span> <span class="o">=</span> <span class="n">topology</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;dihedral_params&#39;</span><span class="p">,</span> <span class="p">{})</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">improper_params</span> <span class="o">=</span><span class="n">topology</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;improper_params&#39;</span><span class="p">,</span> <span class="p">{})</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_masses_storage</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">topology</span><span class="p">[</span><span class="s2">&quot;masses&quot;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_charges_storage</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">topology</span><span class="p">[</span><span class="s2">&quot;charges&quot;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_atom_style</span> <span class="o">=</span> <span class="n">topology</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;atom_style&quot;</span><span class="p">,</span> <span class="s2">&quot;full&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pmg_struct</span> <span class="o">=</span> <span class="n">topology</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;_pmg_struct&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">pair_params</span> <span class="o">=</span> <span class="n">topology</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;pair_params&quot;</span><span class="p">,</span> <span class="p">{})</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bond_params</span> <span class="o">=</span> <span class="n">topology</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;bond_params&quot;</span><span class="p">,</span> <span class="p">{})</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">angle_params</span> <span class="o">=</span> <span class="n">topology</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;angle_params&quot;</span><span class="p">,</span> <span class="p">{})</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dihedral_params</span> <span class="o">=</span> <span class="n">topology</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;dihedral_params&quot;</span><span class="p">,</span> <span class="p">{})</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">improper_params</span> <span class="o">=</span> <span class="n">topology</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;improper_params&quot;</span><span class="p">,</span> <span class="p">{})</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">bondbond_params</span> <span class="o">=</span> <span class="n">topology</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;bondbond_params&quot;</span><span class="p">,</span> <span class="p">{})</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bondangle_params</span> <span class="o">=</span> <span class="n">topology</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;bondangle_params&quot;</span><span class="p">,</span> <span class="p">{})</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">middlebondtorsion_params</span> <span class="o">=</span> <span class="n">topology</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;middlebondtorsion_params&quot;</span><span class="p">,</span> <span class="p">{})</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">endbondtorsion_params</span> <span class="o">=</span> <span class="n">topology</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;endbondtorsion_params&quot;</span><span class="p">,</span> <span class="p">{})</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">angletorsion_params</span> <span class="o">=</span> <span class="n">topology</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;angletorsion_params&quot;</span><span class="p">,</span> <span class="p">{})</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">angleangletorsion_params</span> <span class="o">=</span> <span class="n">topology</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;angleangletorsion_params&quot;</span><span class="p">,</span> <span class="p">{})</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">angleangle_params</span> <span class="o">=</span> <span class="n">topology</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;angleangle_params&quot;</span><span class="p">,</span> <span class="p">{})</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_atom_ff_mapping</span> <span class="o">=</span> <span class="n">topology</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;atom_ff_mapping&quot;</span><span class="p">,</span> <span class="p">{})</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_bond_ff_mapping</span> <span class="o">=</span> <span class="n">topology</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;bond_ff_mapping&quot;</span><span class="p">,</span> <span class="p">{})</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_angle_ff_mapping</span> <span class="o">=</span> <span class="n">topology</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;angle_ff_mapping&quot;</span><span class="p">,</span> <span class="p">{})</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dihedral_ff_mapping</span> <span class="o">=</span> <span class="n">topology</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;dihedral_ff_mapping&quot;</span><span class="p">,</span> <span class="p">{})</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_improper_ff_mapping</span> <span class="o">=</span> <span class="n">topology</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;improper_ff_mapping&quot;</span><span class="p">,</span> <span class="p">{})</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_normalize_dataframe</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">columns</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">type</span><span class="p">],</span>
+        <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Validate and normalize a topology DataFrame.</span>
+
+<span class="sd">        Ensures required columns exist and reorders them according to</span>
+<span class="sd">        the defined standard.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">df</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="n">col_names</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">columns</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">columns</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="k">else</span> <span class="nb">list</span><span class="p">(</span><span class="n">columns</span><span class="p">)</span>
+
+        <span class="n">missing</span> <span class="o">=</span> <span class="p">[</span><span class="n">col</span> <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">col_names</span> <span class="k">if</span> <span class="n">col</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">missing</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Invalid </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> DataFrame. &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;Missing columns: </span><span class="si">{</span><span class="n">missing</span><span class="si">}</span><span class="s2">. &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;Expected: </span><span class="si">{</span><span class="n">col_names</span><span class="si">}</span><span class="s2">.&quot;</span>
+            <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="n">col_names</span><span class="p">]</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_finalize_data</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Sorts indices and ensures integer types for atom references.&quot;&quot;&quot;</span>
-        <span class="k">for</span> <span class="n">df</span> <span class="ow">in</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">atoms</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">velocities</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">bonds</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">angles</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dihedrals</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">impropers</span><span class="p">]:</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">atoms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_normalize_dataframe</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">atoms</span><span class="p">,</span>
+            <span class="n">ATOMS_COLUMNS</span><span class="p">,</span>
+            <span class="s2">&quot;atoms&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">bonds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_normalize_dataframe</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">bonds</span><span class="p">,</span>
+            <span class="n">BONDS_COLUMNS</span><span class="p">,</span>
+            <span class="s2">&quot;bonds&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">angles</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_normalize_dataframe</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">angles</span><span class="p">,</span>
+            <span class="n">ANGLES_COLUMNS</span><span class="p">,</span>
+            <span class="s2">&quot;angles&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">dihedrals</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_normalize_dataframe</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dihedrals</span><span class="p">,</span>
+            <span class="n">DIHEDRALS_COLUMNS</span><span class="p">,</span>
+            <span class="s2">&quot;dihedrals&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">impropers</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_normalize_dataframe</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">impropers</span><span class="p">,</span>
+            <span class="n">IMPROPERS_COLUMNS</span><span class="p">,</span>
+            <span class="s2">&quot;impropers&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">velocities</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_normalize_dataframe</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">velocities</span><span class="p">,</span>
+            <span class="n">VELOCITIES_COLUMNS</span><span class="p">,</span>
+            <span class="s2">&quot;velocities&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">df</span> <span class="ow">in</span> <span class="p">[</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">atoms</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">velocities</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">bonds</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">angles</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dihedrals</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">impropers</span><span class="p">,</span>
+        <span class="p">]:</span>
             <span class="k">if</span> <span class="n">df</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">df</span><span class="o">.</span><span class="n">sort_index</span><span class="p">(</span><span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
-        <span class="n">topology_dfs</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s1">&#39;bonds&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;angles&#39;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span> <span class="s1">&#39;dihedrals&#39;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span> <span class="s1">&#39;impropers&#39;</span><span class="p">:</span> <span class="mi">4</span>
-        <span class="p">}</span>
+        <span class="n">topology_dfs</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;bonds&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;angles&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span> <span class="s2">&quot;dihedrals&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span> <span class="s2">&quot;impropers&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">}</span>
         <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">n_atoms</span> <span class="ow">in</span> <span class="n">topology_dfs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="n">df</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">df</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">cols</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s1">&#39;atom_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s1">&#39;</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">n_atoms</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)]</span>
+                <span class="n">cols</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">&quot;atom_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">n_atoms</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)]</span>
                 <span class="n">df</span><span class="p">[</span><span class="n">cols</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">cols</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_replace_internals</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">AtomicSystem</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Replaces internal content with that of another system, without breaking references.&quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_assign_topology</span><span class="p">({</span>
-            <span class="s1">&#39;atoms&#39;</span><span class="p">:</span>      <span class="n">other</span><span class="o">.</span><span class="n">atoms</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span>
-            <span class="s1">&#39;bonds&#39;</span><span class="p">:</span>      <span class="n">other</span><span class="o">.</span><span class="n">bonds</span><span class="p">,</span>
-            <span class="s1">&#39;angles&#39;</span><span class="p">:</span>     <span class="n">other</span><span class="o">.</span><span class="n">angles</span><span class="p">,</span>
-            <span class="s1">&#39;dihedrals&#39;</span><span class="p">:</span>  <span class="n">other</span><span class="o">.</span><span class="n">dihedrals</span><span class="p">,</span>
-            <span class="s1">&#39;impropers&#39;</span><span class="p">:</span>  <span class="n">other</span><span class="o">.</span><span class="n">impropers</span><span class="p">,</span>
-            <span class="s1">&#39;velocities&#39;</span><span class="p">:</span> <span class="n">other</span><span class="o">.</span><span class="n">velocities</span><span class="p">,</span>
-            <span class="s1">&#39;lmp_box&#39;</span><span class="p">:</span>    <span class="n">other</span><span class="o">.</span><span class="n">_lmp_box</span><span class="p">,</span>
-            <span class="s1">&#39;atom_types&#39;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">_types</span><span class="p">),</span>
-            <span class="s1">&#39;masses&#39;</span><span class="p">:</span>     <span class="nb">dict</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">_masses_storage</span><span class="p">),</span>
-            <span class="s1">&#39;charges&#39;</span><span class="p">:</span>    <span class="nb">dict</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">_charges_storage</span><span class="p">),</span>
-            <span class="s1">&#39;atom_style&#39;</span><span class="p">:</span> <span class="n">other</span><span class="o">.</span><span class="n">_atom_style</span><span class="p">,</span>
-        <span class="p">})</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">pair_params</span>     <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">pair_params</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">bond_params</span>     <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">bond_params</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">angle_params</span>    <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">angle_params</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_assign_topology</span><span class="p">(</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;atoms&quot;</span><span class="p">:</span> <span class="n">other</span><span class="o">.</span><span class="n">atoms</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span>
+                <span class="s2">&quot;bonds&quot;</span><span class="p">:</span> <span class="n">other</span><span class="o">.</span><span class="n">bonds</span><span class="p">,</span>
+                <span class="s2">&quot;angles&quot;</span><span class="p">:</span> <span class="n">other</span><span class="o">.</span><span class="n">angles</span><span class="p">,</span>
+                <span class="s2">&quot;dihedrals&quot;</span><span class="p">:</span> <span class="n">other</span><span class="o">.</span><span class="n">dihedrals</span><span class="p">,</span>
+                <span class="s2">&quot;impropers&quot;</span><span class="p">:</span> <span class="n">other</span><span class="o">.</span><span class="n">impropers</span><span class="p">,</span>
+                <span class="s2">&quot;velocities&quot;</span><span class="p">:</span> <span class="n">other</span><span class="o">.</span><span class="n">velocities</span><span class="p">,</span>
+                <span class="s2">&quot;box&quot;</span><span class="p">:</span> <span class="n">other</span><span class="o">.</span><span class="n">_box_lmp</span><span class="p">,</span>
+                <span class="s2">&quot;masses&quot;</span><span class="p">:</span> <span class="nb">dict</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">_masses_storage</span><span class="p">),</span>
+                <span class="s2">&quot;charges&quot;</span><span class="p">:</span> <span class="nb">dict</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">_charges_storage</span><span class="p">),</span>
+                <span class="s2">&quot;atom_style&quot;</span><span class="p">:</span> <span class="n">other</span><span class="o">.</span><span class="n">_atom_style</span><span class="p">,</span>
+            <span class="p">}</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pair_params</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">pair_params</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bond_params</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">bond_params</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">angle_params</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">angle_params</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">dihedral_params</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">dihedral_params</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">improper_params</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">improper_params</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">other</span><span class="o">.</span><span class="n">_pmg_struct</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="kn">import</span><span class="w"> </span><span class="nn">copy</span>
+
             <span class="bp">self</span><span class="o">.</span><span class="n">_pmg_struct</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">_pmg_struct</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Self</span><span class="p">:</span>
@@ -634,31 +756,32 @@
 <span class="sd">            Independent copy of the current system.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">new</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">)</span>
-        
+
         <span class="n">topology</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s1">&#39;atoms&#39;</span><span class="p">:</span>     <span class="bp">self</span><span class="o">.</span><span class="n">atoms</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span>
-            <span class="s1">&#39;bonds&#39;</span><span class="p">:</span>     <span class="bp">self</span><span class="o">.</span><span class="n">bonds</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">bonds</span>     <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
-            <span class="s1">&#39;angles&#39;</span><span class="p">:</span>    <span class="bp">self</span><span class="o">.</span><span class="n">angles</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">angles</span>    <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
-            <span class="s1">&#39;dihedrals&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">dihedrals</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dihedrals</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
-            <span class="s1">&#39;impropers&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">impropers</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">impropers</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
-            <span class="s1">&#39;velocities&#39;</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">velocities</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span><span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">velocities</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
-            <span class="s1">&#39;lmp_box&#39;</span><span class="p">:</span>   <span class="bp">self</span><span class="o">.</span><span class="n">_lmp_box</span><span class="p">,</span>
-            <span class="s1">&#39;atom_types&#39;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_types</span><span class="p">),</span>
-            <span class="s1">&#39;masses&#39;</span><span class="p">:</span>    <span class="nb">dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_masses_storage</span><span class="p">),</span>
-            <span class="s1">&#39;charges&#39;</span><span class="p">:</span>   <span class="nb">dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_charges_storage</span><span class="p">),</span>
-            <span class="s1">&#39;atom_style&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_atom_style</span><span class="p">,</span>
+            <span class="s2">&quot;atoms&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">atoms</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span>
+            <span class="s2">&quot;bonds&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">bonds</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">bonds</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="s2">&quot;angles&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">angles</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">angles</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="s2">&quot;dihedrals&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">dihedrals</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dihedrals</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="s2">&quot;impropers&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">impropers</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">impropers</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="s2">&quot;velocities&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">velocities</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">velocities</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="s2">&quot;box&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_box_lmp</span><span class="p">,</span>
+            <span class="s2">&quot;masses&quot;</span><span class="p">:</span> <span class="nb">dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_masses_storage</span><span class="p">),</span>
+            <span class="s2">&quot;charges&quot;</span><span class="p">:</span> <span class="nb">dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_charges_storage</span><span class="p">),</span>
+            <span class="s2">&quot;atom_style&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_atom_style</span><span class="p">,</span>
         <span class="p">}</span>
-        
+
         <span class="n">new</span><span class="o">.</span><span class="n">_assign_topology</span><span class="p">(</span><span class="n">topology</span><span class="p">)</span>
         <span class="n">new</span><span class="o">.</span><span class="n">_finalize_data</span><span class="p">()</span>
-        
+
         <span class="c1"># Copying force field settings if defined</span>
-        <span class="n">new</span><span class="o">.</span><span class="n">pair_params</span>     <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pair_params</span><span class="p">)</span>
-        <span class="n">new</span><span class="o">.</span><span class="n">bond_params</span>     <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bond_params</span><span class="p">)</span>
-        <span class="n">new</span><span class="o">.</span><span class="n">angle_params</span>    <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">angle_params</span><span class="p">)</span>
+        <span class="n">new</span><span class="o">.</span><span class="n">pair_params</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pair_params</span><span class="p">)</span>
+        <span class="n">new</span><span class="o">.</span><span class="n">bond_params</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bond_params</span><span class="p">)</span>
+        <span class="n">new</span><span class="o">.</span><span class="n">angle_params</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">angle_params</span><span class="p">)</span>
         <span class="n">new</span><span class="o">.</span><span class="n">dihedral_params</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dihedral_params</span><span class="p">)</span>
         <span class="n">new</span><span class="o">.</span><span class="n">improper_params</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">improper_params</span><span class="p">)</span>
-        
+
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pmg_struct</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">new</span><span class="o">.</span><span class="n">_pmg_struct</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_pmg_struct</span><span class="p">)</span>
 
@@ -675,7 +798,7 @@
 <span class="sd">            The box lattice parameters.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_box</span><span class="p">)</span>
-        
+
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">volume</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -699,13 +822,13 @@
 <span class="sd">        list of float</span>
 <span class="sd">            Mass of each atom type.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="s1">&#39;masses&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s2">&quot;masses&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="p">:</span>
             <span class="n">mass_list</span> <span class="o">=</span> <span class="p">[</span>
                 <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_masses_storage</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">MASSES_DICT</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)))</span>
                 <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">atom_types</span>
             <span class="p">]</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="p">[</span><span class="s1">&#39;masses&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">mass_list</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="p">[</span><span class="s1">&#39;masses&#39;</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="p">[</span><span class="s2">&quot;masses&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">mass_list</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="p">[</span><span class="s2">&quot;masses&quot;</span><span class="p">]</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">charges</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]:</span>
@@ -717,43 +840,46 @@
 <span class="sd">        list of float</span>
 <span class="sd">            Charge of each atom type.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="s1">&#39;charges&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="p">[</span><span class="s1">&#39;charges&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
-                <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_charges_storage</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">atype</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
-                <span class="k">for</span> <span class="n">atype</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">atom_types</span>
+        <span class="k">if</span> <span class="s2">&quot;charges&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="p">[</span><span class="s2">&quot;charges&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_charges_storage</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">atype</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span> <span class="k">for</span> <span class="n">atype</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">atom_types</span>
             <span class="p">]</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="p">[</span><span class="s1">&#39;charges&#39;</span><span class="p">]</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="p">[</span><span class="s2">&quot;charges&quot;</span><span class="p">]</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">elements</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="nb">int</span> <span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">elements</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return a mapping of atom types to their elemental symbols.</span>
 
+<span class="sd">        Calculates elemental symbols on-the-fly by matching the atomic mass</span>
+<span class="sd">        of each atom type to the closest element mass available in constant tables.</span>
+
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        dict of {str or int : str}</span>
-<span class="sd">            Dictionary matching type ID to element symbol.</span>
+<span class="sd">        dict[str | int, str]</span>
+<span class="sd">            Dictionary matching atom type ID to its inferred element symbol.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        
-        <span class="k">if</span> <span class="s1">&#39;elements&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="p">:</span>
-            <span class="n">element_list</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="n">current_types</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">atom_types</span> 
-            <span class="n">current_masses</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">masses</span>     
-            
+        <span class="k">if</span> <span class="s2">&quot;elements&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="p">:</span>
+            <span class="n">element_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="n">current_types</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">atom_types</span>
+            <span class="n">current_masses</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">masses</span>
+
             <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">t_id</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">current_types</span><span class="p">):</span>
                 <span class="n">m_val</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">current_masses</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+                <span class="c1"># Trouve la masse théorique la plus proche de la masse mesurée</span>
                 <span class="n">best_match</span> <span class="o">=</span> <span class="n">MASS_KEYS</span><span class="p">[(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">MASS_KEYS</span> <span class="o">-</span> <span class="n">m_val</span><span class="p">))</span><span class="o">.</span><span class="n">argmin</span><span class="p">()]</span>
                 <span class="n">symbol</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">INV_MASSES</span><span class="p">[</span><span class="n">best_match</span><span class="p">])</span>
-                
-                <span class="c1"># Cleaning the type to remove the np.str_</span>
-                <span class="n">clean_id</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">t_id</span><span class="p">)</span>
-                <span class="k">if</span> <span class="n">clean_id</span><span class="o">.</span><span class="n">isdigit</span><span class="p">():</span> <span class="n">clean_id</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">clean_id</span><span class="p">)</span>
-                    
-                <span class="n">element_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">symbol</span><span class="p">)</span>
 
-            <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="p">[</span><span class="s1">&#39;elements&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">element_list</span>
-            
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="p">[</span><span class="s1">&#39;elements&#39;</span><span class="p">]</span>
+                <span class="c1"># Formate la clé pour conserver le type d&#39;origine (int ou str)</span>
+                <span class="n">clean_id</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">t_id</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">clean_id</span><span class="o">.</span><span class="n">isdigit</span><span class="p">():</span>
+                    <span class="n">clean_id</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">clean_id</span><span class="p">)</span>
+
+                <span class="n">element_dict</span><span class="p">[</span><span class="n">clean_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">symbol</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="p">[</span><span class="s2">&quot;elements&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">element_dict</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="p">[</span><span class="s2">&quot;elements&quot;</span><span class="p">]</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">atom_types</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="nb">int</span><span class="p">]:</span>
@@ -765,9 +891,11 @@
 <span class="sd">        list of str or int</span>
 <span class="sd">            Sorted list of atom types.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="s1">&#39;atom_types&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="p">[</span><span class="s1">&#39;atom_types&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">atoms</span><span class="o">.</span><span class="n">type</span><span class="o">.</span><span class="n">unique</span><span class="p">()])</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="p">[</span><span class="s1">&#39;atom_types&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="s2">&quot;atom_types&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="p">[</span><span class="s2">&quot;atom_types&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span>
+                <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">atoms</span><span class="o">.</span><span class="n">type</span><span class="o">.</span><span class="n">unique</span><span class="p">()]</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="p">[</span><span class="s2">&quot;atom_types&quot;</span><span class="p">]</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">bond_types</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="nb">int</span><span class="p">]:</span>
@@ -855,6 +983,7 @@
             <span class="k">return</span> <span class="mi">0</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bonds</span><span class="p">)</span>
+
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">num_angles</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -869,6 +998,7 @@
             <span class="k">return</span> <span class="mi">0</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">angles</span><span class="p">)</span>
+
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">num_dihedrals</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -883,6 +1013,7 @@
             <span class="k">return</span> <span class="mi">0</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dihedrals</span><span class="p">)</span>
+
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">num_impropers</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -909,6 +1040,7 @@
 <span class="sd">            Count of distinct atom types.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">atom_types</span><span class="p">)</span>
+
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">num_bond_types</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -920,6 +1052,7 @@
 <span class="sd">            Count of distinct bond types.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bond_types</span><span class="p">)</span>
+
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">num_angle_types</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -931,6 +1064,7 @@
 <span class="sd">            Count of distinct angle types.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">angle_types</span><span class="p">)</span>
+
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">num_dihedral_types</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -942,6 +1076,7 @@
 <span class="sd">            Count of distinct dihedral types.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dihedral_types</span><span class="p">)</span>
+
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">num_improper_types</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -976,8 +1111,11 @@
 <span class="sd">        float</span>
 <span class="sd">            Total mass calculated from atomic types and counts.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">counts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">atoms</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value_counts</span><span class="p">()</span>
-        <span class="n">total_mass</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">counts</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">atype</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">*</span> <span class="n">mass</span> <span class="k">for</span> <span class="n">atype</span><span class="p">,</span> <span class="n">mass</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">atom_types</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">masses</span><span class="p">))</span>
+        <span class="n">counts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">atoms</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">value_counts</span><span class="p">()</span>
+        <span class="n">total_mass</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span>
+            <span class="n">counts</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">atype</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">*</span> <span class="n">mass</span>
+            <span class="k">for</span> <span class="n">atype</span><span class="p">,</span> <span class="n">mass</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">atom_types</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">masses</span><span class="p">)</span>
+        <span class="p">)</span>
         <span class="k">return</span> <span class="n">total_mass</span>
 
     <span class="nd">@property</span>
@@ -996,109 +1134,135 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return a summarized DataFrame of atom types, numbers, masses and charges.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="s1">&#39;type_summary&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s2">&quot;type_summary&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="p">:</span>
             <span class="n">df_atoms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">atoms</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-            
-            <span class="n">df_atoms</span><span class="p">[</span><span class="s1">&#39;number&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df_atoms</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">&#39;type&#39;</span><span class="p">)[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="s1">&#39;size&#39;</span><span class="p">)</span>
-            
-            <span class="n">red_df</span> <span class="o">=</span> <span class="n">df_atoms</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">(</span><span class="n">subset</span><span class="o">=</span><span class="s1">&#39;type&#39;</span><span class="p">)[[</span><span class="s1">&#39;type&#39;</span><span class="p">,</span> <span class="s1">&#39;number&#39;</span><span class="p">,</span> <span class="s1">&#39;charge&#39;</span><span class="p">]]</span>
-            
-            <span class="n">red_df</span><span class="p">[</span><span class="s1">&#39;sort_key&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">red_df</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="p">(</span><span class="ow">not</span> <span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">isdigit</span><span class="p">(),</span> <span class="nb">int</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">isdigit</span><span class="p">()</span> <span class="k">else</span> <span class="n">x</span><span class="p">))</span>
-            <span class="n">red_df</span> <span class="o">=</span> <span class="n">red_df</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s1">&#39;sort_key&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;sort_key&#39;</span><span class="p">])</span>
-            
-            <span class="n">red_df</span><span class="p">[</span><span class="s1">&#39;mass&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">red_df</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span>
-            <span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_masses_storage</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">MASSES_DICT</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)))</span>
-        <span class="p">)</span>
 
-            <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="p">[</span><span class="s1">&#39;type_summary&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">red_df</span>
-        
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="p">[</span><span class="s1">&#39;type_summary&#39;</span><span class="p">]</span>
+            <span class="n">df_atoms</span><span class="p">[</span><span class="s2">&quot;number&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df_atoms</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">)[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="s2">&quot;size&quot;</span><span class="p">)</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+            <span class="n">red_df</span> <span class="o">=</span> <span class="n">df_atoms</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">(</span><span class="n">subset</span><span class="o">=</span><span class="s2">&quot;type&quot;</span><span class="p">)[</span>
+                <span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">,</span> <span class="s2">&quot;number&quot;</span><span class="p">,</span> <span class="s2">&quot;charge&quot;</span><span class="p">]</span>
+            <span class="p">]</span>
+
+            <span class="n">red_df</span><span class="p">[</span><span class="s2">&quot;sort_key&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">red_df</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span>
+                <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="p">(</span><span class="ow">not</span> <span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">isdigit</span><span class="p">(),</span> <span class="nb">int</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">isdigit</span><span class="p">()</span> <span class="k">else</span> <span class="n">x</span><span class="p">)</span>
+            <span class="p">)</span>
+            <span class="n">red_df</span> <span class="o">=</span> <span class="n">red_df</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s2">&quot;sort_key&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;sort_key&quot;</span><span class="p">])</span>
+
+            <span class="n">red_df</span><span class="p">[</span><span class="s2">&quot;mass&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">red_df</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span>
+                <span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_masses_storage</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">MASSES_DICT</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)))</span>
+            <span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="p">[</span><span class="s2">&quot;type_summary&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">red_df</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="p">[</span><span class="s2">&quot;type_summary&quot;</span><span class="p">]</span>
+
+<div class="viewcode-block" id="AtomicSystem.summary">
+<a class="viewcode-back" href="../../../api/generated/cemd.core.atomic_system.AtomicSystem.summary.html#cemd.core.atomic_system.AtomicSystem.summary">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">summary</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Return a string representation of the AtomicSystem.</span>
+<span class="sd">        Print a complete summary of the AtomicSystem.</span>
 
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        str</span>
-<span class="sd">            Summary of box size, atom counts, charge and density.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        
-        <span class="c1"># Header with interaction count</span>
-        <span class="n">output_string</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&lt;AtomicSystem with </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">num_atoms</span><span class="si">}</span><span class="s2"> atoms&quot;</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c1"># Header</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&lt;AtomicSystem with </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">num_atoms</span><span class="si">}</span><span class="s2"> atoms&quot;</span>
+
         <span class="n">sections</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s2">&quot;bonds&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_bonds</span><span class="p">,</span>
             <span class="s2">&quot;angles&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_angles</span><span class="p">,</span>
             <span class="s2">&quot;dihedrals&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_dihedrals</span><span class="p">,</span>
-            <span class="s2">&quot;impropers&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_impropers</span>
+            <span class="s2">&quot;impropers&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_impropers</span><span class="p">,</span>
         <span class="p">}</span>
-        <span class="n">active_sections</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">v</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">sections</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">v</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span>
+
+        <span class="n">active_sections</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">count</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">count</span> <span class="ow">in</span> <span class="n">sections</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">count</span> <span class="o">&gt;</span> <span class="mi">0</span>
+        <span class="p">]</span>
+
         <span class="k">if</span> <span class="n">active_sections</span><span class="p">:</span>
-            <span class="n">output_string</span> <span class="o">+=</span> <span class="s2">&quot;, &quot;</span> <span class="o">+</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">active_sections</span><span class="p">)</span>
-        <span class="n">output_string</span> <span class="o">+=</span> <span class="s2">&quot;&gt;</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+            <span class="n">output</span> <span class="o">+=</span> <span class="s2">&quot;, &quot;</span> <span class="o">+</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">active_sections</span><span class="p">)</span>
 
-        <span class="c1"># Section Box</span>
-        <span class="n">output_string</span> <span class="o">+=</span> <span class="s2">&quot;Box</span><span class="se">\n</span><span class="s2">&quot;</span>
-        <span class="n">df_box</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">box</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">6</span><span class="p">)),</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span>
-            <span class="s1">&#39;a (Å)&#39;</span><span class="p">,</span> <span class="s1">&#39;b (Å)&#39;</span><span class="p">,</span> <span class="s1">&#39;c (Å)&#39;</span><span class="p">,</span> <span class="s1">&#39;α (°)&#39;</span><span class="p">,</span> <span class="s1">&#39;β (°)&#39;</span><span class="p">,</span> <span class="s1">&#39;γ (°)&#39;</span>
-        <span class="p">])</span>
-        <span class="n">output_string</span> <span class="o">+=</span> <span class="n">df_box</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">float_format</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%.2f</span><span class="s1">&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+        <span class="n">lines</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">output</span> <span class="o">+</span> <span class="s2">&quot;&gt;&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">])</span>
 
-        <span class="c1"># Atoms Section (Using type_summary)</span>
-        <span class="n">output_string</span> <span class="o">+=</span> <span class="s2">&quot;Atoms</span><span class="se">\n</span><span class="s2">&quot;</span>
-        <span class="n">red_df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_type_summary</span><span class="p">()</span>
-        
-        <span class="c1"># Added percentage for console display</span>
-        <span class="n">red_df</span><span class="p">[</span><span class="s1">&#39;%&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">red_df</span><span class="p">[</span><span class="s1">&#39;number&#39;</span><span class="p">]</span> <span class="o">/</span> <span class="n">red_df</span><span class="p">[</span><span class="s1">&#39;number&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span> <span class="o">*</span> <span class="mi">100</span>
-        <span class="n">red_df</span><span class="p">[</span><span class="s1">&#39;%&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">red_df</span><span class="p">[</span><span class="s1">&#39;%&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">x</span><span class="si">:</span><span class="s1">,.2f</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
-        
-        <span class="c1"># Reorganization of columns for visual rendering</span>
-        <span class="n">column_order</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">,</span> <span class="s1">&#39;number&#39;</span><span class="p">,</span> <span class="s1">&#39;%&#39;</span><span class="p">,</span> <span class="s1">&#39;mass&#39;</span><span class="p">,</span> <span class="s1">&#39;charge&#39;</span><span class="p">]</span>
-        <span class="n">output_string</span> <span class="o">+=</span> <span class="n">red_df</span><span class="p">[</span><span class="n">column_order</span><span class="p">]</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+        <span class="c1"># Box</span>
+        <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Box&quot;</span><span class="p">)</span>
 
-        <span class="c1"># Sections Interactions (Bonds, Angles, etc.)</span>
-        <span class="k">def</span><span class="w"> </span><span class="nf">append_interaction_info</span><span class="p">(</span><span class="n">output_string</span><span class="p">,</span> <span class="n">df</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
-            <span class="k">if</span> <span class="n">df</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="n">output_string</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
-                <span class="n">df_copy</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-                <span class="n">df_copy</span><span class="p">[</span><span class="s1">&#39;number&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df_copy</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">&#39;type&#39;</span><span class="p">)[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="s1">&#39;size&#39;</span><span class="p">)</span>
-                <span class="n">summary</span> <span class="o">=</span> <span class="n">df_copy</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">(</span><span class="n">subset</span><span class="o">=</span><span class="s1">&#39;type&#39;</span><span class="p">)[[</span><span class="s1">&#39;type&#39;</span><span class="p">,</span> <span class="s1">&#39;number&#39;</span><span class="p">]]</span>
-                <span class="c1"># Sorting interaction types</span>
-                <span class="n">summary</span><span class="p">[</span><span class="s1">&#39;sk&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">summary</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="p">(</span><span class="ow">not</span> <span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">isdigit</span><span class="p">(),</span> <span class="nb">int</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">isdigit</span><span class="p">()</span> <span class="k">else</span> <span class="n">x</span><span class="p">))</span>
-                <span class="n">summary</span> <span class="o">=</span> <span class="n">summary</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s1">&#39;sk&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;sk&#39;</span><span class="p">])</span>
-                <span class="n">output_string</span> <span class="o">+=</span> <span class="n">summary</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">&quot;</span>
-            <span class="k">return</span> <span class="n">output_string</span>
+        <span class="n">df_box</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">box</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">6</span><span class="p">)),</span>
+            <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;a (Å)&quot;</span><span class="p">,</span> <span class="s2">&quot;b (Å)&quot;</span><span class="p">,</span> <span class="s2">&quot;c (Å)&quot;</span><span class="p">,</span> <span class="s2">&quot;α (°)&quot;</span><span class="p">,</span> <span class="s2">&quot;β (°)&quot;</span><span class="p">,</span> <span class="s2">&quot;γ (°)&quot;</span><span class="p">],</span>
+        <span class="p">)</span>
 
-        <span class="n">output_string</span> <span class="o">=</span> <span class="n">append_interaction_info</span><span class="p">(</span><span class="n">output_string</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">bonds</span><span class="p">,</span> <span class="s2">&quot;Bonds&quot;</span><span class="p">)</span>
-        <span class="n">output_string</span> <span class="o">=</span> <span class="n">append_interaction_info</span><span class="p">(</span><span class="n">output_string</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">angles</span><span class="p">,</span> <span class="s2">&quot;Angles&quot;</span><span class="p">)</span>
-        <span class="n">output_string</span> <span class="o">=</span> <span class="n">append_interaction_info</span><span class="p">(</span><span class="n">output_string</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dihedrals</span><span class="p">,</span> <span class="s2">&quot;Dihedrals&quot;</span><span class="p">)</span>
-        <span class="n">output_string</span> <span class="o">=</span> <span class="n">append_interaction_info</span><span class="p">(</span><span class="n">output_string</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">impropers</span><span class="p">,</span> <span class="s2">&quot;Impropers&quot;</span><span class="p">)</span>
+        <span class="n">lines</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="n">df_box</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span>
+                    <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                    <span class="n">float_format</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">%.2f</span><span class="s2">&quot;</span><span class="p">,</span>
+                <span class="p">),</span>
+                <span class="s2">&quot;&quot;</span><span class="p">,</span>
+            <span class="p">]</span>
+        <span class="p">)</span>
 
-        <span class="c1"># Footer (Physical Summary)</span>
-        <span class="n">output_string</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;Total charge: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">total_charge</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">e</span><span class="se">\n</span><span class="s2">&quot;</span>
-        <span class="n">output_string</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;Volume: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">volume</span><span class="o">/</span><span class="mf">1e3</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> nm3</span><span class="se">\n</span><span class="s2">&quot;</span>
-        <span class="n">output_string</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;Density: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">density</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> g/cm3&quot;</span>
+        <span class="c1"># Atoms</span>
+        <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Atoms&quot;</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">output_string</span>
+        <span class="c1"># Copy because _get_type_summary() is cached</span>
+        <span class="n">df_atoms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_type_summary</span><span class="p">()</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Return the string representation of the object.</span>
+        <span class="n">column_order</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">,</span> <span class="s2">&quot;number&quot;</span><span class="p">,</span> <span class="s2">&quot;mass&quot;</span><span class="p">,</span> <span class="s2">&quot;charge&quot;</span><span class="p">]</span>
 
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        str</span>
-<span class="sd">            Equivalent to __repr__.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__repr__</span><span class="p">()</span>
+        <span class="n">lines</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="n">df_atoms</span><span class="p">[</span><span class="n">column_order</span><span class="p">]</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
+                <span class="s2">&quot;&quot;</span><span class="p">,</span>
+            <span class="p">]</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Interactions</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">append_interaction_info</span><span class="p">(</span>
+            <span class="n">lines</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+            <span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">df</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">df</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+                <span class="k">return</span>
+
+            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+
+            <span class="n">summary</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">size</span><span class="p">()</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="s2">&quot;number&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
+
+            <span class="n">lines</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span>
+                <span class="p">[</span>
+                    <span class="n">summary</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
+                    <span class="s2">&quot;&quot;</span><span class="p">,</span>
+                <span class="p">]</span>
+            <span class="p">)</span>
+
+        <span class="n">append_interaction_info</span><span class="p">(</span><span class="n">lines</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">bonds</span><span class="p">,</span> <span class="s2">&quot;Bonds&quot;</span><span class="p">)</span>
+        <span class="n">append_interaction_info</span><span class="p">(</span><span class="n">lines</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">angles</span><span class="p">,</span> <span class="s2">&quot;Angles&quot;</span><span class="p">)</span>
+        <span class="n">append_interaction_info</span><span class="p">(</span><span class="n">lines</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dihedrals</span><span class="p">,</span> <span class="s2">&quot;Dihedrals&quot;</span><span class="p">)</span>
+        <span class="n">append_interaction_info</span><span class="p">(</span><span class="n">lines</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">impropers</span><span class="p">,</span> <span class="s2">&quot;Impropers&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Footer</span>
+        <span class="n">lines</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="sa">f</span><span class="s2">&quot;Total charge: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">total_charge</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> e&quot;</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s2">&quot;Volume: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">volume</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mf">1e3</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> nm³&quot;</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s2">&quot;Density: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">density</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> g/cm³&quot;</span><span class="p">,</span>
+            <span class="p">]</span>
+        <span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">))</span></div>
+
 
 <div class="viewcode-block" id="AtomicSystem.add_structure">
 <a class="viewcode-back" href="../../../api/generated/cemd.core.atomic_system.AtomicSystem.add_structure.html#cemd.core.atomic_system.AtomicSystem.add_structure">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">add_structure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> 
-                      <span class="n">structure_to_add</span><span class="p">:</span> <span class="n">AtomicSystem</span><span class="p">,</span>
-                      <span class="n">distance</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">2.0</span><span class="p">,</span> 
-                      <span class="n">axis</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;z&#39;</span><span class="p">,</span>
-                      <span class="n">vacuum</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">10.0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Self</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_structure</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">structure_to_add</span><span class="p">:</span> <span class="n">AtomicSystem</span><span class="p">,</span>
+        <span class="n">distance</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">2.0</span><span class="p">,</span>
+        <span class="n">axis</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;z&quot;</span><span class="p">,</span>
+        <span class="n">vacuum</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">10.0</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Self</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Add a structure on top of this system.</span>
 
@@ -1128,36 +1292,42 @@
 <span class="sd">        Examples</span>
 <span class="sd">        --------</span>
 <span class="sd">        &gt;&gt;&gt; from cemd import AtomicSystem</span>
-<span class="sd">        &gt;&gt;&gt; </span>
+<span class="sd">        &gt;&gt;&gt;</span>
 <span class="sd">        &gt;&gt;&gt; # Add a droplet from a file</span>
 <span class="sd">        &gt;&gt;&gt; surface = AtomicSystem.from_file(&quot;surface.lmp&quot;)</span>
 <span class="sd">        &gt;&gt;&gt; droplet = AtomicSystem.from_file(&quot;droplet.lmp&quot;)</span>
 <span class="sd">        &gt;&gt;&gt; system = surface.add_structure(droplet, distance=2.0, vacuum=10.0)</span>
-<span class="sd">        &gt;&gt;&gt; </span>
+<span class="sd">        &gt;&gt;&gt;</span>
 <span class="sd">        &gt;&gt;&gt; # Add a structure from a file path (auto-loads)</span>
 <span class="sd">        &gt;&gt;&gt; system = surface.add_structure(&quot;droplet.lmp&quot;, distance=2.0)</span>
-<span class="sd">        &gt;&gt;&gt; </span>
+<span class="sd">        &gt;&gt;&gt;</span>
 <span class="sd">        &gt;&gt;&gt; # Add a custom structure with different axis</span>
 <span class="sd">        &gt;&gt;&gt; system = surface.add_structure(molecule, axis=&#39;y&#39;, distance=3.0)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="kn">from</span><span class="w"> </span><span class="nn">..build</span><span class="w"> </span><span class="kn">import</span> <span class="n">add_structure</span>
-        
+
         <span class="n">new_system</span> <span class="o">=</span> <span class="n">add_structure</span><span class="p">(</span>
             <span class="n">solid_system</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>
             <span class="n">structure_to_add</span><span class="o">=</span><span class="n">structure_to_add</span><span class="p">,</span>
             <span class="n">distance</span><span class="o">=</span><span class="n">distance</span><span class="p">,</span>
             <span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">,</span>
-            <span class="n">vacuum</span><span class="o">=</span><span class="n">vacuum</span>
+            <span class="n">vacuum</span><span class="o">=</span><span class="n">vacuum</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_replace_internals</span><span class="p">(</span><span class="n">new_system</span><span class="p">)</span>
-        
+
         <span class="k">return</span> <span class="bp">self</span></div>
 
 
 <div class="viewcode-block" id="AtomicSystem.add_liquid_layer">
 <a class="viewcode-back" href="../../../api/generated/cemd.core.atomic_system.AtomicSystem.add_liquid_layer.html#cemd.core.atomic_system.AtomicSystem.add_liquid_layer">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">add_liquid_layer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">blueprint</span><span class="p">:</span> <span class="n">SolutionBuilder</span><span class="p">,</span> <span class="n">thickness</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
-                  <span class="n">distance</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">2.0</span><span class="p">,</span> <span class="n">vacuum</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">10.0</span><span class="p">,</span> <span class="n">axis</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;z&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Self</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_liquid_layer</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">blueprint</span><span class="p">:</span> <span class="n">SolutionBuilder</span><span class="p">,</span>
+        <span class="n">thickness</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">distance</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">2.0</span><span class="p">,</span>
+        <span class="n">vacuum</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">10.0</span><span class="p">,</span>
+        <span class="n">axis</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;z&quot;</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Self</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Add a liquid layer on top of this system.</span>
 
@@ -1190,17 +1360,18 @@
 <span class="sd">        --------</span>
 <span class="sd">        &gt;&gt;&gt; from cemd import AtomicSystem</span>
 <span class="sd">        &gt;&gt;&gt; from cemd.builders import SolutionBuilder</span>
-<span class="sd">        &gt;&gt;&gt; </span>
+<span class="sd">        &gt;&gt;&gt;</span>
 <span class="sd">        &gt;&gt;&gt; surface = AtomicSystem.from_file(&quot;surface.lmp&quot;)</span>
 <span class="sd">        &gt;&gt;&gt; blueprint = SolutionBuilder.from_molarities(</span>
 <span class="sd">        ...     density=1.0,</span>
 <span class="sd">        ...     molarities={&#39;NaCl&#39;: 0.1}</span>
 <span class="sd">        ... )</span>
-<span class="sd">        &gt;&gt;&gt; </span>
+<span class="sd">        &gt;&gt;&gt;</span>
 <span class="sd">        &gt;&gt;&gt; # Add a 30 Å water layer on the surface</span>
 <span class="sd">        &gt;&gt;&gt; system = surface.add_layer(blueprint, thickness=30.0, distance=2.0)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="kn">from</span><span class="w"> </span><span class="nn">..build</span><span class="w"> </span><span class="kn">import</span> <span class="n">add_liquid_layer</span>
+
         <span class="n">new_system</span> <span class="o">=</span> <span class="n">add_liquid_layer</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span> <span class="n">blueprint</span><span class="p">,</span> <span class="n">thickness</span><span class="p">,</span> <span class="n">distance</span><span class="p">,</span> <span class="n">vacuum</span><span class="p">,</span> <span class="n">axis</span>
         <span class="p">)</span>
@@ -1208,11 +1379,17 @@
 
         <span class="k">return</span> <span class="bp">self</span></div>
 
-    
+
 <div class="viewcode-block" id="AtomicSystem.add_droplet">
 <a class="viewcode-back" href="../../../api/generated/cemd.core.atomic_system.AtomicSystem.add_droplet.html#cemd.core.atomic_system.AtomicSystem.add_droplet">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">add_droplet</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">blueprint</span><span class="p">:</span> <span class="n">SolutionBuilder</span><span class="p">,</span> <span class="n">radius</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
-                    <span class="n">distance</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">2.0</span><span class="p">,</span> <span class="n">vacuum</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">10.0</span><span class="p">,</span> <span class="n">axis</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;z&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Self</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_droplet</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">blueprint</span><span class="p">:</span> <span class="n">SolutionBuilder</span><span class="p">,</span>
+        <span class="n">radius</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">distance</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">2.0</span><span class="p">,</span>
+        <span class="n">vacuum</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">10.0</span><span class="p">,</span>
+        <span class="n">axis</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;z&quot;</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Self</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Add a hemispherical liquid droplet on top of this system.</span>
 
@@ -1244,25 +1421,24 @@
 <span class="sd">        --------</span>
 <span class="sd">        &gt;&gt;&gt; from cemd import AtomicSystem</span>
 <span class="sd">        &gt;&gt;&gt; from cemd.builders import SolutionBuilder</span>
-<span class="sd">        &gt;&gt;&gt; </span>
+<span class="sd">        &gt;&gt;&gt;</span>
 <span class="sd">        &gt;&gt;&gt; surface = AtomicSystem.from_file(&quot;surface.lmp&quot;)</span>
 <span class="sd">        &gt;&gt;&gt; blueprint = SolutionBuilder.from_molarities(</span>
 <span class="sd">        ...     density=1.0,</span>
 <span class="sd">        ...     molarities={&#39;NaCl&#39;: 0.1}</span>
 <span class="sd">        ... )</span>
-<span class="sd">        &gt;&gt;&gt; </span>
+<span class="sd">        &gt;&gt;&gt;</span>
 <span class="sd">        &gt;&gt;&gt; # Add a 15 Å radius water droplet on the surface</span>
 <span class="sd">        &gt;&gt;&gt; system = surface.add_droplet(blueprint, radius=15.0, distance=2.0)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="kn">from</span><span class="w"> </span><span class="nn">..build</span><span class="w"> </span><span class="kn">import</span> <span class="n">add_droplet</span>
-        <span class="n">new_system</span> <span class="o">=</span> <span class="n">add_droplet</span><span class="p">(</span>
-            <span class="bp">self</span><span class="p">,</span> <span class="n">blueprint</span><span class="p">,</span> <span class="n">radius</span><span class="p">,</span> <span class="n">distance</span><span class="p">,</span> <span class="n">vacuum</span><span class="p">,</span> <span class="n">axis</span>
-        <span class="p">)</span>
+
+        <span class="n">new_system</span> <span class="o">=</span> <span class="n">add_droplet</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">blueprint</span><span class="p">,</span> <span class="n">radius</span><span class="p">,</span> <span class="n">distance</span><span class="p">,</span> <span class="n">vacuum</span><span class="p">,</span> <span class="n">axis</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_replace_internals</span><span class="p">(</span><span class="n">new_system</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="bp">self</span></div>
 
-    
+
     <span class="k">def</span><span class="w"> </span><span class="nf">get_count</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">symbol</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Calculate the exact number of atoms for a specific type.</span>
@@ -1283,45 +1459,45 @@
 <span class="sd">            If the symbol is not found.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">summary</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">type_summary</span>
-        
-        <span class="n">mask</span> <span class="o">=</span> <span class="n">summary</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span> <span class="o">==</span> <span class="n">symbol</span>
-        
+
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">summary</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span> <span class="o">==</span> <span class="n">symbol</span>
+
         <span class="k">if</span> <span class="ow">not</span> <span class="n">mask</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
             <span class="n">res</span> <span class="o">=</span> <span class="mi">0</span>
 
-        <span class="k">else</span><span class="p">:</span> 
-            <span class="n">res</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">summary</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">mask</span><span class="p">,</span> <span class="s1">&#39;number&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
-            
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">res</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">summary</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">mask</span><span class="p">,</span> <span class="s2">&quot;number&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
+
         <span class="k">return</span> <span class="n">res</span>
-    
+
     <span class="k">def</span><span class="w"> </span><span class="nf">get_center_of_mass</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Calculates the center of mass (COM) of the system.</span>
-<span class="sd">        </span>
+
 <span class="sd">        Returns:</span>
 <span class="sd">            np.ndarray: [x, y, z] coordinates of the center of mass.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">atom_masses</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">atoms</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span>
-        <span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_masses_storage</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">MASSES_DICT</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">))</span>
+        <span class="n">atom_masses</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">atoms</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span>
+            <span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_masses_storage</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">MASSES_DICT</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">))</span>
         <span class="p">)</span>
-        
+
         <span class="n">total_mass</span> <span class="o">=</span> <span class="n">atom_masses</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
-        
+
         <span class="k">if</span> <span class="n">total_mass</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
 
-        <span class="n">weighted_pos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">atoms</span><span class="p">[[</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="s1">&#39;z&#39;</span><span class="p">]]</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">atom_masses</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">weighted_pos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">atoms</span><span class="p">[[</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="s2">&quot;z&quot;</span><span class="p">]]</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">atom_masses</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">weighted_pos</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="o">.</span><span class="n">values</span> <span class="o">/</span> <span class="n">total_mass</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">view</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">trajectory</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">view</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">trajectory</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Visualize the current system in VMD, with an optional trajectory.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        trajectory : str, optional</span>
-<span class="sd">            Path to a trajectory file to overlay onto this </span>
+<span class="sd">            Path to a trajectory file to overlay onto this</span>
 <span class="sd">            system&#39;s topology. All formats supported by MDAnalysis can be used. Defaults to None.</span>
 
 <span class="sd">        Examples</span>
@@ -1333,11 +1509,6 @@
 
         <span class="n">view</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">trajectory</span><span class="o">=</span><span class="n">trajectory</span><span class="p">)</span></div>
 
-
-
-
-
- 
 </pre></div>
 
                 </article>

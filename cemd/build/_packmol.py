@@ -19,86 +19,543 @@ import os
 import shutil
 import subprocess
 import tempfile
+from dataclasses import dataclass, field
+from typing import Literal
 
 from .. import AtomicSystem
 from .._constants import MASSES_DICT
 from .._paths import STRUCTURES_DIR
 
 
-def _make_packmol_input(input_name, output_file, structures) -> None:
-    """Create an input file for Packmol"""
-    output = "tolerance 1.5\n"
-    output += f"output {output_file}\n"
-    output += "filetype pdb\n\n"
+@dataclass
+class PackmolStructure:
+    """Molecular structure definition for Packmol."""
 
-    for i in structures:
-        output += i
+    structure: object
+    number: int
 
-    with open(input_name, "w", encoding="utf-8") as f:
-        f.write(output)
+    # Structure constraints
+    fixed: tuple[float, float, float, float, float, float] | None = None
+    center: bool = False
+
+    inside_cube: tuple[float, float, float, float] | None = None
+    outside_cube: tuple[float, float, float, float] | None = None
+    inside_box: tuple[float, float, float, float, float, float] | None = None
+    outside_box: tuple[float, float, float, float, float, float] | None = None
+    inside_sphere: tuple[float, float, float, float] | None = None
+    outside_sphere: tuple[float, float, float, float] | None = None
+    inside_ellipsoid: tuple[float, float, float, float, float, float, float] | None = (
+        None
+    )
+    outside_ellipsoid: tuple[float, float, float, float, float, float, float] | None = (
+        None
+    )
+    above_plane: tuple[float, float, float, float] | None = None
+    below_plane: tuple[float, float, float, float] | None = None
+    inside_cylinder: (
+        tuple[float, float, float, float, float, float, float, float] | None
+    ) = None
+    outside_cylinder: (
+        tuple[float, float, float, float, float, float, float, float] | None
+    ) = None
+    over_xygauss: tuple[float, float, float, float, float, float] | None = None
+    below_xygauss: tuple[float, float, float, float, float, float] | None = None
+
+    # Structure options
+    radius: float | None = None
+    resnumbers: Literal[0, 1, 2, 3] | None = None
+    chain: str | None = None
+    changechains: bool = False
+    segid: str | None = None
+    connect: bool | None = None
+
+    restart_to: str | None = None
+    restart_from: str | None = None
+
+    maxmove: int | None = None
+    nloop: int | None = None
+
+    # Rotation constraints
+    constrain_rotation: dict[
+        Literal["x", "y", "z"],
+        tuple[float, float],
+    ] = field(default_factory=dict)
+
+    # Penalty function
+    fscale: float | None = None
+    use_short_tol: bool = False
+    short_tol_dist: float | None = None
+    short_tol_scale: float | None = None
+
+    def to_input(self, structure_path: str) -> str:
+        """Convert the structure to Packmol syntax."""
+        output = f"structure {structure_path}\n"
+        output += f"  number {self.number}\n"
+
+        if self.center:
+            output += "  center\n"
+
+        if self.fixed is not None:
+            output += f"  fixed {_format_values(self.fixed)}\n"
+
+        constraints = {
+            "inside cube": self.inside_cube,
+            "outside cube": self.outside_cube,
+            "inside box": self.inside_box,
+            "outside box": self.outside_box,
+            "inside sphere": self.inside_sphere,
+            "outside sphere": self.outside_sphere,
+            "inside ellipsoid": self.inside_ellipsoid,
+            "outside ellipsoid": self.outside_ellipsoid,
+            "above plane": self.above_plane,
+            "below plane": self.below_plane,
+            "inside cylinder": self.inside_cylinder,
+            "outside cylinder": self.outside_cylinder,
+            "over xygauss": self.over_xygauss,
+            "below xygauss": self.below_xygauss,
+        }
+
+        for keyword, values in constraints.items():
+            if values is not None:
+                output += f"  {keyword} {_format_values(values)}\n"
+
+        if self.radius is not None:
+            output += f"  radius {self.radius}\n"
+
+        if self.resnumbers is not None:
+            output += f"  resnumbers {self.resnumbers}\n"
+
+        if self.chain is not None:
+            output += f"  chain {self.chain}\n"
+
+        if self.changechains:
+            output += "  changechains\n"
+
+        if self.segid is not None:
+            output += f"  segid {self.segid}\n"
+
+        if self.connect is not None:
+            output += f"  connect {'yes' if self.connect else 'no'}\n"
+
+        if self.restart_to is not None:
+            output += f"  restart_to {self.restart_to}\n"
+
+        if self.restart_from is not None:
+            output += f"  restart_from {self.restart_from}\n"
+
+        if self.maxmove is not None:
+            output += f"  maxmove {self.maxmove}\n"
+
+        if self.nloop is not None:
+            output += f"  nloop {self.nloop}\n"
+
+        for axis, (angle, tolerance) in self.constrain_rotation.items():
+            output += f"  constrain_rotation {axis} {angle} {tolerance}\n"
+
+        if self.fscale is not None:
+            output += f"  fscale {self.fscale}\n"
+
+        if self.use_short_tol:
+            output += "  use_short_tol\n"
+
+        if self.short_tol_dist is not None:
+            output += f"  short_tol_dist {self.short_tol_dist}\n"
+
+        if self.short_tol_scale is not None:
+            output += f"  short_tol_scale {self.short_tol_scale}\n"
+
+        output += "end structure\n"
+
+        return output
 
 
-def get_structure_path(name: str, temp_dir: str) -> str:
+@dataclass
+class PackmolInput:
+    """Complete Packmol input."""
+
+    # Mandatory/global options
+    tolerance: float = 2.0
+    output: str = "output.pdb"
+    filetype: Literal["pdb", "tinker", "xyz"] = "pdb"
+
+    # Periodic boundary conditions
+    pbc: tuple[float, ...] | None = None
+
+    # Global optimization options
+    discale: float | None = None
+    maxit: int | None = None
+    movebadrandom: bool = False
+    movefrac: float | None = None
+    disable_movebad: bool = False
+
+    # PDB / output options
+    ignore_conect: bool = False
+    non_standard_conect: bool = False
+    writecrd: str | None = None
+    add_amber_ter: bool = False
+    amber_ter_preserve: bool = False
+    add_box_sides: bool = False
+
+    # System size / randomization
+    sidemax: float | None = None
+    seed: int | None = None
+    randominitialpoint: bool = False
+    avoid_overlap: bool | None = None
+
+    # Precision / output
+    precision: float | None = None
+    writeout: int | None = None
+    writebad: bool = False
+    iprint1: int | None = None
+    iprint2: int | None = None
+
+    # Technical
+    fbins: float | None = None
+    hexadecimal_indices: bool = False
+    chkgrad: bool = False
+
+    # Restart
+    restart_to: str | None = None
+    restart_from: str | None = None
+
+    # Packing structures
+    structures: list[PackmolStructure] = field(default_factory=list)
+
+    def to_input(self, structure_paths: list[str]) -> str:
+        """Generate the Packmol input file."""
+        if len(structure_paths) != len(self.structures):
+            raise ValueError(
+                "The number of structure paths must match the number of structures."
+            )
+
+        output = f"tolerance {self.tolerance}\n"
+        output += f"output {self.output}\n"
+        output += f"filetype {self.filetype}\n"
+
+        if self.pbc is not None:
+            output += f"pbc {_format_values(self.pbc)}\n"
+
+        if self.discale is not None:
+            output += f"discale {self.discale}\n"
+
+        if self.maxit is not None:
+            output += f"maxit {self.maxit}\n"
+
+        if self.movebadrandom:
+            output += "movebadrandom\n"
+
+        if self.movefrac is not None:
+            output += f"movefrac {self.movefrac}\n"
+
+        if self.disable_movebad:
+            output += "disable_movebad\n"
+
+        if self.ignore_conect:
+            output += "ignore_conect\n"
+
+        if self.non_standard_conect:
+            output += "non_standard_conect\n"
+
+        if self.writecrd is not None:
+            output += f"writecrd {self.writecrd}\n"
+
+        if self.add_amber_ter:
+            output += "add_amber_ter\n"
+
+        if self.amber_ter_preserve:
+            output += "amber_ter_preserve\n"
+
+        if self.add_box_sides:
+            output += "add_box_sides\n"
+
+        if self.sidemax is not None:
+            output += f"sidemax {self.sidemax}\n"
+
+        if self.seed is not None:
+            output += f"seed {self.seed}\n"
+
+        if self.randominitialpoint:
+            output += "randominitialpoint\n"
+
+        if self.avoid_overlap is not None:
+            output += f"avoid_overlap {'yes' if self.avoid_overlap else 'no'}\n"
+
+        if self.precision is not None:
+            output += f"precision {self.precision}\n"
+
+        if self.writeout is not None:
+            output += f"writeout {self.writeout}\n"
+
+        if self.writebad:
+            output += "writebad\n"
+
+        if self.iprint1 is not None:
+            output += f"iprint1 {self.iprint1}\n"
+
+        if self.iprint2 is not None:
+            output += f"iprint2 {self.iprint2}\n"
+
+        if self.fbins is not None:
+            output += f"fbins {self.fbins}\n"
+
+        if self.hexadecimal_indices:
+            output += "hexadecimal_indices\n"
+
+        if self.chkgrad:
+            output += "chkgrad\n"
+
+        if self.restart_to is not None:
+            output += f"restart_to {self.restart_to}\n"
+
+        if self.restart_from is not None:
+            output += f"restart_from {self.restart_from}\n"
+
+        output += "\n"
+
+        for structure, path in zip(
+            self.structures,
+            structure_paths,
+            strict=True,
+        ):
+            output += structure.to_input(path)
+            output += "\n"
+
+        return output
+
+
+def _format_values(values: tuple[float, ...]) -> str:
+    """Format numerical values for Packmol."""
+    return " ".join(str(value) for value in values)
+
+
+def _rebuild_topology_from_templates(
+    solution: AtomicSystem,
+    structures: list[PackmolStructure],
+    structure_paths: list[str],
+) -> AtomicSystem:
     """
-    Returns the path to a PDB file for the given species.
-    If it's a known single atom and no PDB exists, generates one in temp_dir.
+    Rebuild the topology lost when Packmol writes the output PDB.
+
+    Packmol writes all copies of the first structure, followed by all
+    copies of the second structure, etc. Therefore, the topology of
+    each copy can be reconstructed from its original template.
     """
-    # Check if a standard PDB exists (H2O, complex molecules)
-    standard_path = os.path.join(STRUCTURES_DIR, f"{name.lower()}.pdb")
-    if os.path.exists(standard_path):
-        return standard_path
+    u = solution.to_mda()
 
-    # If it's a single atom (or ion), generate a temp PDB
-    # use name.capitalize() to ensure it's a valid element symbol (Na, Cl...)
-    symbol = name.capitalize()
+    topology_attrs = {
+        "bonds": 2,
+        "angles": 3,
+        "dihedrals": 4,
+        "impropers": 4,
+    }
 
-    # Simple check: if it's in our masses_dic, we can treat it as an atom
-    if symbol in MASSES_DICT:
-        temp_pdb = os.path.join(temp_dir, f"{name.lower()}.pdb")
-        with open(temp_pdb, "w") as f:
-            f.write("HEADER    Monoatomic species generated by CEMD\n")
-            # Format PDB: HETATM id name resname res_id x y z
+    new_topology = {attr: [] for attr in topology_attrs}
+
+    atom_offset = 0
+
+    for structure, structure_path in zip(structures, structure_paths):
+        template = structure.structure
+        n_copies = structure.number
+
+        if isinstance(template, AtomicSystem):
+            template_system = template
+        else:
+            template_system = AtomicSystem.from_file(structure_path)
+
+        n_atoms = template_system.num_atoms
+
+        for attr, n_atoms_per_interaction in topology_attrs.items():
+            interactions = getattr(template_system, attr, None)
+
+            if interactions is None or interactions.empty:
+                continue
+
+            columns = [f"atom_{i}" for i in range(1, n_atoms_per_interaction + 1)]
+
+            indices = interactions[columns].to_numpy(dtype=int) - 1
+
+            for copy_idx in range(n_copies):
+                offset = atom_offset + copy_idx * n_atoms
+
+                new_topology[attr].extend(map(tuple, indices + offset))
+
+        atom_offset += n_copies * n_atoms
+
+    for attr, interactions in new_topology.items():
+        if interactions:
+            u.add_TopologyAttr(attr, interactions)
+
+    result = AtomicSystem.from_mda(u)
+
+    # Copy force-field parameters from AtomicSystem templates.
+    for structure in structures:
+        template = structure.structure
+
+        if not isinstance(template, AtomicSystem):
+            continue
+
+        result.bond_params.update(template.bond_params)
+        result.angle_params.update(template.angle_params)
+        result.dihedral_params.update(template.dihedral_params)
+        result.improper_params.update(template.improper_params)
+        result.pair_params.update(template.pair_params)
+
+    return result
+
+
+def get_structure_path(
+    name: str,
+    temp_dir: str,
+) -> str:
+    """Return the path to a structure file.
+
+    The function first looks for a PDB file, then for an SDF file
+    in the CEMD structure directory. If neither exists and the
+    species is monoatomic, a temporary PDB file is generated.
+    """
+    name_lower = name.lower()
+
+    lt_path = os.path.join(
+        STRUCTURES_DIR,
+        f"{name_lower}.lt",
+    )
+
+    if os.path.exists(lt_path):
+        return lt_path
+
+    pdb_path = os.path.join(
+        STRUCTURES_DIR,
+        f"{name_lower}.pdb",
+    )
+
+    if os.path.exists(pdb_path):
+        return pdb_path
+
+    sdf_path = os.path.join(
+        STRUCTURES_DIR,
+        f"{name_lower}.sdf",
+    )
+
+    if os.path.exists(sdf_path):
+        return sdf_path
+
+    if name in MASSES_DICT:
+        temp_pdb = os.path.join(
+            temp_dir,
+            f"{name_lower}.pdb",
+        )
+
+        with open(temp_pdb, "w", encoding="ascii") as f:
             f.write(
-                f"HETATM    1 {symbol:2s}  {name.upper():3s}    1       0.000   0.000   0.000\n"
+                f"HETATM    1 {name:>2s}  {name:>3s} A   1"
+                "       0.000   0.000   0.000"
+                "  1.00  0.00\n"
             )
             f.write("END\n")
+
         return temp_pdb
 
     raise FileNotFoundError(
-        f"Structure for '{name}' not found and cannot be generated."
+        f"Structure for '{name}' not found as ATB (MOLTEMPLATE), PDB or SDF and cannot be generated."
     )
 
 
-def add_packmol_structure(structure: str, number: int, *instructions: str) -> str:
-    """Return a 'structure' section for Packmol"""
-    output = f"structure {structure}\n"
-    output += f" number {number}\n"
-    for i in instructions:
-        output += f" {i}\n"
-    output += "end structure\n\n"
+def run_packmol(
+    packmol: PackmolInput,
+    output_path: str | None = None,
+) -> AtomicSystem | str:
+    """
+    Run Packmol and return the resulting system.
 
-    return output
+    Parameters
+    ----------
+    packmol
+        Packmol input definition.
 
-
-def run_packmol(structures: list, output_path: str = None) -> AtomicSystem | str:
-    """Helper to run packmol and return a PDB file or an AtomicSystem."""
+    output_path
+        If provided, copy the PDB generated by Packmol to this path
+        and return the path. Otherwise, return an AtomicSystem with
+        its topology reconstructed from the input templates.
+    """
     with tempfile.TemporaryDirectory(dir=".") as tmp:
-        pdb_output_file = os.path.join(tmp, "tmp_out.pdb")
-        packmol_input_file = os.path.join(tmp, "tmp.inp")
+        pdb_output_file = os.path.join(
+            tmp,
+            "tmp_out.pdb",
+        )
+        packmol_input_file = os.path.join(
+            tmp,
+            "tmp.inp",
+        )
 
-        _make_packmol_input(packmol_input_file, pdb_output_file, structures)
-        subprocess.run(
+        structure_paths = []
+
+        for index, structure in enumerate(packmol.structures):
+            template = structure.structure
+
+            if isinstance(template, AtomicSystem):
+                structure_path = os.path.join(
+                    tmp,
+                    f"structure_{index}.pdb",
+                )
+                template.write(structure_path)
+
+            elif os.path.isfile(template):
+                structure_path = template
+
+            else:
+                structure_path = get_structure_path(
+                    template,
+                    tmp,
+                )
+
+            structure_paths.append(structure_path)
+
+        # Generate the Packmol input file.
+        input_content = packmol.to_input(
+            structure_paths,
+        )
+
+        # Packmol needs to write to the temporary output file.
+        # We therefore replace the configured output path.
+        input_content = input_content.replace(
+            f"output {packmol.output}",
+            f"output {pdb_output_file}",
+            1,
+        )
+
+        with open(
+            packmol_input_file,
+            "w",
+            encoding="utf-8",
+        ) as f:
+            f.write(input_content)
+
+        result = subprocess.run(
             f"packmol < {packmol_input_file}",
             shell=True,
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
         )
-        # subprocess.run(f"packmol < {packmol_input_file}", shell=True)
+
+        if result.returncode != 0:
+            raise RuntimeError(f"Packmol failed with return code {result.returncode}.")
 
         if not os.path.exists(pdb_output_file):
             raise RuntimeError("Packmol failed to generate output.")
 
         if output_path is not None:
-            shutil.copy(pdb_output_file, output_path)
+            shutil.copy(
+                pdb_output_file,
+                output_path,
+            )
             return output_path
-        return AtomicSystem.from_file(pdb_output_file)
+
+        solution = AtomicSystem.from_file(
+            pdb_output_file,
+        )
+
+        return _rebuild_topology_from_templates(
+            solution,
+            packmol.structures,
+            structure_paths,
+        )

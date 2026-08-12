@@ -17,6 +17,7 @@
 
 from __future__ import annotations
 
+import warnings
 from collections.abc import Sequence
 from itertools import combinations, combinations_with_replacement
 from typing import TYPE_CHECKING
@@ -39,6 +40,19 @@ if TYPE_CHECKING:
 class ForceFieldMixin:
     """Mixin for force field operations on AtomicSystem."""
 
+    atom_types: list[str]
+    pair_params: dict
+    bond_params: dict
+    angle_params: dict
+    dihedral_params: dict
+    improper_params: dict
+    bondbond_params: dict
+    bondangle_params: dict
+    bond_types: list[str] | None
+    angle_types: list[str] | None
+    dihedral_types: list[str] | None
+    improper_types: list[str] | None
+
     def set_ff_from_database(
         self, assignments: dict[str | int, str], ff_database_dir: str = None
     ) -> None:
@@ -59,12 +73,16 @@ class ForceFieldMixin:
             else:
                 # Search type in all models
                 found = None
-                for full_type in db.atom_types.keys():
+                for full_type in db.atom.keys():
                     if full_type.endswith(f".{db_type}"):
                         found = full_type
                         break
                 if found is None:
-                    print(f"⚠️ Type '{db_type}' not found in any model")
+                    warnings.warn(
+                        f"Type '{db_type}' not found in any model in database",
+                        category=UserWarning,
+                        stacklevel=2,
+                    )
                     continue
                 resolved_assignments[sys_type] = found
 
@@ -178,10 +196,10 @@ class ForceFieldMixin:
             scroll_top = 0
             kb = KeyBindings()
 
-            ROW_FORMAT = "{cursor} {type:<20} {model:<15} | {env:<45.45}"
+            row_format = "{cursor} {type:<20} {model:<15} | {env:<45.45}"
 
             def render():
-                header = ROW_FORMAT.format(
+                header = row_format.format(
                     cursor=" ", type="TYPE", model="MODEL", env="ENVIRONMENT"
                 )
                 separator = "-" * len(header)
@@ -202,7 +220,7 @@ class ForceFieldMixin:
                     real_index = scroll_top + i
                     cursor = "➜" if real_index == index else " "
                     lines.append(
-                        ROW_FORMAT.format(
+                        row_format.format(
                             cursor=cursor,
                             type=r["type"],
                             model=r["model"],
@@ -384,7 +402,7 @@ class ForceFieldMixin:
             ) from e
 
     def set_pair_params(
-        self: AtomicSystem,
+        self,
         atom_type1: str | int,
         atom_type2: str | int = None,
         coeffs: list[float] = None,
@@ -432,13 +450,13 @@ class ForceFieldMixin:
                 sigma=sigma,
             )
         elif potential_type == "buckingham":
-            A, rho, C = self._validate_and_convert_coeffs(
+            a, rho, c = self._validate_and_convert_coeffs(
                 coeffs, 3, f"Buckingham potential for pair '{atom_type1}-{atom_type2}'"
             )
             self.pair_params[sorted_key] = BuckinghamParams(
-                A=A,
+                a=a,
                 rho=rho,
-                C=C,
+                c=c,
             )
         else:
             raise ValueError(
@@ -446,7 +464,7 @@ class ForceFieldMixin:
             )
 
     def set_bond_params(
-        self: AtomicSystem, bond_type: str, coeffs: list[float]
+        self, bond_type: str, coeffs: list[float]
     ) -> None:
         """
         Assign structural parameters for a specific bond type.
@@ -479,7 +497,7 @@ class ForceFieldMixin:
         self.bond_params[bond_type] = HarmonicBondParams(k=k, r0=r0)
 
     def set_angle_params(
-        self: AtomicSystem, angle_type: str, coeffs: list[float]
+        self, angle_type: str, coeffs: list[float]
     ) -> None:
         """
         Assign structural parameters for a specific angle type.
@@ -516,7 +534,7 @@ class ForceFieldMixin:
         self.angle_params[angle_type] = HarmonicAngleParams(k=k, theta0=theta0)
 
     def set_dihedral_params(
-        self: AtomicSystem, dihedral_type: str, coeffs: list[float]
+        self, dihedral_type: str, coeffs: list[float]
     ) -> None:
         """
         Assign structural parameters for a specific dihedral type.
@@ -554,7 +572,7 @@ class ForceFieldMixin:
         self.dihedral_params[dihedral_type] = coeffs  # Or a dataclass if defined
 
     def set_improper_params(
-        self: AtomicSystem, improper_type: str, coeffs: list[float]
+        self, improper_type: str, coeffs: list[float]
     ) -> None:
         """
         Assign structural parameters for a specific improper type.
@@ -685,7 +703,7 @@ class ForceFieldMixin:
                 )
 
     def _set_pair_params_from_db(
-        self: AtomicSystem,
+        self,
         atom_type_assignments: dict[str | int, str],
         db: ForceFieldDatabase,
     ) -> None:
@@ -693,6 +711,7 @@ class ForceFieldMixin:
         Search the database for pair parameters and apply them.
         """
         self.pair_params = {}
+        missing_pairs = []
 
         for label1, label2 in combinations_with_replacement(
             atom_type_assignments.keys(), 2
@@ -704,10 +723,22 @@ class ForceFieldMixin:
             params = db.get_lj(ff_t1, ff_t2) or db.get_buckingham(ff_t1, ff_t2)
 
             if params is not None:
-                self.pair_params[tuple(sorted([label1, label2]))] = params
+                # Tri sécurisé qui supporte le mélange str / int
+                pair_key = tuple(sorted([label1, label2], key=str))
+                self.pair_params[pair_key] = params
+            elif label1 == label2:
+                # Signaler si une auto-interaction est manquante
+                missing_pairs.append((label1, ff_t1))
+
+        if missing_pairs:
+            warnings.warn(
+                f"Missing self-interaction pair parameters for: {missing_pairs}",
+                category=UserWarning,
+                stacklevel=2,
+            )
 
     def _set_bond_params_from_db(
-        self: AtomicSystem,
+        self,
         atom_type_assignments: dict[str | int, str],
         db: ForceFieldDatabase,
     ) -> None:
@@ -716,6 +747,7 @@ class ForceFieldMixin:
             return
 
         self.bond_params = {}
+        missing_bonds = []
 
         for bond_str in self.bond_types:
             elements = bond_str.split("-")
@@ -728,14 +760,24 @@ class ForceFieldMixin:
             ff_t2 = atom_type_assignments.get(sys_t2)
 
             if not ff_t1 or not ff_t2:
+                missing_bonds.append(bond_str)
                 continue
 
             bond_params = db.get_bond(ff_t1, ff_t2)
             if bond_params is not None:
                 self.bond_params[bond_str] = bond_params
+            else:
+                missing_bonds.append(f"{bond_str} ({ff_t1}-{ff_t2})")
+
+        if missing_bonds:
+            warnings.warn(
+                f"Missing bond parameters in database for: {missing_bonds}",
+                category=UserWarning,
+                stacklevel=2,
+            )
 
     def _set_angle_params_from_db(
-        self: AtomicSystem,
+        self,
         atom_type_assignments: dict[str | int, str],
         db: ForceFieldDatabase,
     ) -> None:
@@ -744,6 +786,7 @@ class ForceFieldMixin:
             return
 
         self.angle_params = {}
+        missing_angles = []
 
         for angle_str in self.angle_types:
             elements = angle_str.split("-")
@@ -761,11 +804,14 @@ class ForceFieldMixin:
             ff_t3 = atom_type_assignments.get(sys_t3)
 
             if not ff_t1 or not ff_t2 or not ff_t3:
+                missing_angles.append(angle_str)
                 continue
 
             angle_params = db.get_angle(ff_t1, ff_t2, ff_t3)
             if angle_params is not None:
                 self.angle_params[angle_str] = angle_params
+            else:
+                missing_angles.append(f"{angle_str} ({ff_t1}-{ff_t2}-{ff_t3})")
 
             bb_params = db.get_bondbond(ff_t1, ff_t2, ff_t3)
             if bb_params is not None:
@@ -775,12 +821,20 @@ class ForceFieldMixin:
             if ba_params is not None:
                 self.bondangle_params[angle_str] = ba_params
 
+        if missing_angles:
+            warnings.warn(
+                f"Missing angle parameters in database for: {missing_angles}",
+                category=UserWarning,
+                stacklevel=2,
+            )
+
     def _update_masses_and_charges(
         self, assignments: dict, db: ForceFieldDatabase
     ) -> None:
         """Update masses and charges from the database."""
         masses_update = {}
         charges_update = {}
+        missing_types = []
 
         for sys_type, db_type in assignments.items():
             atom_type = db.get_atom_type(db_type)
@@ -788,6 +842,15 @@ class ForceFieldMixin:
                 if atom_type.mass is not None:
                     masses_update[sys_type] = atom_type.mass
                 charges_update[sys_type] = atom_type.charge
+            else:
+                missing_types.append((sys_type, db_type))
+
+        if missing_types:
+            warnings.warn(
+                f"Atom types not found in database for mass/charge update: {missing_types}",
+                category=UserWarning,
+                stacklevel=2,
+            )
 
         if masses_update:
             self.set_masses(masses_update)

@@ -25,12 +25,16 @@ import numpy as np
 import pandas as pd
 
 from .._constants import AVOGADRO, INV_MASSES, MASS_KEYS, MASSES_DICT
-from .._utils import (
-    lammps2lattice,
-    lattice2vectors,
-)
 from ._edit import EditMixin
 from ._forcefield import ForceFieldMixin
+from ._format import (
+    ANGLES_COLUMNS,
+    ATOMS_COLUMNS,
+    BONDS_COLUMNS,
+    DIHEDRALS_COLUMNS,
+    IMPROPERS_COLUMNS,
+    VELOCITIES_COLUMNS,
+)
 from ._io import IOMixin
 from ._view import view
 from .topology import TopologyMixin
@@ -121,27 +125,38 @@ class AtomicSystem(EditMixin, IOMixin, TopologyMixin, ForceFieldMixin):
     impropers: pd.DataFrame | None
     velocities: pd.DataFrame | None
 
-    _types: Sequence[str | int]
     _masses_storage: dict[str | int, float]
     _charges_storage: dict[str | int, float]
     _atom_style: str
 
-    _lmp_box: tuple[
-        tuple[float, float],  # [xlo]
-        tuple[float, float],  # [yellow, this one]
-        tuple[float, float],  # awl, abode
-        tuple[float, float, float],  # [xy, xz, yz]
+    _box_lmp: tuple[
+        tuple[float, float],
+        tuple[float, float],
+        tuple[float, float],
+        tuple[float, float, float],
     ]
     _box: np.ndarray
-    _box_vectors: Sequence[np.ndarray]
+    _box_vectors: tuple[np.ndarray]
 
     pair_params: dict[str, Any]
     bond_params: dict[str, Any]
     angle_params: dict[str, Any]
-    bondbond_params: dict[str, Any]
-    bondangle_params: dict[str, Any]
     dihedral_params: dict[str, Any]
     improper_params: dict[str, Any]
+
+    bondbond_params: dict[str, Any]
+    bondangle_params: dict[str, Any]
+    middlebondtorsion_params: dict[str, Any]
+    endbondtorsion_params: dict[str, Any]
+    angletorsion_params: dict[str, Any]
+    angleangletorsion_params: dict[str, Any]
+    angleangle_params: dict[str, Any]
+
+    _atom_ff_mapping: dict[str, str]
+    _bond_ff_mapping: dict[str, str]
+    _angle_ff_mapping: dict[str, str]
+    _dihedral_ff_mapping: dict[str, str]
+    _improper_ff_mapping: dict[str, str]
 
     def __init__(self, topology: dict[str, Any]) -> None:
         """
@@ -161,6 +176,35 @@ class AtomicSystem(EditMixin, IOMixin, TopologyMixin, ForceFieldMixin):
             self.__dict__["_cache"] = {}
         super().__setattr__(name, value)
 
+    def __repr__(self) -> str:
+        """Return a concise string representation of the AtomicSystem."""
+        sections = [
+            ("bonds", self.num_bonds),
+            ("angles", self.num_angles),
+            ("dihedrals", self.num_dihedrals),
+            ("impropers", self.num_impropers),
+        ]
+
+        interactions = ", ".join(
+            f"{count} {name}" for name, count in sections if count > 0
+        )
+
+        if interactions:
+            return f"<AtomicSystem with {self.num_atoms} atoms, {interactions}>"
+
+        return f"<AtomicSystem with {self.num_atoms} atoms>"
+
+    def __str__(self) -> str:
+        """
+        Return the string representation of the object.
+
+        Returns
+        -------
+        str
+            Equivalent to __repr__.
+        """
+        return self.__repr__()
+
     def _assign_topology(self, topology: dict[str, Any]) -> None:
         """Helper to map the topology dictionary to class attributes."""
         self._cache = {}
@@ -171,27 +215,100 @@ class AtomicSystem(EditMixin, IOMixin, TopologyMixin, ForceFieldMixin):
         self.impropers = topology.get("impropers")
         self.velocities = topology.get("velocities")
 
-        self._lmp_box = topology["lmp_box"]
-        self._types = list(topology["atom_types"])
+        self.set_box(topology["box"])
+
         self._masses_storage = dict(topology["masses"])
         self._charges_storage = dict(topology["charges"])
         self._atom_style = topology.get("atom_style", "full")
-
-        self._box = lammps2lattice(self._lmp_box)
-        self._box_vectors = lattice2vectors(self._box)
 
         self._pmg_struct = topology.get("_pmg_struct", None)
 
         self.pair_params = topology.get("pair_params", {})
         self.bond_params = topology.get("bond_params", {})
         self.angle_params = topology.get("angle_params", {})
-        self.bondbond_params = topology.get("bondbond_params", {})
-        self.bondangle_params = topology.get("bondangle_params", {})
         self.dihedral_params = topology.get("dihedral_params", {})
         self.improper_params = topology.get("improper_params", {})
 
+        self.bondbond_params = topology.get("bondbond_params", {})
+        self.bondangle_params = topology.get("bondangle_params", {})
+        self.middlebondtorsion_params = topology.get("middlebondtorsion_params", {})
+        self.endbondtorsion_params = topology.get("endbondtorsion_params", {})
+        self.angletorsion_params = topology.get("angletorsion_params", {})
+        self.angleangletorsion_params = topology.get("angleangletorsion_params", {})
+        self.angleangle_params = topology.get("angleangle_params", {})
+
+        self._atom_ff_mapping = topology.get("atom_ff_mapping", {})
+        self._bond_ff_mapping = topology.get("bond_ff_mapping", {})
+        self._angle_ff_mapping = topology.get("angle_ff_mapping", {})
+        self._dihedral_ff_mapping = topology.get("dihedral_ff_mapping", {})
+        self._improper_ff_mapping = topology.get("improper_ff_mapping", {})
+
+    def _normalize_dataframe(
+        self,
+        df: pd.DataFrame | None,
+        columns: tuple[str, ...] | list[str] | dict[str, type],
+        name: str,
+    ) -> pd.DataFrame | None:
+        """Validate and normalize a topology DataFrame.
+
+        Ensures required columns exist and reorders them according to
+        the defined standard.
+        """
+        if df is None:
+            return None
+
+        col_names = list(columns.keys()) if isinstance(columns, dict) else list(columns)
+
+        missing = [col for col in col_names if col not in df.columns]
+
+        if missing:
+            raise ValueError(
+                f"Invalid {name} DataFrame. "
+                f"Missing columns: {missing}. "
+                f"Expected: {col_names}."
+            )
+
+        return df.loc[:, col_names]
+
     def _finalize_data(self) -> None:
         """Sorts indices and ensures integer types for atom references."""
+
+        self.atoms = self._normalize_dataframe(
+            self.atoms,
+            ATOMS_COLUMNS,
+            "atoms",
+        )
+
+        self.bonds = self._normalize_dataframe(
+            self.bonds,
+            BONDS_COLUMNS,
+            "bonds",
+        )
+
+        self.angles = self._normalize_dataframe(
+            self.angles,
+            ANGLES_COLUMNS,
+            "angles",
+        )
+
+        self.dihedrals = self._normalize_dataframe(
+            self.dihedrals,
+            DIHEDRALS_COLUMNS,
+            "dihedrals",
+        )
+
+        self.impropers = self._normalize_dataframe(
+            self.impropers,
+            IMPROPERS_COLUMNS,
+            "impropers",
+        )
+
+        self.velocities = self._normalize_dataframe(
+            self.velocities,
+            VELOCITIES_COLUMNS,
+            "velocities",
+        )
+
         for df in [
             self.atoms,
             self.velocities,
@@ -220,8 +337,7 @@ class AtomicSystem(EditMixin, IOMixin, TopologyMixin, ForceFieldMixin):
                 "dihedrals": other.dihedrals,
                 "impropers": other.impropers,
                 "velocities": other.velocities,
-                "lmp_box": other._lmp_box,
-                "atom_types": list(other._types),
+                "box": other._box_lmp,
                 "masses": dict(other._masses_storage),
                 "charges": dict(other._charges_storage),
                 "atom_style": other._atom_style,
@@ -261,8 +377,7 @@ class AtomicSystem(EditMixin, IOMixin, TopologyMixin, ForceFieldMixin):
             "velocities": self.velocities.copy()
             if self.velocities is not None
             else None,
-            "lmp_box": self._lmp_box,
-            "atom_types": list(self._types),
+            "box": self._box_lmp,
             "masses": dict(self._masses_storage),
             "charges": dict(self._charges_storage),
             "atom_style": self._atom_style,
@@ -347,30 +462,33 @@ class AtomicSystem(EditMixin, IOMixin, TopologyMixin, ForceFieldMixin):
         """
         Return a mapping of atom types to their elemental symbols.
 
+        Calculates elemental symbols on-the-fly by matching the atomic mass
+        of each atom type to the closest element mass available in constant tables.
+
         Returns
         -------
-        dict of {str or int : str}
-            Dictionary matching type ID to element symbol.
+        dict[str | int, str]
+            Dictionary matching atom type ID to its inferred element symbol.
         """
-
         if "elements" not in self._cache:
-            element_list = []
+            element_dict: dict[str | int, str] = {}
             current_types = self.atom_types
             current_masses = self.masses
 
             for i, t_id in enumerate(current_types):
                 m_val = float(current_masses[i])
+                # Trouve la masse théorique la plus proche de la masse mesurée
                 best_match = MASS_KEYS[(np.abs(MASS_KEYS - m_val)).argmin()]
                 symbol = str(INV_MASSES[best_match])
 
-                # Cleaning the type to remove the np.str_
+                # Formate la clé pour conserver le type d'origine (int ou str)
                 clean_id = str(t_id)
                 if clean_id.isdigit():
                     clean_id = int(clean_id)
 
-                element_list.append(symbol)
+                element_dict[clean_id] = symbol
 
-            self._cache["elements"] = element_list
+            self._cache["elements"] = element_dict
 
         return self._cache["elements"]
 
@@ -649,90 +767,100 @@ class AtomicSystem(EditMixin, IOMixin, TopologyMixin, ForceFieldMixin):
 
         return self._cache["type_summary"]
 
-    def __repr__(self) -> str:
+    def summary(self) -> None:
         """
-        Return a string representation of the AtomicSystem.
+        Print a complete summary of the AtomicSystem.
 
-        Returns
-        -------
-        str
-            Summary of box size, atom counts, charge and density.
         """
+        lines = []
 
-        # Header with interaction count
-        output_string = f"<AtomicSystem with {self.num_atoms} atoms"
+        # Header
+        output = f"<AtomicSystem with {self.num_atoms} atoms"
+
         sections = {
             "bonds": self.num_bonds,
             "angles": self.num_angles,
             "dihedrals": self.num_dihedrals,
             "impropers": self.num_impropers,
         }
-        active_sections = [f"{v} {k}" for k, v in sections.items() if v > 0]
-        if active_sections:
-            output_string += ", " + ", ".join(active_sections)
-        output_string += ">\n\n"
 
-        # Section Box
-        output_string += "Box\n"
+        active_sections = [
+            f"{count} {name}" for name, count in sections.items() if count > 0
+        ]
+
+        if active_sections:
+            output += ", " + ", ".join(active_sections)
+
+        lines.extend([output + ">", ""])
+
+        # Box
+        lines.append("Box")
+
         df_box = pd.DataFrame(
             np.reshape(self.box.T, (1, 6)),
             columns=["a (Å)", "b (Å)", "c (Å)", "α (°)", "β (°)", "γ (°)"],
         )
-        output_string += df_box.to_string(index=False, float_format="%.2f") + "\n\n"
 
-        # Atoms Section (Using type_summary)
-        output_string += "Atoms\n"
-        red_df = self._get_type_summary()
-
-        # Added percentage for console display
-        red_df["%"] = (red_df["number"] / red_df["number"].sum()) * 100
-        red_df["%"] = red_df["%"].map(lambda x: f"{x:,.2f}")
-
-        # Reorganization of columns for visual rendering
-        column_order = ["type", "number", "%", "mass", "charge"]
-        output_string += red_df[column_order].to_string(index=False) + "\n\n"
-
-        # Sections Interactions (Bonds, Angles, etc.)
-        def append_interaction_info(output_string, df, name):
-            if df is not None and len(df) > 0:
-                output_string += f"{name}\n"
-                df_copy = df.copy()
-                df_copy["number"] = df_copy.groupby("type")["type"].transform("size")
-                summary = df_copy.drop_duplicates(subset="type")[["type", "number"]]
-                # Sorting interaction types
-                summary["sk"] = summary["type"].apply(
-                    lambda x: (not str(x).isdigit(), int(x) if str(x).isdigit() else x)
-                )
-                summary = summary.sort_values("sk").drop(columns=["sk"])
-                output_string += summary.to_string(index=False) + "\n\n"
-            return output_string
-
-        output_string = append_interaction_info(output_string, self.bonds, "Bonds")
-        output_string = append_interaction_info(output_string, self.angles, "Angles")
-        output_string = append_interaction_info(
-            output_string, self.dihedrals, "Dihedrals"
-        )
-        output_string = append_interaction_info(
-            output_string, self.impropers, "Impropers"
+        lines.extend(
+            [
+                df_box.to_string(
+                    index=False,
+                    float_format="%.2f",
+                ),
+                "",
+            ]
         )
 
-        # Footer (Physical Summary)
-        output_string += f"Total charge: {self.total_charge:.3f}e\n"
-        output_string += f"Volume: {self.volume / 1e3:.2f} nm3\n"
-        output_string += f"Density: {self.density:.2f} g/cm3"
+        # Atoms
+        lines.append("Atoms")
 
-        return output_string
+        # Copy because _get_type_summary() is cached
+        df_atoms = self._get_type_summary().copy()
 
-    def __str__(self) -> str:
-        """
-        Return the string representation of the object.
+        column_order = ["type", "number", "mass", "charge"]
 
-        Returns
-        -------
-        str
-            Equivalent to __repr__.
-        """
-        return self.__repr__()
+        lines.extend(
+            [
+                df_atoms[column_order].to_string(index=False),
+                "",
+            ]
+        )
+
+        # Interactions
+        def append_interaction_info(
+            lines: list[str],
+            df: pd.DataFrame | None,
+            name: str,
+        ) -> None:
+            if df is None or df.empty:
+                return
+
+            lines.append(name)
+
+            summary = df.groupby("type").size().rename("number").reset_index()
+
+            lines.extend(
+                [
+                    summary.to_string(index=False),
+                    "",
+                ]
+            )
+
+        append_interaction_info(lines, self.bonds, "Bonds")
+        append_interaction_info(lines, self.angles, "Angles")
+        append_interaction_info(lines, self.dihedrals, "Dihedrals")
+        append_interaction_info(lines, self.impropers, "Impropers")
+
+        # Footer
+        lines.extend(
+            [
+                f"Total charge: {self.total_charge:.3f} e",
+                f"Volume: {self.volume / 1e3:.2f} nm³",
+                f"Density: {self.density:.2f} g/cm³",
+            ]
+        )
+
+        print("\n".join(lines))
 
     def add_structure(
         self,

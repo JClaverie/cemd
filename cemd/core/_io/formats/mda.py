@@ -1,4 +1,3 @@
-#
 # This file is part of the CEMD distribution
 # Copyright (c) 2022-2026 Jérôme Claverie.
 #
@@ -13,218 +12,617 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
-#
+
+import re
 
 import numpy as np
 import pandas as pd
 
-from ...._utils import lattice2lammps
+from ...._constants import MASSES_DICT
 from .base import BaseReader
 
 
 class MDAReader(BaseReader):
-    """Read from MDAnalysis Universe or AtomGroup."""
+    """Read an MDAnalysis Universe or AtomGroup."""
+
+    # ------------------------------------------------------------------
+    # Atom information
+    # ------------------------------------------------------------------
 
     @staticmethod
-    def _remap2numerical(types):
-        """Remap bonds, angles, ... to numbers if atom types are numericals."""
+    def _get_elements(atoms) -> np.ndarray:
+        """Get atom elements from MDAnalysis.
+
+        The search order is:
+        1. ``atoms.elements``
+        2. ``atoms.names``
+        3. ``atoms.types``
+
+        Parameters
+        ----------
+        atoms
+            MDAnalysis AtomGroup or Universe.atoms.
+
+        Returns
+        -------
+        numpy.ndarray
+            Chemical element for each atom.
+        """
+
+        def _clean_symbol(raw_name: str) -> str:
+            """Extrait le symbole chimique (ex: C16 -> C, Fe2 -> Fe)."""
+            match = re.match(r"^[A-Za-z]+", str(raw_name).strip())
+            if match:
+                elem = match.group()
+                return elem[0].upper() + elem[1:].lower()
+            return str(raw_name).strip()
+
+        try:
+            if hasattr(atoms, "elements"):
+                elements = np.asarray(atoms.elements, dtype=str)
+                if len(elements) == len(atoms) and np.all(
+                    np.char.strip(elements) != ""
+                ):
+                    return np.asarray(
+                        [str(element).strip() for element in elements],
+                        dtype=str,
+                    )
+        except (AttributeError, ValueError, TypeError):
+            pass
+
+        try:
+            if hasattr(atoms, "names"):
+                names = np.asarray(atoms.names, dtype=str)
+                if len(names) == len(atoms) and np.all(np.char.strip(names) != ""):
+                    return np.asarray(
+                        [_clean_symbol(name) for name in names],
+                        dtype=str,
+                    )
+        except (AttributeError, ValueError, TypeError):
+            pass
+
+        try:
+            if hasattr(atoms, "types"):
+                types = np.asarray(atoms.types, dtype=str)
+                if len(types) == len(atoms) and np.all(np.char.strip(types) != ""):
+                    return np.asarray(
+                        [_clean_symbol(atom_type) for atom_type in types],
+                        dtype=str,
+                    )
+        except (AttributeError, ValueError, TypeError):
+            pass
+
+        raise ValueError(
+            "Unable to determine atom elements from MDAnalysis. "
+            "Neither 'elements', 'names' nor 'types' are available."
+        )
+
+    @staticmethod
+    def _get_masses(
+        atoms,
+        elements: np.ndarray,
+    ) -> np.ndarray:
+        """Get atomic masses.
+
+        Explicit masses stored in MDAnalysis are preferred if valid.
+        Otherwise, masses are obtained from ``MASSES_DICT`` using elements.
+        """
+        try:
+            masses = np.asarray(atoms.masses, dtype=float)
+
+            # Si toutes les masses valent exactement 1.0, cela signifie probablement
+            # que MDAnalysis a mis une valeur par défaut. On force le recalcul via MASSES_DICT.
+            if (
+                len(masses) == len(atoms)
+                and np.all(np.isfinite(masses))
+                and np.all(masses > 0)
+                and not np.all(masses == 1.0)
+            ):
+                return masses
+
+        except (AttributeError, ValueError, TypeError):
+            pass
+
+        # Recalcul des masses réelles avec MASSES_DICT basé sur les vrais éléments (C, H, O...)
+        return np.asarray(
+            [MASSES_DICT.get(str(element), 1.0) for element in elements],
+            dtype=float,
+        )
+
+    @staticmethod
+    def _get_atom_types(atoms) -> np.ndarray:
+        """Get atom types from MDAnalysis.
+
+        Atom types are taken from ``atoms.types``. If the topology does
+        not provide atom types, atom names are used as a fallback.
+
+        Parameters
+        ----------
+        atoms
+            MDAnalysis AtomGroup.
+
+        Returns
+        -------
+        numpy.ndarray
+            Atom types as strings.
+        """
+
+        try:
+            types = np.asarray(atoms.types, dtype=str)
+
+            if len(types) == len(atoms) and np.all(np.char.strip(types) != ""):
+                return np.asarray(
+                    [str(atom_type).strip() for atom_type in types],
+                    dtype=str,
+                )
+
+        except (AttributeError, ValueError, TypeError):
+            pass
+
+        # Fallback to atom names.
+        try:
+            names = np.asarray(atoms.names, dtype=str)
+
+            if len(names) == len(atoms) and np.all(np.char.strip(names) != ""):
+                return np.asarray(
+                    [str(name).strip() for name in names],
+                    dtype=str,
+                )
+
+        except (AttributeError, ValueError, TypeError):
+            pass
+
+        raise ValueError(
+            "Unable to determine atom types from MDAnalysis. "
+            "Neither 'types' nor 'names' are available."
+        )
+
+    @staticmethod
+    def _get_atom_ids(atoms) -> np.ndarray:
+        """Get atom IDs, generating sequential IDs if unavailable."""
+
+        try:
+            ids = np.asarray(atoms.ids, dtype=int)
+
+            if len(ids) == len(atoms):
+                return ids
+
+        except (AttributeError, ValueError, TypeError):
+            pass
+
+        # Utilisation de getattr pour gérer proprement les Universes ou AtomGroups
+        n_atoms = getattr(atoms, "n_atoms", len(atoms))
+        return np.arange(1, n_atoms + 1, dtype=int)
+
+    @staticmethod
+    def _get_charges(atoms) -> np.ndarray:
+        """Get atomic charges, defaulting to zero."""
+
+        try:
+            charges = np.asarray(atoms.charges, dtype=float)
+
+            if len(charges) == len(atoms):
+                return charges
+
+        except (AttributeError, ValueError, TypeError):
+            pass
+
+        return np.zeros(len(atoms), dtype=float)
+
+    @staticmethod
+    def _get_velocities(atoms) -> np.ndarray | None:
+        """Get atomic velocities if available."""
+
+        try:
+            velocities = np.asarray(atoms.velocities, dtype=float)
+
+            if velocities.shape == (len(atoms), 3) and np.all(np.isfinite(velocities)):
+                return velocities
+
+        except (AttributeError, ValueError, TypeError):
+            pass
+
+        return None
+
+    # ------------------------------------------------------------------
+    # Connection information
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def _remap2numerical(
+        types: np.ndarray,
+    ) -> np.ndarray:
+        """Remap connection types to numerical type IDs."""
+
         unique_types = np.unique(types)
-        remap_dic = {
-            k: v for k, v in zip(unique_types, list(range(1, len(unique_types) + 1)))
+
+        remap_dict = {
+            type_name: index for index, type_name in enumerate(unique_types, start=1)
         }
-        mapped_func = np.vectorize(remap_dic.get)
-        return mapped_func(types)
+
+        return np.asarray(
+            [remap_dict[type_name] for type_name in types],
+            dtype=int,
+        )
 
     @staticmethod
     def _get_connection_types(
-        conn, name: str, numerical_types: bool = False
+        conn,
+        atom_types: np.ndarray,
+        name: str,
+        numerical_types: bool = False,
     ) -> np.ndarray:
-        """Get connection types from MDAnalysis connection."""
+        """Get connection types from an MDAnalysis connection."""
 
-        # Nombre d'atomes par type de connexion
         n_atoms_map = {
             "bonds": 2,
             "angles": 3,
             "dihedrals": 4,
             "impropers": 4,
         }
-        n_atoms = n_atoms_map.get(name, 0)
+
+        try:
+            n_atoms = n_atoms_map[name]
+        except KeyError as exc:
+            raise ValueError(f"Unknown connection type: {name!r}") from exc
 
         types = []
 
-        for connection_idx in range(len(conn)):
-            atom_indices = conn.indices[connection_idx]
-
-            # Ignorer les connexions avec un nombre d'atomes incorrect
+        for atom_indices in conn.indices:
             if len(atom_indices) != n_atoms:
                 continue
 
-            atom_types = []
-            for idx in atom_indices:
-                atom = conn.universe.atoms[idx]
-                atom_types.append(str(atom.type))
+            connection_types = [str(atom_types[int(index)]) for index in atom_indices]
 
-            # Trier les types pour normaliser (ex: "H-O" au lieu de "O-H")
-            type_str = "-".join(sorted(atom_types))
+            # Normalize the type.
+            #
+            # H-O instead of O-H
+            # C-C-H instead of H-C-C
+            type_str = "-".join(sorted(connection_types))
+
             types.append(type_str)
 
-        types_arr = np.array(types)
+        types_array = np.asarray(types, dtype=str)
 
-        # Remapper en numérique si nécessaire
-        if numerical_types:
-            types_arr = MDAReader._remap2numerical(types_arr)
+        if numerical_types and len(types_array) > 0:
+            types_array = MDAReader._remap2numerical(types_array)
 
-        return types_arr
+        return types_array
+
+    # ------------------------------------------------------------------
+    # Box
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def _get_box(universe, coordinates: np.ndarray):
+        """Get the simulation box from MDAnalysis.
+
+        MDAnalysis stores box dimensions as:
+
+        ``[lx, ly, lz, alpha, beta, gamma]``.
+
+        If no valid box is available, a non-periodic LAMMPS box is
+        generated around the atomic coordinates.
+        """
+
+        try:
+            dimensions = np.asarray(
+                universe.dimensions,
+                dtype=float,
+            )
+
+            if (
+                dimensions.shape == (6,)
+                and np.all(np.isfinite(dimensions))
+                and np.all(dimensions[:3] > 0)
+            ):
+                return dimensions
+
+        except (AttributeError, TypeError, ValueError):
+            pass
+
+        # No valid simulation box.
+        mins = coordinates.min(axis=0) - 10.0
+        maxs = coordinates.max(axis=0) + 10.0
+
+        return (
+            (float(mins[0]), float(maxs[0])),
+            (float(mins[1]), float(maxs[1])),
+            (float(mins[2]), float(maxs[2])),
+            (0.0, 0.0, 0.0),
+        )
+
+    # ------------------------------------------------------------------
+    # Main reader
+    # ------------------------------------------------------------------
 
     @classmethod
     def read(cls, obj) -> dict:
-        """Read from MDAnalysis Universe or AtomGroup."""
+        """Read an MDAnalysis Universe or AtomGroup."""
 
-        if hasattr(obj, "universe"):
-            universe = obj.universe
-        else:
-            universe = obj
+        universe = obj
+        atoms = universe.atoms
 
-        if universe.dimensions is None:
-            box = np.array([10, 10, 10, 90, 90, 90])
-        else:
-            box = universe.dimensions
+        # --------------------------------------------------------------
+        # Atom information
+        # --------------------------------------------------------------
 
-        indices = universe.atoms.indices
+        ids = cls._get_atom_ids(atoms)
 
-        if universe.atoms.ids is None:
-            new_indices = np.arange(len(universe.atoms))
-            indices_remapping = {k: v for k, v in zip(indices, new_indices)}
-            ids = new_indices + 1
-            remap_indices = np.vectorize(lambda x: indices_remapping.get(x, x))
-        else:
-            ids = universe.atoms.ids
+        elements = cls._get_elements(atoms)
 
-        types = universe.atoms.types
-        masses = universe.atoms.masses
-        positions = universe.atoms.positions
+        atom_types = cls._get_atom_types(atoms)
 
-        try:
-            charges = universe.atoms.charges
-        except Exception:
-            charges = np.zeros(len(ids))
+        positions = np.asarray(
+            atoms.positions,
+            dtype=float,
+        )
 
-        univ_masses_dic = {t: m for t, m in zip(types, masses)}
-        univ_masses_dic = dict(sorted(univ_masses_dic.items()))
+        masses = cls._get_masses(
+            atoms,
+            elements,
+        )
 
-        univ_charges_dic = {t: c for t, c in zip(types, charges)}
-        univ_charges_dic = dict(sorted(univ_charges_dic.items()))
+        charges = cls._get_charges(atoms)
 
-        if isinstance(types[0], str):
-            numerical_types = types[0].isdigit()
-        else:
-            numerical_types = True
+        # --------------------------------------------------------------
+        # Dictionaries
+        # --------------------------------------------------------------
 
+        univ_masses_dic = dict(
+            sorted(
+                {
+                    str(atom_types): float(mass)
+                    for atom_types, mass in zip(atom_types, masses)
+                }.items()
+            )
+        )
+
+        univ_charges_dic = dict(
+            sorted(
+                {
+                    str(atom_type): float(charge)
+                    for atom_type, charge in zip(
+                        atom_types,
+                        charges,
+                    )
+                }.items()
+            )
+        )
+
+        # Connection types are numerical only when atom types are
+        # numerical.
+        numerical_types = all(str(atom_type).isdigit() for atom_type in atom_types)
+
+        # --------------------------------------------------------------
         # Atoms
-        stacked_arrays = np.column_stack((ids, types, charges, positions))
-        columns = ["id", "type", "charge", "x", "y", "z"]
-        df_atoms = pd.DataFrame(stacked_arrays, columns=columns)
+        # --------------------------------------------------------------
+
+        stacked_arrays = np.column_stack(
+            (
+                ids,
+                atom_types,
+                charges,
+                positions,
+            )
+        )
+
+        df_atoms = pd.DataFrame(
+            stacked_arrays,
+            columns=[
+                "id",
+                "type",
+                "charge",
+                "x",
+                "y",
+                "z",
+            ],
+        )
+
         df_atoms["id"] = df_atoms["id"].astype(int)
+
         df_atoms[["charge", "x", "y", "z"]] = df_atoms[
             ["charge", "x", "y", "z"]
         ].astype(float)
-        df_atoms.set_index("id", inplace=True)
 
+        df_atoms.set_index(
+            "id",
+            inplace=True,
+        )
+
+        # --------------------------------------------------------------
         # Velocities
+        # --------------------------------------------------------------
+
+        velocities_array = cls._get_velocities(atoms)
+
         velocities = None
-        if hasattr(universe.atoms, "velocities"):
-            stacked_arrays = np.column_stack((ids, universe.atoms.velocities))
-            columns = ["id", "vx", "vy", "vz"]
-            df_velocities = pd.DataFrame(stacked_arrays, columns=columns)
+
+        if velocities_array is not None:
+            df_velocities = pd.DataFrame(
+                np.column_stack(
+                    (
+                        ids,
+                        velocities_array,
+                    )
+                ),
+                columns=[
+                    "id",
+                    "vx",
+                    "vy",
+                    "vz",
+                ],
+            )
+
             df_velocities["id"] = df_velocities["id"].astype(int)
-            df_velocities.set_index("id", inplace=True)
+
+            df_velocities[["vx", "vy", "vz"]] = df_velocities[
+                ["vx", "vy", "vz"]
+            ].astype(float)
+
+            df_velocities.set_index(
+                "id",
+                inplace=True,
+            )
+
             velocities = df_velocities
 
-        # Bonds
-        if hasattr(universe, "bonds") and len(universe.bonds) != 0:
-            if universe.atoms.ids is None:
-                bonds = remap_indices(universe.bonds.indices) + 1
-            else:
-                bonds = universe.bonds.indices + 1
+        # --------------------------------------------------------------
+        # Connections
+        # --------------------------------------------------------------
 
-            bond_types = cls._get_connection_types(
-                universe.bonds, "bonds", numerical_types
+        def read_connections(
+            name: str,
+            n_atoms: int,
+        ):
+            """Read one MDAnalysis connection table."""
+
+            conn = getattr(universe, name, None)
+
+            if conn is None or len(conn) == 0:
+                return None
+
+            connection_indices = np.asarray(
+                conn.indices,
+                dtype=int,
             )
 
-            columns = ["id", "type", "atom_1", "atom_2"]
-            ids_conn = np.arange(1, len(bonds) + 1)
-            stacked_arrays = np.column_stack((ids_conn, bond_types, bonds))
-            df_bonds = pd.DataFrame(stacked_arrays, columns=columns)
-            df_bonds["id"] = df_bonds["id"].astype(int)
-            df_bonds.set_index("id", inplace=True)
-        else:
-            df_bonds = None
-
-        # Angles
-        if hasattr(universe, "angles") and len(universe.angles) != 0:
-            if universe.atoms.ids is None:
-                angles = remap_indices(universe.angles.indices) + 1
-            else:
-                angles = universe.angles.indices + 1
-
-            angle_types = cls._get_connection_types(
-                universe.angles, "angles", numerical_types
+            connection_types = cls._get_connection_types(
+                conn,
+                atom_types,
+                name,
+                numerical_types,
             )
 
-            columns = ["id", "type", "atom_1", "atom_2", "atom_3"]
-            ids_conn = np.arange(1, len(angles) + 1)
-            stacked_arrays = np.column_stack((ids_conn, angle_types, angles))
-            df_angles = pd.DataFrame(stacked_arrays, columns=columns)
-            df_angles["id"] = df_angles["id"].astype(int)
-            df_angles.set_index("id", inplace=True)
-        else:
-            df_angles = None
+            # ----------------------------------------------------------
+            # Universe
+            # ----------------------------------------------------------
 
-        # Dihedrals
-        if hasattr(universe, "dihedrals") and len(universe.dihedrals) != 0:
-            if universe.atoms.ids is None:
-                dihedrals = remap_indices(universe.dihedrals.indices) + 1
+            if atoms is universe.atoms:
+                connection_indices = connection_indices + 1
+
+            # ----------------------------------------------------------
+            # AtomGroup
+            # ----------------------------------------------------------
+
             else:
-                dihedrals = universe.dihedrals.indices + 1
+                atom_index_to_id = {
+                    int(atom_index): int(atom_id)
+                    for atom_index, atom_id in zip(
+                        atoms.indices,
+                        ids,
+                    )
+                }
 
-            dihedral_types = cls._get_connection_types(
-                universe.dihedrals, "dihedrals", numerical_types
+                valid_connections = []
+                valid_types = []
+
+                for conn_indices, type_name in zip(
+                    connection_indices,
+                    connection_types,
+                ):
+                    try:
+                        mapped = [
+                            atom_index_to_id[int(index)] for index in conn_indices
+                        ]
+                    except KeyError:
+                        # The connection contains an atom outside
+                        # the selected AtomGroup.
+                        continue
+
+                    if len(mapped) != n_atoms:
+                        continue
+
+                    valid_connections.append(mapped)
+                    valid_types.append(type_name)
+
+                connection_indices = np.asarray(
+                    valid_connections,
+                    dtype=int,
+                )
+
+                connection_types = np.asarray(
+                    valid_types,
+                )
+
+            if len(connection_indices) == 0:
+                return None
+
+            columns = [
+                "id",
+                "type",
+                *[f"atom_{i}" for i in range(1, n_atoms + 1)],
+            ]
+
+            connection_ids = np.arange(
+                1,
+                len(connection_indices) + 1,
+                dtype=int,
             )
 
-            columns = ["id", "type", "atom_1", "atom_2", "atom_3", "atom_4"]
-            ids_conn = np.arange(1, len(dihedrals) + 1)
-            stacked_arrays = np.column_stack((ids_conn, dihedral_types, dihedrals))
-            df_dihedrals = pd.DataFrame(stacked_arrays, columns=columns)
-            df_dihedrals["id"] = df_dihedrals["id"].astype(int)
-            df_dihedrals.set_index("id", inplace=True)
-        else:
-            df_dihedrals = None
-
-        # Impropers
-        if hasattr(universe, "impropers") and len(universe.impropers) != 0:
-            if universe.atoms.ids is None:
-                impropers = remap_indices(universe.impropers.indices) + 1
-            else:
-                impropers = universe.impropers.indices + 1
-
-            improper_types = cls._get_connection_types(
-                universe.impropers, "impropers", numerical_types
+            stacked_arrays = np.column_stack(
+                (
+                    connection_ids,
+                    connection_types,
+                    connection_indices,
+                )
             )
 
-            columns = ["id", "type", "atom_1", "atom_2", "atom_3", "atom_4"]
-            ids_conn = np.arange(1, len(impropers) + 1)
-            stacked_arrays = np.column_stack((ids_conn, improper_types, impropers))
-            df_impropers = pd.DataFrame(stacked_arrays, columns=columns)
-            df_impropers["id"] = df_impropers["id"].astype(int)
-            df_impropers.set_index("id", inplace=True)
-        else:
-            df_impropers = None
+            df = pd.DataFrame(
+                stacked_arrays,
+                columns=columns,
+            )
 
-        topology = {
-            "lmp_box": lattice2lammps(box),
+            df["id"] = df["id"].astype(int)
+
+            atom_columns = [f"atom_{i}" for i in range(1, n_atoms + 1)]
+
+            df[atom_columns] = df[atom_columns].astype(int)
+
+            df.set_index(
+                "id",
+                inplace=True,
+            )
+
+            return df
+
+        df_bonds = read_connections(
+            "bonds",
+            2,
+        )
+
+        df_angles = read_connections(
+            "angles",
+            3,
+        )
+
+        df_dihedrals = read_connections(
+            "dihedrals",
+            4,
+        )
+
+        df_impropers = read_connections(
+            "impropers",
+            4,
+        )
+
+        # --------------------------------------------------------------
+        # Box
+        # --------------------------------------------------------------
+
+        box = cls._get_box(
+            universe,
+            positions,
+        )
+
+        # --------------------------------------------------------------
+        # Topology
+        # --------------------------------------------------------------
+
+        return {
+            "box": box,
             "masses": univ_masses_dic,
             "charges": univ_charges_dic,
-            "atom_types": sorted(np.unique(types).tolist()),
             "atoms": df_atoms,
             "bonds": df_bonds,
             "angles": df_angles,
@@ -233,5 +631,3 @@ class MDAReader(BaseReader):
             "velocities": velocities,
             "atom_style": "full",
         }
-
-        return topology

@@ -20,6 +20,8 @@ from __future__ import annotations
 import os
 from typing import Any, Self
 
+import numpy as np
+
 
 class IOMixin:
     """Mixin for file I/O operations."""
@@ -57,6 +59,7 @@ class IOMixin:
             ".lmp": cls._from_lammps_data,
             ".cif": cls._from_cif,
             ".pdb": cls._from_pdb,
+            ".lt": cls._from_lammpstemplate,
             ".sdf": cls._from_sdf,
         }
 
@@ -155,21 +158,47 @@ class IOMixin:
     # ========================================================================
 
     def to_mda(self) -> Any:
-        """Convert to MDAnalysis Universe."""
+        """
+        Convert this AtomicSystem instance to an MDAnalysis Universe.
+
+        Maps per-type properties (masses, elements) to individual atoms
+        as required by MDAnalysis topology attributes.
+
+        Returns
+        -------
+        mda.Universe
+            An MDAnalysis Universe populated with atom types, names,
+            charges, coordinates, masses, and elements.
+        """
         import MDAnalysis as mda
 
         universe = mda.Universe.empty(self.num_atoms, trajectory=True)
-        universe.add_TopologyAttr("type", self.atoms["type"].to_numpy())
-        universe.add_TopologyAttr("name", self.atoms["type"].to_numpy())
+
+        atom_types = self.atoms["type"].to_numpy()
+
+        universe.add_TopologyAttr("type", atom_types)
+        universe.add_TopologyAttr("name", atom_types)
         universe.add_TopologyAttr("charge", self.atoms["charge"].to_numpy())
         universe.add_TopologyAttr("ids", self.atoms.index.to_numpy())
+
+        elem_map = self.elements  # Dictionnaire {type_id: symbole}
+        atom_elements = np.array(
+            [elem_map.get(t, elem_map.get(str(t), "X")) for t in atom_types],
+            dtype=str,
+        )
+        universe.add_TopologyAttr("elements", atom_elements)
+
+        mass_map = dict(zip(self.atom_types, self.masses))
+        atom_masses = np.array(
+            [mass_map.get(t, mass_map.get(str(t), 1.0)) for t in atom_types],
+            dtype=float,
+        )
+        universe.add_TopologyAttr("masses", atom_masses)
+
         universe.atoms.positions = self.atoms[["x", "y", "z"]].to_numpy()
         universe.dimensions = self.box
-
-        mass_dict = {t: m for t, m in zip(self.atom_types, self.masses)}
-        universe.add_TopologyAttr("masses", [mass_dict[t] for t in self.atoms["type"]])
-
         self._add_connectivity_to_mda(universe)
+
         return universe
 
     def to_pmg(self) -> Any:
@@ -211,6 +240,13 @@ class IOMixin:
         return PDBReader.read(path)
 
     @staticmethod
+    def _from_lammpstemplate(path: str) -> dict:
+        """Read LT file."""
+        from .formats.lt import LTReader
+
+        return LTReader.read(path)
+
+    @staticmethod
     def _from_sdf(path: str) -> dict:
         """Read SDF file."""
         from .formats.sdf import SDFReader
@@ -227,16 +263,16 @@ class IOMixin:
     @staticmethod
     def _from_pmg(struct, refine) -> dict:
         """Read from Pymatgen."""
-        from .formats.pmg import PmgReader
+        from .formats.pmg import PMGReader
 
-        return PmgReader.read(struct, refine)
+        return PMGReader.read(struct, refine)
 
     @staticmethod
     def _from_smiles(smiles: str) -> dict:
         """Read from SMILES."""
-        from .formats.smiles import SmilesReader
+        from .formats.smiles import SMILESReader
 
-        return SmilesReader.read(smiles)
+        return SMILESReader.read(smiles)
 
     # ========================================================================
     # Private writers
@@ -246,15 +282,15 @@ class IOMixin:
         self, path: str, atom_style: str = "full", oldstyle: bool = False
     ) -> None:
         """Write to LAMMPS data file."""
-        from .formats.lammps import LammpsWriter
+        from .formats.lammps import LAMMPSWriter
 
-        LammpsWriter.write(self, path, atom_style=atom_style, oldstyle=oldstyle)
+        LAMMPSWriter.write(self, path, atom_style=atom_style, oldstyle=oldstyle)
 
     def _write_pdb(self, path: str, **kwargs) -> None:
         """Write to PDB file."""
-        from .formats.pdb import PdbWriter
+        from .formats.pdb import PDBWriter
 
-        PdbWriter.write(self, path)
+        PDBWriter.write(self, path)
 
     def _add_connectivity_to_mda(self, universe) -> None:
         """Add bonds, angles, dihedrals, impropers to MDAnalysis Universe."""

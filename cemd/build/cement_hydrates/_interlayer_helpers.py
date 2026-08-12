@@ -22,7 +22,7 @@ import os
 import MDAnalysis as mda
 import numpy as np
 
-from ..._utils import lattice2vectors
+from ...core._df_format import lattice2vectors
 from .._packmol import add_packmol_structure, get_structure_path, run_packmol
 from ._silicate_helpers import grouped_average
 

@@ -10,10 +10,10 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from .._constants import AVOGADRO, MASSES_DICT
-from .._utils import require_program
+from .._constants import AVOGADRO, CHARGES_DICT, MASSES_DICT
 from ..core.atomic_system import AtomicSystem
-from ._packmol import add_packmol_structure, get_structure_path, run_packmol
+from ._packmol import PackmolInput, PackmolStructure, get_structure_path, run_packmol
+from .base import require_program
 
 if TYPE_CHECKING:
     pass
@@ -106,19 +106,64 @@ class GlassBuilder:
         if not self.composition:
             raise ValueError("composition must not be empty")
 
-        # Valider les structures personnalisées
-        for species in self.structures:
-            from ..core.atomic_system import AtomicSystem
+        self._validate_composition()
 
-            if not isinstance(self.structures[species], AtomicSystem):
+        for species, structure in self.structures.items():
+            if not isinstance(structure, AtomicSystem):
                 raise TypeError(
                     f"Structure for '{species}' must be an AtomicSystem, "
-                    f"got {type(self.structures[species]).__name__}"
+                    f"got {type(structure).__name__}"
                 )
 
-    # =========================================================================
-    # COMPOSITION ANALYSIS
-    # =========================================================================
+        # Check charge neutrality.
+        charge = self.get_total_charge()
+
+        if not np.isclose(charge, 0.0):
+            warnings.warn(
+                f"Composition is not charge neutral: "
+                f"total formal charge = {charge:+.3f}",
+                UserWarning,
+                stacklevel=2,
+            )
+
+    def _validate_composition(self):
+        """Validate the chemical composition."""
+        from pymatgen.core import Composition
+
+        for formula, coefficient in self.composition.items():
+            if not isinstance(formula, str) or not formula:
+                raise TypeError(
+                    f"Composition keys must be non-empty strings, got {formula!r}"
+                )
+
+            if not isinstance(coefficient, (int, float, np.integer, np.floating)):
+                raise TypeError(
+                    f"Coefficient for '{formula}' must be a number, "
+                    f"got {type(coefficient).__name__}"
+                )
+
+            if coefficient <= 0:
+                raise ValueError(
+                    f"Coefficient for '{formula}' must be positive, got {coefficient}"
+                )
+
+            # Custom structure: no need to parse the formula.
+            if formula in self.structures:
+                continue
+
+            try:
+                composition = Composition(formula)
+            except Exception as exc:
+                raise ValueError(
+                    f"Invalid chemical formula '{formula}'. "
+                    "Expected an element or a valid chemical formula "
+                    "(e.g. 'Si', 'SiO2', 'Al2O3', 'Na2O')."
+                ) from exc
+
+            if not composition:
+                raise ValueError(
+                    f"Chemical formula '{formula}' does not contain any elements."
+                )
 
     def get_mass_per_formula_unit(self) -> float:
         """
@@ -170,33 +215,25 @@ class GlassBuilder:
         return total_mass
 
     def get_elemental_composition(self) -> dict[str, float]:
-        """
-        Get elemental composition from the blueprint.
-
-        Returns
-        -------
-        dict[str, float]
-            Dictionary mapping element symbols to amounts.
-        """
+        """Get the elemental composition from the blueprint."""
         from pymatgen.core import Composition
 
-        elemental = {}
+        elemental: dict[str, float] = {}
 
         for formula, coeff in self.composition.items():
             if formula in self.structures:
-                # Custom structure: compter les éléments
-                struct = self.structures[formula]
-                for elem in struct.elements:
-                    elemental[elem] = elemental.get(elem, 0) + coeff
-            else:
-                try:
-                    comp = Composition(formula)
-                    for el, amt in comp.get_el_amt_dict().items():
-                        elemental[el] = elemental.get(el, 0) + amt * coeff
-                except Exception:
-                    # Si c'est un élément simple
-                    if formula in MASSES_DICT:
-                        elemental[formula] = elemental.get(formula, 0) + coeff
+                structure = self.structures[formula]
+
+                for element in structure.elements:
+                    symbol = element.symbol
+                    elemental[symbol] = elemental.get(symbol, 0.0) + coeff
+
+                continue
+
+            composition = Composition(formula)
+
+            for symbol, amount in composition.get_el_amt_dict().items():
+                elemental[symbol] = elemental.get(symbol, 0.0) + amount * coeff
 
         return elemental
 
@@ -238,18 +275,38 @@ class GlassBuilder:
         mass_per_unit = self.get_mass_per_formula_unit()
         return (num_units * mass_per_unit) / (AVOGADRO * volume * 1e-24)
 
-    # =========================================================================
-    # CONSTRUCTION
-    # =========================================================================
+    def get_total_charge(self) -> float:
+        """
+        Calculate the total formal charge of the composition.
 
-    def build(self, box: Sequence[float]) -> AtomicSystem:
+        Returns
+        -------
+        float
+            Total formal charge.
+        """
+        elemental = self.get_elemental_composition()
+
+        return sum(
+            amount * CHARGES_DICT[element]
+            for element, amount in elemental.items()
+            if element in CHARGES_DICT
+        )
+
+    def build(
+        self,
+        box: Sequence[float],
+        margin: float = 0.95,
+    ) -> AtomicSystem:
         """
         Build a standalone glass system from this blueprint.
 
         Parameters
         ----------
         box : Sequence[float]
-            Box dimensions [a, b, c] in Å
+            Box dimensions [a, b, c] in Å.
+        margin : float, default=0.95
+            Safety scaling factor to prevent atoms from sitting directly
+            on box edges.
 
         Returns
         -------
@@ -260,58 +317,80 @@ class GlassBuilder:
         --------
         >>> blueprint = GlassBuilder(
         ...     density=2.3,
-        ...     composition={'SiO2': 3, 'Al2O3': 2, 'Na2O': 2}
+        ...     composition={"SiO2": 3, "Al2O3": 2, "Na2O": 2}
         ... )
         >>> glass = blueprint.build(box=[20, 20, 20])
         """
+
         require_program("packmol")
 
+        box = list(box)
         boxa, boxb, boxc = box[:3]
         volume = boxa * boxb * boxc
 
-        # Calculer le nombre d'unités
+        # Calculate the number of formula units.
         num_units = self.get_num_formula_units(volume)
 
-        # Calculer la densité réelle
+        # Calculate the actual density.
         actual_density = self.get_actual_density(volume)
         density_error = (actual_density - self.density) / self.density
 
         if abs(density_error) > 0.05:
             warnings.warn(
                 f"Density error: {density_error:.1%}. "
-                f"Target: {self.density:.3f} g/cm³, Actual: {actual_density:.3f} g/cm³"
+                f"Target: {self.density:.3f} g/cm³, "
+                f"Actual: {actual_density:.3f} g/cm³"
             )
 
-        # Obtenir la composition élémentaire
+        # Get the elemental composition.
         elemental_comp = self.get_elemental_composition()
+
+        inside_box = (
+            0.0,
+            0.0,
+            0.0,
+            boxa * margin,
+            boxb * margin,
+            boxc * margin,
+        )
 
         with tempfile.TemporaryDirectory(dir=".") as tmp:
             structures = []
 
-            # Ajouter les éléments
-            for elem, amount in elemental_comp.items():
+            for element, amount in elemental_comp.items():
                 count = int(np.round(amount * num_units))
+
                 if count <= 0:
                     continue
 
-                path2structure = get_structure_path(elem, tmp)
+                structure = self.structures.get(element, element)
+
+                if isinstance(structure, str):
+                    structure = get_structure_path(structure, tmp)
+
                 structures.append(
-                    add_packmol_structure(
-                        path2structure,
-                        count,
-                        "center",
-                        f"inside box 1 1 1 {boxa - 1:.4f} {boxb - 1:.4f} {boxc - 1:.4f}",
+                    PackmolStructure(
+                        structure=structure,
+                        number=count,
+                        center=True,
+                        inside_box=inside_box,
                     )
                 )
 
-            data = run_packmol(structures)
+            packmol_input = PackmolInput(
+                tolerance=2.0,
+                output="glass.pdb",
+                filetype="pdb",
+                structures=structures,
+            )
 
-        # Définir la boîte
-        if not isinstance(box, list):
-            box = list(box)
-        data.set_box(box + [90, 90, 90])
+            data = run_packmol(packmol_input)
 
-        # Stocker les métadonnées
+        # Set the simulation box.
+        final_box = box[:3] + [90.0, 90.0, 90.0] if len(box) == 3 else box
+        data.set_box(final_box)
+
+        # Store metadata.
         data._glass_metadata = {
             "density": self.density,
             "actual_density": actual_density,
@@ -322,10 +401,6 @@ class GlassBuilder:
         }
 
         return data
-
-    # =========================================================================
-    # MÉTHODES DE CRÉATION
-    # =========================================================================
 
     @classmethod
     def from_stoichiometry(

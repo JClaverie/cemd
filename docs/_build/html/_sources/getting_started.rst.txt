@@ -5,9 +5,10 @@ Getting Started
    :local:
    :depth: 2
 
-The **cemd** package revolves around the :class:`~cemd.core.atomic_system.AtomicSystem` class,
-which serves as the primary container for all atomic data: coordinates, topology, box
-parameters, masses, and force field parameters.
+.. important::
+
+   The **cemd** package revolves around the
+   :class:`~cemd.core.atomic_system.AtomicSystem` class, which serves as the primary container for all atomic data: coordinates, topology, box parameters, masses, and force field parameters.
 
 Loading a System
 ----------------
@@ -19,7 +20,7 @@ The easiest way to load a system is directly from a LAMMPS ``.data`` file:
    from cemd import AtomicSystem
 
    system = AtomicSystem.from_file("waterbox.data")
-   print(system)
+   system.summary()
 
 .. code-block:: none
 
@@ -42,18 +43,7 @@ The easiest way to load a system is directly from a LAMMPS ``.data`` file:
    Volume: 27.00 nm3
    Density: 1.00 g/cm3
 
-Other supported formats include ``.cif`` and ``.pdb``:
-
-.. code-block:: python
-
-   # From CIF (crystallographic information file)
-   system = AtomicSystem.from_file("structure.cif")
-   
-   # From PDB (Protein Data Bank format)
-   system = AtomicSystem.from_file("molecule.pdb")
-   
-   # From SDF (structure-data file)
-   system = AtomicSystem.from_file("ligand.sdf")
+Other supported formats include ``.cif``, ``.pdb``, ``.sdf``, ``.lt``:
 
 Creating a System from SMILES
 -----------------------------
@@ -64,13 +54,17 @@ You can also create molecules directly from their SMILES string:
 
    # Create a simple molecule
    ethanol = AtomicSystem.from_smiles("CCO")
-   print(ethanol)
    
    # Create a more complex molecule
    caffeine = AtomicSystem.from_smiles("CN1C=NC2=C1C(=O)N(C(=O)N2C)C")
    
    # Visualize the molecule
    caffeine.view()
+
+.. image:: /_static/images/caffeine.png
+   :alt: Waterbox
+   :align: center
+   :width: 400px
 
 Interactive Database Exploration
 --------------------------------
@@ -397,6 +391,9 @@ Automatic Detection
    # Apply CSHFF topology rules (ClayFF + specific calcium handling)
    system.set_topology('cshff')
 
+   # Automatically detect angles, dihedrals and impropers from bonds
+   system.guess_connections()
+
 Custom Rules
 ^^^^^^^^^^^^
 
@@ -422,13 +419,13 @@ Manual Connectivity
 .. code-block:: python
 
    # Add a bond between atoms 1 and 2
-   system.add_bond([1, 2], "H-O")
+   system.add_bond([1, 2])
    
    # Add an angle (atoms 1-2-3)
-   system.add_angle([1, 2, 3], "H-O-H")
+   system.add_angle([1, 2, 3])
    
    # Add a dihedral (atoms 1-2-3-4)
-   system.add_dihedral([1, 2, 3, 4], "C-C-C-C")
+   system.add_dihedral([1, 2, 3, 4])
    
    # Remove all connections
    system.remove_all_connections()

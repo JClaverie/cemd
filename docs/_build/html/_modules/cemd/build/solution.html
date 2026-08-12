@@ -404,22 +404,30 @@
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
-<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">tempfile</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Sequence</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">TYPE_CHECKING</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">TYPE_CHECKING</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">.._constants</span><span class="w"> </span><span class="kn">import</span> <span class="n">MASSES_DICT</span><span class="p">,</span> <span class="n">AVOGADRO</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">.._utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">require_program</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">._packmol</span><span class="w"> </span><span class="kn">import</span> <span class="n">add_packmol_structure</span><span class="p">,</span> <span class="n">get_structure_path</span><span class="p">,</span> <span class="n">run_packmol</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.._constants</span><span class="w"> </span><span class="kn">import</span> <span class="n">AVOGADRO</span><span class="p">,</span> <span class="n">MASSES_DICT</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">._packmol</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">PackmolInput</span><span class="p">,</span>
+    <span class="n">PackmolStructure</span><span class="p">,</span>
+    <span class="n">get_structure_path</span><span class="p">,</span>
+    <span class="n">run_packmol</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">require_program</span>
 
 <span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">..core.atomic_system</span><span class="w"> </span><span class="kn">import</span> <span class="n">AtomicSystem</span>
 
-<span class="k">def</span><span class="w"> </span><span class="nf">concentration2count</span><span class="p">(</span><span class="n">molarity</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="nb">int</span><span class="p">,</span> 
-                        <span class="n">volume</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+<span class="n">WATER_MOLAR_MASS</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">MASSES_DICT</span><span class="p">[</span><span class="s2">&quot;H&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="n">MASSES_DICT</span><span class="p">[</span><span class="s2">&quot;O&quot;</span><span class="p">]</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">concentration2count</span><span class="p">(</span><span class="n">molarity</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="nb">int</span><span class="p">,</span> <span class="n">volume</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Calculates the integer particle count and relative error for a single molarity.</span>
 
 <span class="sd">    Parameters</span>
@@ -432,8 +440,8 @@
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    tuple[int, float]</span>
-<span class="sd">        - Particle count (integer).</span>
-<span class="sd">        - Relative discretization error percentage (float).</span>
+<span class="sd">        -Particle count (integer).</span>
+<span class="sd">        -Relative discretization error percentage (float).</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">molarity</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">return</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">0.0</span>
@@ -448,17 +456,18 @@
 
     <span class="k">return</span> <span class="n">final_count</span><span class="p">,</span> <span class="n">error_pct</span>
 
+
 <div class="viewcode-block" id="SolutionBuilder">
 <a class="viewcode-back" href="../../../api/generated/cemd.build.SolutionBuilder.html#cemd.build.SolutionBuilder">[docs]</a>
 <span class="nd">@dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">SolutionBuilder</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Blueprint for creating a solution.</span>
-<span class="sd">    </span>
+
 <span class="sd">    This blueprint defines WHAT the solution contains (composition),</span>
 <span class="sd">    not HOW it is built (geometry). The geometry is determined by</span>
 <span class="sd">    the builder or method that uses this blueprint.</span>
-<span class="sd">    </span>
+
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    density : float, default=1.0</span>
@@ -469,7 +478,7 @@
 <span class="sd">        Species explicit counts (number of molecules/ions)</span>
 <span class="sd">    structures : dict, optional</span>
 <span class="sd">        Custom AtomicSystem structures for complex molecules</span>
-<span class="sd">    </span>
+
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>
 <span class="sd">    &gt;&gt;&gt; # Define a salt solution</span>
@@ -477,27 +486,27 @@
 <span class="sd">    ...     density=1.0,</span>
 <span class="sd">    ...     molarities={&#39;NaCl&#39;: 0.1, &#39;KCl&#39;: 0.05}</span>
 <span class="sd">    ... )</span>
-<span class="sd">    </span>
+
 <span class="sd">    &gt;&gt;&gt; # Use in different contexts</span>
 <span class="sd">    &gt;&gt;&gt; solution = blueprint.build(box=[30, 30, 30])  # Standalone</span>
 <span class="sd">    &gt;&gt;&gt; system = surface.add_layer(blueprint, thickness=30.0)  # Layer</span>
 <span class="sd">    &gt;&gt;&gt; system = surface.add_droplet(blueprint, radius=15.0)  # Droplet</span>
-<span class="sd">    </span>
+
 <span class="sd">    &gt;&gt;&gt; # Pure water</span>
 <span class="sd">    &gt;&gt;&gt; water = SolutionBuilder.from_water()</span>
-<span class="sd">    </span>
+
 <span class="sd">    &gt;&gt;&gt; # With explicit counts</span>
 <span class="sd">    &gt;&gt;&gt; blueprint = SolutionBuilder.from_counts(</span>
 <span class="sd">    ...     density=1.0,</span>
 <span class="sd">    ...     counts={&#39;Na&#39;: 50, &#39;Cl&#39;: 50}</span>
 <span class="sd">    ... )</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    
+
     <span class="n">density</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span>
     <span class="n">molarities</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
     <span class="n">counts</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
     <span class="n">structures</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">AtomicSystem</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
-    
+
     <span class="k">def</span><span class="w"> </span><span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Validate the blueprint.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_validate</span><span class="p">()</span>
@@ -505,7 +514,7 @@
     <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return a styled string representation of the SolutionBuilder.</span>
-<span class="sd">        </span>
+
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        str</span>
@@ -513,12 +522,12 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;&lt;SolutionBuilder&gt;&quot;</span><span class="p">]</span>
         <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
-        
+
         <span class="c1"># ====== Composition ======</span>
         <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;┌─ Composition&quot;</span><span class="p">)</span>
         <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;│   density:  </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">density</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> g/cm³&quot;</span><span class="p">)</span>
-        
-        <span class="c1"># Solutés</span>
+
+        <span class="c1"># Solutes</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">molarities</span><span class="p">:</span>
             <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;│   type:     molarities&quot;</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">species</span><span class="p">,</span> <span class="n">molarity</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">molarities</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
@@ -529,32 +538,22 @@
                 <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;│             </span><span class="si">{</span><span class="n">species</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">count</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;│   type:     pure water&quot;</span><span class="p">)</span>
-        
-        <span class="c1"># ====== Structures personnalisées ======</span>
+
+        <span class="c1"># ====== Custom structures ======</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">structures</span><span class="p">:</span>
             <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;│&quot;</span><span class="p">)</span>
             <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;├─ Custom structures&quot;</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">species</span><span class="p">,</span> <span class="n">struct</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">structures</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
                 <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;│   </span><span class="si">{</span><span class="n">species</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">struct</span><span class="o">.</span><span class="n">num_atoms</span><span class="si">}</span><span class="s2"> atoms&quot;</span><span class="p">)</span>
-        
+
         <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
-    
+
     <span class="k">def</span><span class="w"> </span><span class="nf">_validate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Check that the blueprint is valid.&quot;&quot;&quot;</span>
-        <span class="c1"># Vérifier qu&#39;on a au moins un dictionnaire</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">molarities</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">counts</span><span class="p">:</span>
-            <span class="c1"># Pure water, c&#39;est OK</span>
-            <span class="k">pass</span>
-        
-        <span class="c1"># Vérifier qu&#39;on n&#39;a pas les deux en même temps</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">molarities</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">counts</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="s2">&quot;Provide either &#39;molarities&#39; OR &#39;counts&#39;, not both.</span><span class="se">\n</span><span class="s2">&quot;</span>
-                <span class="sa">f</span><span class="s2">&quot;molarities: </span><span class="si">{</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">molarities</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
-                <span class="sa">f</span><span class="s2">&quot;counts: </span><span class="si">{</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">counts</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span><span class="si">}</span><span class="s2">&quot;</span>
-            <span class="p">)</span>
-        
-        <span class="c1"># Valider les molarités</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">density</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Density must be positive, got </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">density</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Validate molarities</span>
         <span class="k">for</span> <span class="n">species</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">molarities</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">)):</span>
                 <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
@@ -563,8 +562,8 @@
                 <span class="p">)</span>
             <span class="k">if</span> <span class="n">value</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Molarity must be &gt;= 0 for &#39;</span><span class="si">{</span><span class="n">species</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
-        
-        <span class="c1"># Valider les comptes</span>
+
+        <span class="c1"># Validate counts</span>
         <span class="k">for</span> <span class="n">species</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">counts</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
                 <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
@@ -573,73 +572,86 @@
                 <span class="p">)</span>
             <span class="k">if</span> <span class="n">value</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Count must be &gt;= 0 for &#39;</span><span class="si">{</span><span class="n">species</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
-        
-        <span class="c1"># Valider les structures personnalisées</span>
-        <span class="k">for</span> <span class="n">species</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">structures</span><span class="p">:</span>
+
+        <span class="c1"># Validate custom structures</span>
+        <span class="k">for</span> <span class="n">species</span><span class="p">,</span> <span class="n">struct</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">structures</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="kn">from</span><span class="w"> </span><span class="nn">..core.atomic_system</span><span class="w"> </span><span class="kn">import</span> <span class="n">AtomicSystem</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structures</span><span class="p">[</span><span class="n">species</span><span class="p">],</span> <span class="n">AtomicSystem</span><span class="p">):</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">struct</span><span class="p">,</span> <span class="n">AtomicSystem</span><span class="p">):</span>
                 <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
                     <span class="sa">f</span><span class="s2">&quot;Structure for &#39;</span><span class="si">{</span><span class="n">species</span><span class="si">}</span><span class="s2">&#39; must be an AtomicSystem, &quot;</span>
-                    <span class="sa">f</span><span class="s2">&quot;got </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structures</span><span class="p">[</span><span class="n">species</span><span class="p">])</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">&quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;got </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">struct</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">&quot;</span>
                 <span class="p">)</span>
-    
-    <span class="c1"># =========================================================================</span>
-    <span class="c1"># CONVERSION</span>
-    <span class="c1"># =========================================================================</span>
-    
-    <span class="k">def</span><span class="w"> </span><span class="nf">to_counts</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">volume</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_water</span><span class="p">(</span>
+        <span class="bp">cls</span><span class="p">,</span>
+        <span class="n">density</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SolutionBuilder</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Convert molarities to explicit counts for a given volume.</span>
-<span class="sd">        </span>
+<span class="sd">        Create a blueprint for pure water.</span>
+
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        volume : float</span>
-<span class="sd">            Volume in Å³</span>
-<span class="sd">        </span>
+<span class="sd">        density : float, default=1.0</span>
+<span class="sd">            Target density in g/cm³</span>
+
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        dict[str, int]</span>
-<span class="sd">            Dictionary mapping species to integer counts</span>
+<span class="sd">        SolutionBuilder</span>
+<span class="sd">            A blueprint configured for pure water.</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; water = SolutionBuilder.from_water()</span>
+<span class="sd">        &gt;&gt;&gt; solution = water.build(box=[30, 30, 30])</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># Si on a déjà des comptes, les retourner</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">counts</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">counts</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-        
-        <span class="c1"># Si on a des molarités, les convertir</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">molarities</span><span class="p">:</span>
-            <span class="n">counts</span> <span class="o">=</span> <span class="p">{}</span>
-            <span class="n">errors</span> <span class="o">=</span> <span class="p">{}</span>
-            
-            <span class="k">for</span> <span class="n">species</span><span class="p">,</span> <span class="n">molarity</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">molarities</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-                <span class="n">count</span><span class="p">,</span> <span class="n">error</span> <span class="o">=</span> <span class="n">concentration2count</span><span class="p">(</span><span class="n">molarity</span><span class="p">,</span> <span class="n">volume</span><span class="p">)</span>
-                <span class="n">counts</span><span class="p">[</span><span class="n">species</span><span class="p">]</span> <span class="o">=</span> <span class="n">count</span>
-                <span class="n">errors</span><span class="p">[</span><span class="n">species</span><span class="p">]</span> <span class="o">=</span> <span class="n">error</span>
-                
-                <span class="k">if</span> <span class="n">error</span> <span class="o">&gt;</span> <span class="mf">0.1</span><span class="p">:</span>  <span class="c1"># 10% error threshold</span>
-                    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
-                        <span class="sa">f</span><span class="s2">&quot;Species &#39;</span><span class="si">{</span><span class="n">species</span><span class="si">}</span><span class="s2">&#39; has </span><span class="si">{</span><span class="n">error</span><span class="si">:</span><span class="s2">.1%</span><span class="si">}</span><span class="s2"> discretization error. &quot;</span>
-                        <span class="sa">f</span><span class="s2">&quot;Using </span><span class="si">{</span><span class="n">counts</span><span class="p">[</span><span class="n">species</span><span class="p">]</span><span class="si">}</span><span class="s2"> molecules (target: </span><span class="si">{</span><span class="n">molarity</span><span class="si">}</span><span class="s2"> M).&quot;</span>
-                    <span class="p">)</span>
-            
-            <span class="k">return</span> <span class="n">counts</span>
-        
-        <span class="c1"># Pure water</span>
-        <span class="k">return</span> <span class="p">{}</span>
-    
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span>
+            <span class="n">density</span><span class="o">=</span><span class="n">density</span><span class="p">,</span>
+            <span class="n">molarities</span><span class="o">=</span><span class="p">{},</span>
+            <span class="n">counts</span><span class="o">=</span><span class="p">{},</span>
+            <span class="n">structures</span><span class="o">=</span><span class="p">{},</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">to_counts</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">volume</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Convert molarities to explicit counts for a given volume and</span>
+<span class="sd">        combine them with explicitly specified counts.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">counts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">counts</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">species</span><span class="p">,</span> <span class="n">molarity</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">molarities</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">species</span> <span class="ow">in</span> <span class="n">counts</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Species &#39;</span><span class="si">{</span><span class="n">species</span><span class="si">}</span><span class="s2">&#39; is specified in both &quot;</span>
+                    <span class="s2">&quot;`counts` and `molarities`.&quot;</span>
+                <span class="p">)</span>
+
+            <span class="n">count</span><span class="p">,</span> <span class="n">error</span> <span class="o">=</span> <span class="n">concentration2count</span><span class="p">(</span><span class="n">molarity</span><span class="p">,</span> <span class="n">volume</span><span class="p">)</span>
+            <span class="n">counts</span><span class="p">[</span><span class="n">species</span><span class="p">]</span> <span class="o">=</span> <span class="n">count</span>
+
+            <span class="k">if</span> <span class="n">error</span> <span class="o">&gt;</span> <span class="mf">0.1</span><span class="p">:</span>
+                <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Species &#39;</span><span class="si">{</span><span class="n">species</span><span class="si">}</span><span class="s2">&#39; has </span><span class="si">{</span><span class="n">error</span><span class="si">:</span><span class="s2">.1%</span><span class="si">}</span><span class="s2"> discretization error. &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;Using </span><span class="si">{</span><span class="n">count</span><span class="si">}</span><span class="s2"> molecules (target: </span><span class="si">{</span><span class="n">molarity</span><span class="si">}</span><span class="s2"> M).&quot;</span>
+                <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">counts</span>
+
     <span class="k">def</span><span class="w"> </span><span class="nf">get_solute_mass</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">volume</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Calculate total mass of solutes in atomic mass units for a given volume.</span>
-<span class="sd">        </span>
+
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        volume : float</span>
 <span class="sd">            Volume in Å³</span>
-<span class="sd">        </span>
+
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        float</span>
 <span class="sd">            Total solute mass in amu</span>
-<span class="sd">        </span>
+
 <span class="sd">        Raises</span>
 <span class="sd">        ------</span>
 <span class="sd">        ValueError</span>
@@ -647,7 +659,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">counts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_counts</span><span class="p">(</span><span class="n">volume</span><span class="p">)</span>
         <span class="n">total_mass</span> <span class="o">=</span> <span class="mf">0.0</span>
-        
+
         <span class="k">for</span> <span class="n">species</span><span class="p">,</span> <span class="n">count</span> <span class="ow">in</span> <span class="n">counts</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="k">if</span> <span class="n">species</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">structures</span><span class="p">:</span>
                 <span class="n">total_mass</span> <span class="o">+=</span> <span class="n">count</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">structures</span><span class="p">[</span><span class="n">species</span><span class="p">]</span><span class="o">.</span><span class="n">total_mass</span>
@@ -659,33 +671,32 @@
                     <span class="sa">f</span><span class="s2">&quot;and no custom structure provided.</span><span class="se">\n</span><span class="s2">&quot;</span>
                     <span class="sa">f</span><span class="s2">&quot;Available: </span><span class="si">{</span><span class="nb">list</span><span class="p">(</span><span class="n">MASSES_DICT</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span><span class="si">}</span><span class="s2">&quot;</span>
                 <span class="p">)</span>
-        
+
         <span class="k">return</span> <span class="n">total_mass</span>
-    
+
     <span class="k">def</span><span class="w"> </span><span class="nf">get_water_count</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">volume</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Calculate number of water molecules for a given volume.</span>
-<span class="sd">        </span>
+
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        volume : float</span>
 <span class="sd">            Volume in Å³</span>
-<span class="sd">        </span>
+
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        int</span>
 <span class="sd">            Number of water molecules</span>
-<span class="sd">        </span>
+
 <span class="sd">        Raises</span>
 <span class="sd">        ------</span>
 <span class="sd">        ValueError</span>
 <span class="sd">            If the density or volume is too low for the solutes.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">water_molarmass</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">MASSES_DICT</span><span class="p">[</span><span class="s1">&#39;H&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">MASSES_DICT</span><span class="p">[</span><span class="s1">&#39;O&#39;</span><span class="p">]</span>
         <span class="n">mass_total_target_g</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">density</span> <span class="o">*</span> <span class="n">volume</span> <span class="o">*</span> <span class="mf">1e-24</span>
         <span class="n">mass_solutes_g</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_solute_mass</span><span class="p">(</span><span class="n">volume</span><span class="p">)</span> <span class="o">/</span> <span class="n">AVOGADRO</span>
         <span class="n">mass_water_g</span> <span class="o">=</span> <span class="n">mass_total_target_g</span> <span class="o">-</span> <span class="n">mass_solutes_g</span>
-        
+
         <span class="k">if</span> <span class="n">mass_water_g</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
                 <span class="sa">f</span><span class="s2">&quot;Target density (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">density</span><span class="si">}</span><span class="s2"> g/cm³) or volume (</span><span class="si">{</span><span class="n">volume</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> Å³) &quot;</span>
@@ -693,98 +704,216 @@
                 <span class="sa">f</span><span class="s2">&quot;Solute mass: </span><span class="si">{</span><span class="n">mass_solutes_g</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2"> g</span><span class="se">\n</span><span class="s2">&quot;</span>
                 <span class="sa">f</span><span class="s2">&quot;Target total mass: </span><span class="si">{</span><span class="n">mass_total_target_g</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2"> g&quot;</span>
             <span class="p">)</span>
-        
-        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">((</span><span class="n">mass_water_g</span> <span class="o">*</span> <span class="n">AVOGADRO</span><span class="p">)</span> <span class="o">/</span> <span class="n">water_molarmass</span><span class="p">))</span>
-    
-    <span class="c1"># =========================================================================</span>
-    <span class="c1"># CONSTRUCTION (déléguée à SolutionBuilder)</span>
-    <span class="c1"># =========================================================================</span>
-    
-    <span class="k">def</span><span class="w"> </span><span class="nf">build</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">box</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">AtomicSystem</span><span class="p">:</span>
+
+        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">((</span><span class="n">mass_water_g</span> <span class="o">*</span> <span class="n">AVOGADRO</span><span class="p">)</span> <span class="o">/</span> <span class="n">WATER_MOLAR_MASS</span><span class="p">))</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">build</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">box</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
+        <span class="n">margin</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.95</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AtomicSystem</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Build a standalone solution system from this blueprint.</span>
-<span class="sd">        </span>
+
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        box : Sequence[float]</span>
-<span class="sd">            Box dimensions [a, b, c] in Å</span>
-<span class="sd">        </span>
+<span class="sd">            Box dimensions [a, b, c] in Å.</span>
+<span class="sd">        margin : float, default=0.95</span>
+<span class="sd">            Safety scaling factor to prevent atoms from sitting directly</span>
+<span class="sd">            on box edges.</span>
+
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        AtomicSystem</span>
-<span class="sd">            The built solution system</span>
-<span class="sd">        </span>
-<span class="sd">        Examples</span>
-<span class="sd">        --------</span>
-<span class="sd">        &gt;&gt;&gt; blueprint = SolutionBuilder(</span>
-<span class="sd">        ...     density=1.0,</span>
-<span class="sd">        ...     molarities={&#39;NaCl&#39;: 0.1}</span>
-<span class="sd">        ... )</span>
-<span class="sd">        &gt;&gt;&gt; solution = blueprint.build(box=[30, 30, 30])</span>
+<span class="sd">            The built solution system.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">require_program</span><span class="p">(</span><span class="s1">&#39;packmol&#39;</span><span class="p">)</span>
-        
+        <span class="kn">from</span><span class="w"> </span><span class="nn">..core.atomic_system</span><span class="w"> </span><span class="kn">import</span> <span class="n">AtomicSystem</span>
+
+        <span class="n">require_program</span><span class="p">(</span><span class="s2">&quot;packmol&quot;</span><span class="p">)</span>
+
+        <span class="n">box</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">box</span><span class="p">)</span>
         <span class="n">boxa</span><span class="p">,</span> <span class="n">boxb</span><span class="p">,</span> <span class="n">boxc</span> <span class="o">=</span> <span class="n">box</span><span class="p">[:</span><span class="mi">3</span><span class="p">]</span>
         <span class="n">volume</span> <span class="o">=</span> <span class="n">boxa</span> <span class="o">*</span> <span class="n">boxb</span> <span class="o">*</span> <span class="n">boxc</span>
-        
-        <span class="c1"># Obtenir les comptes de solutés</span>
+
         <span class="n">solute_counts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_counts</span><span class="p">(</span><span class="n">volume</span><span class="p">)</span>
-        
-        <span class="c1"># Calculer le nombre de molécules d&#39;eau</span>
         <span class="n">num_water</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_water_count</span><span class="p">(</span><span class="n">volume</span><span class="p">)</span>
-        
-        <span class="c1"># Construire avec Packmol</span>
-        <span class="k">with</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">TemporaryDirectory</span><span class="p">(</span><span class="nb">dir</span><span class="o">=</span><span class="s1">&#39;.&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">tmp</span><span class="p">:</span>
-            <span class="n">structures</span> <span class="o">=</span> <span class="p">[]</span>
-            
-            <span class="c1"># Ajouter l&#39;eau</span>
-            <span class="n">h2o_path</span> <span class="o">=</span> <span class="n">get_structure_path</span><span class="p">(</span><span class="s1">&#39;H2O&#39;</span><span class="p">,</span> <span class="n">tmp</span><span class="p">)</span>
-            <span class="n">structures</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-                <span class="n">add_packmol_structure</span><span class="p">(</span>
-                    <span class="n">h2o_path</span><span class="p">,</span>
-                    <span class="n">num_water</span><span class="p">,</span>
-                    <span class="sa">f</span><span class="s2">&quot;inside box 0 0 0 </span><span class="si">{</span><span class="n">boxa</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">0.95</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">boxb</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">0.95</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">boxc</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">0.95</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span>
+
+        <span class="n">inside_box</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="mf">0.0</span><span class="p">,</span>
+            <span class="mf">0.0</span><span class="p">,</span>
+            <span class="mf">0.0</span><span class="p">,</span>
+            <span class="n">boxa</span> <span class="o">*</span> <span class="n">margin</span><span class="p">,</span>
+            <span class="n">boxb</span> <span class="o">*</span> <span class="n">margin</span><span class="p">,</span>
+            <span class="n">boxc</span> <span class="o">*</span> <span class="n">margin</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="k">with</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">TemporaryDirectory</span><span class="p">(</span><span class="nb">dir</span><span class="o">=</span><span class="s2">&quot;.&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">tmp</span><span class="p">:</span>
+            <span class="n">h2o_path</span> <span class="o">=</span> <span class="n">get_structure_path</span><span class="p">(</span><span class="s2">&quot;H2O&quot;</span><span class="p">,</span> <span class="n">tmp</span><span class="p">)</span>
+            <span class="n">h2o</span> <span class="o">=</span> <span class="n">AtomicSystem</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="n">h2o_path</span><span class="p">)</span>
+            <span class="n">h2o</span><span class="o">.</span><span class="n">guess_angles</span><span class="p">()</span>
+
+            <span class="n">structures</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">PackmolStructure</span><span class="p">(</span>
+                    <span class="n">structure</span><span class="o">=</span><span class="n">h2o</span><span class="p">,</span>
+                    <span class="n">number</span><span class="o">=</span><span class="n">num_water</span><span class="p">,</span>
+                    <span class="n">inside_box</span><span class="o">=</span><span class="n">inside_box</span><span class="p">,</span>
                 <span class="p">)</span>
-            <span class="p">)</span>
-            
-            <span class="c1"># Ajouter les solutés</span>
+            <span class="p">]</span>
+
             <span class="k">for</span> <span class="n">species</span><span class="p">,</span> <span class="n">count</span> <span class="ow">in</span> <span class="n">solute_counts</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
                 <span class="k">if</span> <span class="n">count</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
                     <span class="k">continue</span>
-                
-                <span class="c1"># Vérifier si une structure personnalisée est fournie</span>
-                <span class="k">if</span> <span class="n">species</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">structures</span><span class="p">:</span>
-                    <span class="n">struct_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmp</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;custom_</span><span class="si">{</span><span class="n">species</span><span class="si">}</span><span class="s2">.pdb&quot;</span><span class="p">)</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">structures</span><span class="p">[</span><span class="n">species</span><span class="p">]</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">struct_path</span><span class="p">)</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">struct_path</span> <span class="o">=</span> <span class="n">get_structure_path</span><span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="n">tmp</span><span class="p">)</span>
-                
+
+                <span class="n">structure</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">structures</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="n">species</span><span class="p">)</span>
+
                 <span class="n">structures</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-                    <span class="n">add_packmol_structure</span><span class="p">(</span>
-                        <span class="n">struct_path</span><span class="p">,</span>
-                        <span class="n">count</span><span class="p">,</span>
-                        <span class="s2">&quot;center&quot;</span><span class="p">,</span>
-                        <span class="sa">f</span><span class="s2">&quot;inside box 0 0 0 </span><span class="si">{</span><span class="n">boxa</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">0.95</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">boxb</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">0.95</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">boxc</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">0.95</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span>
+                    <span class="n">PackmolStructure</span><span class="p">(</span>
+                        <span class="n">structure</span><span class="o">=</span><span class="n">structure</span><span class="p">,</span>
+                        <span class="n">number</span><span class="o">=</span><span class="n">count</span><span class="p">,</span>
+                        <span class="n">center</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                        <span class="n">inside_box</span><span class="o">=</span><span class="n">inside_box</span><span class="p">,</span>
                     <span class="p">)</span>
                 <span class="p">)</span>
-            
-            <span class="c1"># Lancer Packmol</span>
-            <span class="n">data</span> <span class="o">=</span> <span class="n">run_packmol</span><span class="p">(</span><span class="n">structures</span><span class="p">)</span>
-        
-        <span class="c1"># Définir la boîte</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">box</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
-            <span class="n">box</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">box</span><span class="p">)</span>
-        <span class="n">data</span><span class="o">.</span><span class="n">set_box</span><span class="p">(</span><span class="n">box</span> <span class="o">+</span> <span class="p">[</span><span class="mi">90</span><span class="p">,</span> <span class="mi">90</span><span class="p">,</span> <span class="mi">90</span><span class="p">])</span>
-        
-        <span class="c1"># Stocker les métadonnées</span>
+
+            <span class="n">packmol_input</span> <span class="o">=</span> <span class="n">PackmolInput</span><span class="p">(</span>
+                <span class="n">tolerance</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span>
+                <span class="n">output</span><span class="o">=</span><span class="s2">&quot;solution.pdb&quot;</span><span class="p">,</span>
+                <span class="n">filetype</span><span class="o">=</span><span class="s2">&quot;pdb&quot;</span><span class="p">,</span>
+                <span class="n">structures</span><span class="o">=</span><span class="n">structures</span><span class="p">,</span>
+            <span class="p">)</span>
+
+            <span class="n">data</span> <span class="o">=</span> <span class="n">run_packmol</span><span class="p">(</span><span class="n">packmol_input</span><span class="p">)</span>
+
+        <span class="n">final_box</span> <span class="o">=</span> <span class="n">box</span><span class="p">[:</span><span class="mi">3</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="mf">90.0</span><span class="p">,</span> <span class="mf">90.0</span><span class="p">,</span> <span class="mf">90.0</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">box</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span> <span class="k">else</span> <span class="n">box</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">set_box</span><span class="p">(</span><span class="n">final_box</span><span class="p">)</span>
+
         <span class="n">data</span><span class="o">.</span><span class="n">_solution_metadata</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s1">&#39;density&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">density</span><span class="p">,</span>
-            <span class="s1">&#39;solutes&#39;</span><span class="p">:</span> <span class="n">solute_counts</span><span class="p">,</span>
-            <span class="s1">&#39;num_water&#39;</span><span class="p">:</span> <span class="n">num_water</span><span class="p">,</span>
-            <span class="s1">&#39;volume&#39;</span><span class="p">:</span> <span class="n">volume</span><span class="p">,</span>
-            <span class="s1">&#39;blueprint&#39;</span><span class="p">:</span> <span class="bp">self</span>
+            <span class="s2">&quot;density&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">density</span><span class="p">,</span>
+            <span class="s2">&quot;solutes&quot;</span><span class="p">:</span> <span class="n">solute_counts</span><span class="p">,</span>
+            <span class="s2">&quot;num_water&quot;</span><span class="p">:</span> <span class="n">num_water</span><span class="p">,</span>
+            <span class="s2">&quot;volume&quot;</span><span class="p">:</span> <span class="n">volume</span><span class="p">,</span>
+            <span class="s2">&quot;blueprint&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="p">,</span>
         <span class="p">}</span>
-        
+
+        <span class="k">return</span> <span class="n">data</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">build_hemisphere</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">radius</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">axis</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;z&quot;</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AtomicSystem</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Build a hemispherical solution system from this blueprint.</span>
+
+<span class="sd">        The hemisphere is centered at the origin, with its flat surface</span>
+<span class="sd">        lying in the plane perpendicular to ``axis``.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        radius : float</span>
+<span class="sd">            Hemisphere radius in Å.</span>
+<span class="sd">        axis : {&quot;x&quot;, &quot;y&quot;, &quot;z&quot;}, default=&quot;z&quot;</span>
+<span class="sd">            Axis normal to the flat surface of the hemisphere.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        AtomicSystem</span>
+<span class="sd">            The built hemispherical solution system.</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        ValueError</span>
+<span class="sd">            If ``radius`` is not positive or ``axis`` is invalid.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">..core.atomic_system</span><span class="w"> </span><span class="kn">import</span> <span class="n">AtomicSystem</span>
+
+        <span class="n">require_program</span><span class="p">(</span><span class="s2">&quot;packmol&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">radius</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The radius must be positive.&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">axis</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="s2">&quot;z&quot;</span><span class="p">}:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid axis: </span><span class="si">{</span><span class="n">axis</span><span class="si">!r}</span><span class="s2">. Expected &#39;x&#39;, &#39;y&#39;, or &#39;z&#39;.&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Hemisphere volume</span>
+        <span class="n">volume</span> <span class="o">=</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">radius</span><span class="o">**</span><span class="mi">3</span> <span class="o">/</span> <span class="mf">3.0</span>
+
+        <span class="c1"># Number of solute molecules</span>
+        <span class="n">solute_counts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_counts</span><span class="p">(</span><span class="n">volume</span><span class="p">)</span>
+
+        <span class="c1"># Number of water molecules</span>
+        <span class="n">num_water</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_water_count</span><span class="p">(</span><span class="n">volume</span><span class="p">)</span>
+
+        <span class="c1"># Packmol half-space definition</span>
+        <span class="n">above_plane</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span>
+            <span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span>
+            <span class="s2">&quot;z&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span>
+        <span class="p">}[</span><span class="n">axis</span><span class="p">]</span>
+        <span class="n">inside_sphere</span> <span class="o">=</span> <span class="n">inside_sphere</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">radius</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">TemporaryDirectory</span><span class="p">(</span><span class="nb">dir</span><span class="o">=</span><span class="s2">&quot;.&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">tmp</span><span class="p">:</span>
+            <span class="n">h2o_path</span> <span class="o">=</span> <span class="n">get_structure_path</span><span class="p">(</span><span class="s2">&quot;H2O&quot;</span><span class="p">,</span> <span class="n">tmp</span><span class="p">)</span>
+            <span class="n">h2o</span> <span class="o">=</span> <span class="n">AtomicSystem</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="n">h2o_path</span><span class="p">)</span>
+
+            <span class="n">structures</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">PackmolStructure</span><span class="p">(</span>
+                    <span class="n">structure</span><span class="o">=</span><span class="n">h2o</span><span class="p">,</span>
+                    <span class="n">number</span><span class="o">=</span><span class="n">num_water</span><span class="p">,</span>
+                    <span class="n">inside_sphere</span><span class="o">=</span><span class="n">inside_sphere</span><span class="p">,</span>
+                    <span class="n">above_plane</span><span class="o">=</span><span class="n">above_plane</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="p">]</span>
+
+            <span class="c1"># Solutes</span>
+            <span class="k">for</span> <span class="n">species</span><span class="p">,</span> <span class="n">count</span> <span class="ow">in</span> <span class="n">solute_counts</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">count</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="k">continue</span>
+
+                <span class="n">structure</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">structures</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="n">species</span><span class="p">)</span>
+
+                <span class="n">structures</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="n">PackmolStructure</span><span class="p">(</span>
+                        <span class="n">structure</span><span class="o">=</span><span class="n">structure</span><span class="p">,</span>
+                        <span class="n">number</span><span class="o">=</span><span class="n">count</span><span class="p">,</span>
+                        <span class="n">center</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                        <span class="n">inside_sphere</span><span class="o">=</span><span class="n">inside_sphere</span><span class="p">,</span>
+                        <span class="n">above_plane</span><span class="o">=</span><span class="n">above_plane</span><span class="p">,</span>
+                    <span class="p">)</span>
+                <span class="p">)</span>
+
+            <span class="n">packmol_input</span> <span class="o">=</span> <span class="n">PackmolInput</span><span class="p">(</span>
+                <span class="n">tolerance</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span>
+                <span class="n">output</span><span class="o">=</span><span class="s2">&quot;solution_hemisphere.pdb&quot;</span><span class="p">,</span>
+                <span class="n">filetype</span><span class="o">=</span><span class="s2">&quot;pdb&quot;</span><span class="p">,</span>
+                <span class="n">structures</span><span class="o">=</span><span class="n">structures</span><span class="p">,</span>
+            <span class="p">)</span>
+
+            <span class="n">data</span> <span class="o">=</span> <span class="n">run_packmol</span><span class="p">(</span><span class="n">packmol_input</span><span class="p">)</span>
+        <span class="c1"># Simulation box</span>
+        <span class="n">box_size</span> <span class="o">=</span> <span class="mf">2.5</span> <span class="o">*</span> <span class="n">radius</span>
+        <span class="n">final_box</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">box_size</span><span class="p">,</span>
+            <span class="n">box_size</span><span class="p">,</span>
+            <span class="mf">1.5</span> <span class="o">*</span> <span class="n">radius</span><span class="p">,</span>
+            <span class="mf">90.0</span><span class="p">,</span>
+            <span class="mf">90.0</span><span class="p">,</span>
+            <span class="mf">90.0</span><span class="p">,</span>
+        <span class="p">]</span>
+
+        <span class="n">data</span><span class="o">.</span><span class="n">set_box</span><span class="p">(</span><span class="n">final_box</span><span class="p">)</span>
+
+        <span class="n">data</span><span class="o">.</span><span class="n">_solution_metadata</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;density&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">density</span><span class="p">,</span>
+            <span class="s2">&quot;solutes&quot;</span><span class="p">:</span> <span class="n">solute_counts</span><span class="p">,</span>
+            <span class="s2">&quot;num_water&quot;</span><span class="p">:</span> <span class="n">num_water</span><span class="p">,</span>
+            <span class="s2">&quot;volume&quot;</span><span class="p">:</span> <span class="n">volume</span><span class="p">,</span>
+            <span class="s2">&quot;radius&quot;</span><span class="p">:</span> <span class="n">radius</span><span class="p">,</span>
+            <span class="s2">&quot;axis&quot;</span><span class="p">:</span> <span class="n">axis</span><span class="p">,</span>
+            <span class="s2">&quot;blueprint&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="p">,</span>
+        <span class="p">}</span>
+
         <span class="k">return</span> <span class="n">data</span></div>
 
 </pre></div>

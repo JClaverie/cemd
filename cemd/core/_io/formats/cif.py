@@ -40,13 +40,13 @@ class CIFReader(BaseReader):
         refine : bool, default=True
             If True, refine the structure using SpacegroupAnalyzer.
         """
-        from .pmg import PmgReader
+        from .pmg import PMGReader
 
         parser = CifParser(path)
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", UserWarning)
             structure = parser.parse_structures(primitive=primitive)[0]
 
-        topology = PmgReader.read(structure, refine)
+        topology = PMGReader.read(structure, refine)
 
         return topology

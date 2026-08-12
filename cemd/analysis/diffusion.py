@@ -24,8 +24,6 @@ import pandas as pd
 import scipy.stats as stats
 from tqdm import tqdm
 
-from .._utils import lattice2vectors
-
 
 def _linear_fit(
     t: np.ndarray, msd: np.ndarray, sigma_msd: np.ndarray = None
@@ -89,7 +87,7 @@ def msd(
     sel = univ.select_atoms(f"type {atom_type}")
     box = univ.dimensions
 
-    if nblocks == None or corrlength == None or gaplength == None:
+    if nblocks is None or corrlength is None or gaplength is None:
         corrlength = int(len(univ.trajectory) / 2)
         gaplength = int(len(univ.trajectory) / 50)
         if gaplength == 0:
@@ -223,9 +221,8 @@ def msd_profile(
 
     sel = univ.select_atoms(f"type {atom_type}")
     box = univ.dimensions
-    boxv = lattice2vectors(box)
 
-    if nblocks == None:
+    if nblocks is None:
         nblocks = int((len(univ.trajectory) - corrlength) / gaplength)
 
     if (gaplength * nblocks + corrlength) > len(univ.trajectory):

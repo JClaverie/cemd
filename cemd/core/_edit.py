@@ -23,7 +23,7 @@ from typing import TYPE_CHECKING, Self
 import numpy as np
 
 from .._constants import MASSES_DICT
-from .._utils import lattice2lammps, lattice2vectors, vectors2lattice
+from ._format import BoxFormat, lattice2vectors, normalize_box
 
 if TYPE_CHECKING:
     from .atomic_system import AtomicSystem
@@ -140,13 +140,11 @@ class EditMixin:
         for atom in new_atoms:
             self.add_atom(**atom)
 
-    def protonate_atom(
-        self: AtomicSystem, atom_index: int, bond_length: float = 1.0
-    ) -> AtomicSystem:
+    def protonate_atom(self, atom_index: int, bond_length: float = 1.0) -> AtomicSystem:
         """Add a proton to a single atom."""
         self.protonate_atoms([atom_index], bond_length)
 
-    def remove_atoms(self: AtomicSystem, indices: list[int] | int) -> None:
+    def remove_atoms(self, indices: list[int] | int) -> None:
         """
         Remove the specified atoms and update connectivity accordingly.
 
@@ -219,24 +217,22 @@ class EditMixin:
         self.remove_atoms([index])
 
     def set_box(self, new_box: Sequence[float] | np.ndarray) -> None:
-        """Assign a new box to the system.
+        """Assign a new box to the system and compute all representations.
 
         Parameters
         ----------
         new_box : Sequence[float] or np.ndarray
-            The new box parameters to assign.
+            The box in any valid format (Lattice parameters, LAMMPS bounds/tilts, or 3x3 matrix).
         """
+        # Vider le cache car la géométrie de la boîte change
+        self._cache = {}
 
-        if isinstance(new_box, list):
-            new_box = np.array(new_box)
+        # Conversion/Normalisation vers les 3 formats internes
+        self._box = normalize_box(new_box, target=BoxFormat.LATTICE)
+        self._box_lmp = normalize_box(new_box, target=BoxFormat.LAMMPS)
+        self._box_vectors = normalize_box(new_box, target=BoxFormat.VECTORS)
 
-        self._box = new_box
-        self._lmp_box = lattice2lammps(new_box)
-        self._box_vectors = lattice2vectors(self._box)
-
-    def set_atom_position(
-        self: AtomicSystem, index: int, position: Sequence[float]
-    ) -> AtomicSystem:
+    def set_atom_position(self, index: int, position: Sequence[float]) -> AtomicSystem:
         """Modify the coordinates of a single atom using a vector (x, y, z).
 
         Parameters
@@ -288,7 +284,7 @@ class EditMixin:
 
         # Prepare the basis vectors
         # lattice2vectors returns a (3, 3) matrix where each row is a vector v1, v2, v3
-        vecs = np.array(lattice2vectors(self.box))
+        vecs = np.array(self._box_vectors)
         v1, v2, v3 = vecs[0], vecs[1], vecs[2]
 
         original_atoms = self.atoms.copy()
@@ -365,15 +361,15 @@ class EditMixin:
             return self
 
         # Get the pass matrix (H_matrix)
-        H = np.array(self._box_vectors)
-        inv_H = np.linalg.inv(H)
+        h_matrix = np.array(self._box_vectors)
+        inv_h_matrix = np.linalg.inv(h_matrix)
 
         # Extract current coordinates (N, 3)
         coords = self.atoms[["x", "y", "z"]].values
 
         # Conversion to fractional coordinates (0 to 1)
         # s = r . inv(H)
-        frac_coords = np.dot(coords, inv_H)
+        frac_coords = np.dot(coords, inv_h_matrix)
 
         # Application of modulo 1.0
         # This brings everything into the range [0, 1[
@@ -381,7 +377,7 @@ class EditMixin:
 
         # Return to Cartesian coordinates
         # r_new = s_new . H
-        new_coords = np.dot(frac_coords, H)
+        new_coords = np.dot(frac_coords, h_matrix)
 
         self.atoms[["x", "y", "z"]] = new_coords
 
@@ -422,7 +418,7 @@ class EditMixin:
 
         import pandas as pd
 
-        H = np.array(lattice2vectors(self.box))
+        h_matrix = np.array(lattice2vectors(self.box))
         new_vectors = []
 
         for i in range(3):
@@ -435,7 +431,7 @@ class EditMixin:
                         if m == 0 and n == 0 and o == 0:
                             continue
 
-                        v_cand = m * H[0] + n * H[1] + o * H[2]
+                        v_cand = m * h_matrix[0] + n * h_matrix[1] + o * h_matrix[2]
                         # check the alignment with the i axis
                         others = [v_cand[j] for j in range(3) if j != i]
 
@@ -458,12 +454,12 @@ class EditMixin:
             abs(new_vectors[1][1]),
             abs(new_vectors[2][2]),
         ]
-        new_H = np.diag(diag_dim)
+        new_h_matrix = np.diag(diag_dim)
 
         search_range = np.arange(-max_replica, max_replica + 1)
         m_grid, n_grid, o_grid = np.meshgrid(search_range, search_range, search_range)
         translations = np.vstack([m_grid.ravel(), n_grid.ravel(), o_grid.ravel()]).T
-        translation_vectors = translations @ H
+        translation_vectors = translations @ h_matrix
 
         all_replicas = []
         eps = 1e-5
@@ -494,7 +490,7 @@ class EditMixin:
         if "id" in self.atoms.columns:
             self.atoms["id"] = range(1, len(self.atoms) + 1)
 
-        self.set_box(vectors2lattice(tuple(new_H)))
+        self.set_box(tuple(new_h_matrix))
 
     def unskew(self) -> None:
         """
@@ -513,7 +509,7 @@ class EditMixin:
                     while boxm[i, j] < -0.5 * boxm[i, i]:
                         boxm[i] += boxm[j]
 
-        self.set_box(vectors2lattice((boxm[0], boxm[1], boxm[2])))
+        self.set_box((boxm[0], boxm[1], boxm[2]))
         self.wrap()
 
     def center_on_com(self, atom_types: list[str] | None = None) -> None:

@@ -404,23 +404,22 @@
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">MDAnalysis</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">mda</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">MDAnalysis</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">mda</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">scipy.stats</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">stats</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">tqdm</span><span class="w"> </span><span class="kn">import</span> <span class="n">tqdm</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">.._utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">lattice2vectors</span>
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_linear_fit</span><span class="p">(</span><span class="n">t</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> 
-                <span class="n">msd</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> 
-                <span class="n">sigma_msd</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_linear_fit</span><span class="p">(</span>
+    <span class="n">t</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">msd</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">sigma_msd</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
 
     <span class="k">if</span> <span class="n">sigma_msd</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">w</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">sigma_msd</span>
 
-        <span class="n">fit</span><span class="p">,</span> <span class="n">cov_matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">polyfit</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">msd</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">w</span><span class="o">=</span><span class="n">w</span><span class="p">,</span> <span class="n">cov</span><span class="o">=</span><span class="s1">&#39;unscaled&#39;</span><span class="p">)</span>
+        <span class="n">fit</span><span class="p">,</span> <span class="n">cov_matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">polyfit</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">msd</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">w</span><span class="o">=</span><span class="n">w</span><span class="p">,</span> <span class="n">cov</span><span class="o">=</span><span class="s2">&quot;unscaled&quot;</span><span class="p">)</span>
 
     <span class="k">else</span><span class="p">:</span>
         <span class="n">fit</span><span class="p">,</span> <span class="n">cov_matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">polyfit</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">msd</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">cov</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -440,12 +439,14 @@
 
 <div class="viewcode-block" id="msd">
 <a class="viewcode-back" href="../../../api/generated/cemd.analysis.msd.html#cemd.analysis.msd">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">msd</span><span class="p">(</span><span class="n">univ</span><span class="p">:</span> <span class="n">mda</span><span class="o">.</span><span class="n">Universe</span><span class="p">,</span> 
-             <span class="n">atom_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> 
-             <span class="n">dt</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="mf">100.0</span><span class="p">,</span> 
-             <span class="n">nblocks</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> 
-             <span class="n">corrlength</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> 
-             <span class="n">gaplength</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">msd</span><span class="p">(</span>
+    <span class="n">univ</span><span class="p">:</span> <span class="n">mda</span><span class="o">.</span><span class="n">Universe</span><span class="p">,</span>
+    <span class="n">atom_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">dt</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">100.0</span><span class="p">,</span>
+    <span class="n">nblocks</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">corrlength</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">gaplength</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Calculate the diffusion coefficient in a bulk solution from the mean squared displacement (MSD).</span>
 
 <span class="sd">    Uses Einstein&#39;s equation:</span>
@@ -472,49 +473,54 @@
 <span class="sd">        DataFrame containing MSD values over time.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="n">sel</span> <span class="o">=</span> <span class="n">univ</span><span class="o">.</span><span class="n">select_atoms</span><span class="p">(</span><span class="s2">&quot;type </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">atom_type</span><span class="p">))</span>
+    <span class="n">sel</span> <span class="o">=</span> <span class="n">univ</span><span class="o">.</span><span class="n">select_atoms</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;type </span><span class="si">{</span><span class="n">atom_type</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
     <span class="n">box</span> <span class="o">=</span> <span class="n">univ</span><span class="o">.</span><span class="n">dimensions</span>
 
-    <span class="k">if</span> <span class="n">nblocks</span> <span class="o">==</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">corrlength</span> <span class="o">==</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">gaplength</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">nblocks</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">corrlength</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">gaplength</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">corrlength</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">univ</span><span class="o">.</span><span class="n">trajectory</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
         <span class="n">gaplength</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">univ</span><span class="o">.</span><span class="n">trajectory</span><span class="p">)</span> <span class="o">/</span> <span class="mi">50</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">gaplength</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">gaplength</span> <span class="o">=</span> <span class="mi">1</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Warning: The trajectory is too short so the gap between blocks was set to 1.&quot;</span><span class="p">)</span>
-        <span class="n">nblocks</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">univ</span><span class="o">.</span><span class="n">trajectory</span><span class="p">)</span> <span class="o">-</span> <span class="n">corrlength</span><span class="p">)</span> <span class="o">/</span> <span class="n">gaplength</span> <span class="p">)</span>
-        
-    <span class="k">if</span> <span class="p">(</span><span class="n">gaplength</span> <span class="o">*</span> <span class="n">nblocks</span> <span class="o">+</span> <span class="n">corrlength</span><span class="p">)</span> <span class="o">&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">univ</span><span class="o">.</span><span class="n">trajectory</span><span class="p">):</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Gap between correlation block, correlation length, or number of block too large.&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span>
+                <span class="s2">&quot;Warning: The trajectory is too short so the gap between blocks was set to 1.&quot;</span>
+            <span class="p">)</span>
+        <span class="n">nblocks</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">univ</span><span class="o">.</span><span class="n">trajectory</span><span class="p">)</span> <span class="o">-</span> <span class="n">corrlength</span><span class="p">)</span> <span class="o">/</span> <span class="n">gaplength</span><span class="p">)</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Compute the profile of the mean-squared displacement on </span><span class="si">{}</span><span class="s2"> </span><span class="si">{}</span><span class="s2"> atoms...&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">sel</span><span class="p">),</span> <span class="n">atom_type</span><span class="p">))</span>   
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Total number of frames: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">univ</span><span class="o">.</span><span class="n">trajectory</span><span class="p">)))</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Timestep between frames: </span><span class="si">{}</span><span class="s2"> fs&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">dt</span><span class="p">))</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Number of blocks for calculation: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">nblocks</span><span class="p">))</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Length of blocks: </span><span class="si">{}</span><span class="s2"> frames / </span><span class="si">{:.2f}</span><span class="s2"> ps&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-        <span class="n">corrlength</span><span class="p">,</span> <span class="n">corrlength</span> <span class="o">*</span> <span class="n">dt</span> <span class="o">*</span> <span class="mf">1e-3</span><span class="p">))</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Length between origins: </span><span class="si">{}</span><span class="s2"> frames / </span><span class="si">{:.2f}</span><span class="s2"> ps</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-        <span class="n">gaplength</span><span class="p">,</span> <span class="n">gaplength</span> <span class="o">*</span> <span class="n">dt</span> <span class="o">*</span> <span class="mf">1e-3</span><span class="p">))</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">gaplength</span> <span class="o">*</span> <span class="n">nblocks</span> <span class="o">+</span> <span class="n">corrlength</span><span class="p">)</span> <span class="o">&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">univ</span><span class="o">.</span><span class="n">trajectory</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s2">&quot;Gap between correlation block, correlation length, or number of block too large.&quot;</span>
+        <span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">&quot;Compute the profile of the mean-squared displacement on </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">sel</span><span class="p">)</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">atom_type</span><span class="si">}</span><span class="s2"> atoms...&quot;</span>
+    <span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Total number of frames: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">univ</span><span class="o">.</span><span class="n">trajectory</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Timestep between frames: </span><span class="si">{</span><span class="n">dt</span><span class="si">}</span><span class="s2"> fs&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Number of blocks for calculation: </span><span class="si">{</span><span class="n">nblocks</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Length of blocks: </span><span class="si">{</span><span class="n">corrlength</span><span class="si">}</span><span class="s2"> frames / </span><span class="si">{</span><span class="n">corrlength</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">dt</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">1e-3</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> ps&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">&quot;Length between origins: </span><span class="si">{</span><span class="n">gaplength</span><span class="si">}</span><span class="s2"> frames / </span><span class="si">{</span><span class="n">gaplength</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">dt</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">1e-3</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> ps</span><span class="se">\n</span><span class="s2">&quot;</span>
+    <span class="p">)</span>
 
     <span class="k">if</span> <span class="n">nblocks</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-        <span class="n">starts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">nblocks</span> <span class="o">*</span> <span class="n">gaplength</span> <span class="p">,</span> <span class="n">gaplength</span><span class="p">)</span>
+        <span class="n">starts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">nblocks</span> <span class="o">*</span> <span class="n">gaplength</span><span class="p">,</span> <span class="n">gaplength</span><span class="p">)</span>
         <span class="n">ends</span> <span class="o">=</span> <span class="n">starts</span> <span class="o">+</span> <span class="n">corrlength</span>
-    <span class="k">else</span><span class="p">:</span> 
+    <span class="k">else</span><span class="p">:</span>
         <span class="n">starts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">])</span>
         <span class="n">ends</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">corrlength</span><span class="p">])</span>
-    
-    <span class="n">t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">corrlength</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">dt</span> <span class="o">/</span> <span class="mi">1000</span> <span class="c1"># time in picosecond</span>
+
+    <span class="n">t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">corrlength</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">dt</span> <span class="o">/</span> <span class="mi">1000</span>  <span class="c1"># time in picosecond</span>
 
     <span class="n">msd_dic</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s1">&#39;xx&#39;</span><span class="p">:</span> <span class="p">[],</span>
-    <span class="s1">&#39;yy&#39;</span><span class="p">:</span> <span class="p">[],</span>
-    <span class="s1">&#39;zz&#39;</span><span class="p">:</span> <span class="p">[],</span>
-    <span class="s1">&#39;xy&#39;</span><span class="p">:</span> <span class="p">[],</span>
-    <span class="s1">&#39;xz&#39;</span><span class="p">:</span> <span class="p">[],</span>
-    <span class="s1">&#39;yz&#39;</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s2">&quot;xx&quot;</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s2">&quot;yy&quot;</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s2">&quot;zz&quot;</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s2">&quot;xy&quot;</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s2">&quot;xz&quot;</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s2">&quot;yz&quot;</span><span class="p">:</span> <span class="p">[],</span>
     <span class="p">}</span>
 
-    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span> <span class="n">tqdm</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">starts</span><span class="p">,</span> <span class="n">ends</span><span class="p">),</span> <span class="n">total</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">starts</span><span class="p">)),</span> <span class="mi">1</span><span class="p">):</span>
-
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">tqdm</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">starts</span><span class="p">,</span> <span class="n">ends</span><span class="p">),</span> <span class="n">total</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">starts</span><span class="p">)),</span> <span class="mi">1</span><span class="p">):</span>
         <span class="c1"># initialize the trajectory</span>
         <span class="n">univ</span><span class="o">.</span><span class="n">trajectory</span><span class="p">[</span><span class="n">start</span><span class="p">]</span>
 
@@ -527,7 +533,6 @@
         <span class="n">msd_values</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="p">[]</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">msd_dic</span><span class="o">.</span><span class="n">keys</span><span class="p">()}</span>
 
         <span class="k">for</span> <span class="n">ts</span> <span class="ow">in</span> <span class="n">univ</span><span class="o">.</span><span class="n">trajectory</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">end</span><span class="p">]:</span>
-
             <span class="c1"># collect positions w.r.t the center of mass to remove the drift</span>
             <span class="n">pos</span> <span class="o">=</span> <span class="n">sel</span><span class="o">.</span><span class="n">positions</span>
             <span class="n">r</span> <span class="o">=</span> <span class="n">pos</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">pos</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
@@ -536,17 +541,17 @@
             <span class="n">dd</span> <span class="o">=</span> <span class="n">r</span> <span class="o">-</span> <span class="n">rr</span>
 
             <span class="c1"># Taking PBC into account</span>
-            <span class="n">dd</span> <span class="o">-=</span> <span class="n">box</span><span class="p">[:</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">T</span> <span class="o">*</span> <span class="p">(</span><span class="n">dd</span><span class="o">/</span><span class="n">box</span><span class="p">[:</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">)</span><span class="o">.</span><span class="n">round</span><span class="p">()</span>
+            <span class="n">dd</span> <span class="o">-=</span> <span class="n">box</span><span class="p">[:</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">T</span> <span class="o">*</span> <span class="p">(</span><span class="n">dd</span> <span class="o">/</span> <span class="n">box</span><span class="p">[:</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">)</span><span class="o">.</span><span class="n">round</span><span class="p">()</span>
 
             <span class="c1"># Add the the differential displacement to the total displacement</span>
             <span class="n">d</span> <span class="o">+=</span> <span class="n">dd</span>
 
-            <span class="n">msd_values</span><span class="p">[</span><span class="s1">&#39;xx&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">d</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">d</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]))</span>
-            <span class="n">msd_values</span><span class="p">[</span><span class="s1">&#39;yy&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">d</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">d</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]))</span>
-            <span class="n">msd_values</span><span class="p">[</span><span class="s1">&#39;zz&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">d</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">*</span> <span class="n">d</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]))</span>
-            <span class="n">msd_values</span><span class="p">[</span><span class="s1">&#39;xy&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">d</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">d</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]))</span>
-            <span class="n">msd_values</span><span class="p">[</span><span class="s1">&#39;xz&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">d</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">d</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]))</span>
-            <span class="n">msd_values</span><span class="p">[</span><span class="s1">&#39;yz&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">d</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">d</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]))</span>
+            <span class="n">msd_values</span><span class="p">[</span><span class="s2">&quot;xx&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">d</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">d</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]))</span>
+            <span class="n">msd_values</span><span class="p">[</span><span class="s2">&quot;yy&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">d</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">d</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]))</span>
+            <span class="n">msd_values</span><span class="p">[</span><span class="s2">&quot;zz&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">d</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">*</span> <span class="n">d</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]))</span>
+            <span class="n">msd_values</span><span class="p">[</span><span class="s2">&quot;xy&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">d</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">d</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]))</span>
+            <span class="n">msd_values</span><span class="p">[</span><span class="s2">&quot;xz&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">d</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">d</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]))</span>
+            <span class="n">msd_values</span><span class="p">[</span><span class="s2">&quot;yz&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">d</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">d</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]))</span>
 
             <span class="c1"># save last frame position w.r.t the center of mass to remove the drift</span>
             <span class="n">rr</span> <span class="o">=</span> <span class="n">r</span>
@@ -554,25 +559,25 @@
         <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">values</span> <span class="ow">in</span> <span class="n">msd_values</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="n">msd_dic</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">values</span><span class="p">))</span>
 
-    <span class="n">data_dic</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="n">key</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">values</span> <span class="ow">in</span> <span class="n">msd_dic</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
-    <span class="p">}</span>
+    <span class="n">data_dic</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">values</span> <span class="ow">in</span> <span class="n">msd_dic</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
 
-    <span class="n">dfo</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data_dic</span><span class="p">,</span> <span class="n">index</span> <span class="o">=</span> <span class="n">t</span><span class="p">)</span>
-    <span class="n">dfo</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;time&#39;</span>
+    <span class="n">dfo</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data_dic</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">t</span><span class="p">)</span>
+    <span class="n">dfo</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;time&quot;</span>
 
     <span class="k">return</span> <span class="n">dfo</span></div>
 
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">msd_profile</span><span class="p">(</span><span class="n">univ</span><span class="p">:</span> <span class="n">mda</span><span class="o">.</span><span class="n">Universe</span><span class="p">,</span> 
-                <span class="n">atom_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> 
-                <span class="n">dt</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> 
-                <span class="n">axis</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="s1">&#39;z&#39;</span><span class="p">,</span> 
-                <span class="n">nblocks</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> 
-                <span class="n">corrlength</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> 
-                <span class="n">gaplength</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> 
-                <span class="n">delta</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">MultiIndex</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">MultiIndex</span><span class="p">]:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">msd_profile</span><span class="p">(</span>
+    <span class="n">univ</span><span class="p">:</span> <span class="n">mda</span><span class="o">.</span><span class="n">Universe</span><span class="p">,</span>
+    <span class="n">atom_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">dt</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span>
+    <span class="n">axis</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;z&quot;</span><span class="p">,</span>
+    <span class="n">nblocks</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">corrlength</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span>
+    <span class="n">gaplength</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span>
+    <span class="n">delta</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">MultiIndex</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">MultiIndex</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Calculate a profile of diffusion coefficients at a liquid/solid interface.</span>
 
 <span class="sd">    Parameters</span>
@@ -603,32 +608,33 @@
 <span class="sd">    dict</span>
 <span class="sd">        Coordinate variation during measurement.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    
-    <span class="n">sel</span> <span class="o">=</span> <span class="n">univ</span><span class="o">.</span><span class="n">select_atoms</span><span class="p">(</span><span class="s2">&quot;type </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">atom_type</span><span class="p">))</span>
-    <span class="n">box</span> <span class="o">=</span> <span class="n">univ</span><span class="o">.</span><span class="n">dimensions</span>
-    <span class="n">boxv</span> <span class="o">=</span> <span class="n">lattice2vectors</span><span class="p">(</span><span class="n">box</span><span class="p">)</span>
 
-    <span class="k">if</span> <span class="n">nblocks</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">nblocks</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">univ</span><span class="o">.</span><span class="n">trajectory</span><span class="p">)</span> <span class="o">-</span> <span class="n">corrlength</span><span class="p">)</span> <span class="o">/</span> <span class="n">gaplength</span><span class="p">)</span>
-   
+    <span class="n">sel</span> <span class="o">=</span> <span class="n">univ</span><span class="o">.</span><span class="n">select_atoms</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;type </span><span class="si">{</span><span class="n">atom_type</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">box</span> <span class="o">=</span> <span class="n">univ</span><span class="o">.</span><span class="n">dimensions</span>
+
+    <span class="k">if</span> <span class="n">nblocks</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">nblocks</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">univ</span><span class="o">.</span><span class="n">trajectory</span><span class="p">)</span> <span class="o">-</span> <span class="n">corrlength</span><span class="p">)</span> <span class="o">/</span> <span class="n">gaplength</span><span class="p">)</span>
+
     <span class="k">if</span> <span class="p">(</span><span class="n">gaplength</span> <span class="o">*</span> <span class="n">nblocks</span> <span class="o">+</span> <span class="n">corrlength</span><span class="p">)</span> <span class="o">&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">univ</span><span class="o">.</span><span class="n">trajectory</span><span class="p">):</span>
-        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Gap between correlation block, correlation length, or number of block too large.&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span>
+            <span class="s2">&quot;Gap between correlation block, correlation length, or number of block too large.&quot;</span>
+        <span class="p">)</span>
 
     <span class="k">if</span> <span class="n">nblocks</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-        <span class="n">starts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">nblocks</span> <span class="o">*</span> <span class="n">gaplength</span> <span class="p">,</span> <span class="n">gaplength</span><span class="p">)</span>
+        <span class="n">starts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">nblocks</span> <span class="o">*</span> <span class="n">gaplength</span><span class="p">,</span> <span class="n">gaplength</span><span class="p">)</span>
         <span class="n">ends</span> <span class="o">=</span> <span class="n">starts</span> <span class="o">+</span> <span class="n">corrlength</span>
-    <span class="k">else</span><span class="p">:</span> 
+    <span class="k">else</span><span class="p">:</span>
         <span class="n">starts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">])</span>
         <span class="n">ends</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">corrlength</span><span class="p">])</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Compute the profile of the mean-squared displacement on </span><span class="si">{}</span><span class="s2"> </span><span class="si">{}</span><span class="s2"> atoms along the </span><span class="si">{}</span><span class="s2"> axis...&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">sel</span><span class="p">),</span> <span class="n">atom_type</span><span class="p">,</span> <span class="n">axis</span><span class="p">))</span>   
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Total number of frames: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">univ</span><span class="o">.</span><span class="n">trajectory</span><span class="p">)))</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Timestep between frames: </span><span class="si">{}</span><span class="s2"> fs&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">dt</span><span class="p">))</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Number of blocks: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">nblocks</span><span class="p">))</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Length of blocks: </span><span class="si">{}</span><span class="s2"> frames / </span><span class="si">{}</span><span class="s2"> ps&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-        <span class="n">corrlength</span><span class="p">,</span> <span class="n">corrlength</span><span class="o">*</span><span class="n">dt</span><span class="o">*</span><span class="mf">1e-3</span><span class="p">))</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Gap between origins: </span><span class="si">{}</span><span class="s2"> frames / </span><span class="si">{}</span><span class="s2"> ps</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-        <span class="n">gaplength</span><span class="p">,</span> <span class="n">gaplength</span><span class="o">*</span><span class="n">dt</span><span class="o">*</span><span class="mf">1e-3</span><span class="p">))</span> 
+    <span class="nb">print</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">&quot;Compute the profile of the mean-squared displacement on </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">sel</span><span class="p">)</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">atom_type</span><span class="si">}</span><span class="s2"> atoms along the </span><span class="si">{</span><span class="n">axis</span><span class="si">}</span><span class="s2"> axis...&quot;</span>
+    <span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Total number of frames: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">univ</span><span class="o">.</span><span class="n">trajectory</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Timestep between frames: </span><span class="si">{</span><span class="n">dt</span><span class="si">}</span><span class="s2"> fs&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Number of blocks: </span><span class="si">{</span><span class="n">nblocks</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Length of blocks: </span><span class="si">{</span><span class="n">corrlength</span><span class="si">}</span><span class="s2"> frames / </span><span class="si">{</span><span class="n">corrlength</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">dt</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">1e-3</span><span class="si">}</span><span class="s2"> ps&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Gap between origins: </span><span class="si">{</span><span class="n">gaplength</span><span class="si">}</span><span class="s2"> frames / </span><span class="si">{</span><span class="n">gaplength</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">dt</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">1e-3</span><span class="si">}</span><span class="s2"> ps</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">axis</span> <span class="o">==</span> <span class="s2">&quot;x&quot;</span><span class="p">:</span>
         <span class="n">axid</span> <span class="o">=</span> <span class="mi">0</span>
@@ -649,52 +655,51 @@
     <span class="c1"># std_pos = np.array([], dtype=np.float64)</span>
 
     <span class="n">msd_per_block</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s1">&#39;xx&#39;</span><span class="p">:</span> <span class="p">[],</span>
-    <span class="s1">&#39;yy&#39;</span><span class="p">:</span> <span class="p">[],</span>
-    <span class="s1">&#39;zz&#39;</span><span class="p">:</span> <span class="p">[],</span>
-    <span class="s1">&#39;xy&#39;</span><span class="p">:</span> <span class="p">[],</span>
-    <span class="s1">&#39;xz&#39;</span><span class="p">:</span> <span class="p">[],</span>
-    <span class="s1">&#39;yz&#39;</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s2">&quot;xx&quot;</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s2">&quot;yy&quot;</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s2">&quot;zz&quot;</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s2">&quot;xy&quot;</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s2">&quot;xz&quot;</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s2">&quot;yz&quot;</span><span class="p">:</span> <span class="p">[],</span>
     <span class="p">}</span>
 
     <span class="n">msd_df_dic</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s1">&#39;xx&#39;</span><span class="p">:</span> <span class="p">[],</span>
-    <span class="s1">&#39;yy&#39;</span><span class="p">:</span> <span class="p">[],</span>
-    <span class="s1">&#39;zz&#39;</span><span class="p">:</span> <span class="p">[],</span>
-    <span class="s1">&#39;xy&#39;</span><span class="p">:</span> <span class="p">[],</span>
-    <span class="s1">&#39;xz&#39;</span><span class="p">:</span> <span class="p">[],</span>
-    <span class="s1">&#39;yz&#39;</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s2">&quot;xx&quot;</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s2">&quot;yy&quot;</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s2">&quot;zz&quot;</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s2">&quot;xy&quot;</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s2">&quot;xz&quot;</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s2">&quot;yz&quot;</span><span class="p">:</span> <span class="p">[],</span>
     <span class="p">}</span>
 
     <span class="n">std_df_dic</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s1">&#39;xx&#39;</span><span class="p">:</span> <span class="p">[],</span>
-    <span class="s1">&#39;yy&#39;</span><span class="p">:</span> <span class="p">[],</span>
-    <span class="s1">&#39;zz&#39;</span><span class="p">:</span> <span class="p">[],</span>
-    <span class="s1">&#39;xy&#39;</span><span class="p">:</span> <span class="p">[],</span>
-    <span class="s1">&#39;xz&#39;</span><span class="p">:</span> <span class="p">[],</span>
-    <span class="s1">&#39;yz&#39;</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s2">&quot;xx&quot;</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s2">&quot;yy&quot;</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s2">&quot;zz&quot;</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s2">&quot;xy&quot;</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s2">&quot;xz&quot;</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s2">&quot;yz&quot;</span><span class="p">:</span> <span class="p">[],</span>
     <span class="p">}</span>
 
     <span class="n">error_df_dic</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s1">&#39;xx&#39;</span><span class="p">:</span> <span class="p">[],</span>
-    <span class="s1">&#39;yy&#39;</span><span class="p">:</span> <span class="p">[],</span>
-    <span class="s1">&#39;zz&#39;</span><span class="p">:</span> <span class="p">[],</span>
-    <span class="s1">&#39;xy&#39;</span><span class="p">:</span> <span class="p">[],</span>
-    <span class="s1">&#39;xz&#39;</span><span class="p">:</span> <span class="p">[],</span>
-    <span class="s1">&#39;yz&#39;</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s2">&quot;xx&quot;</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s2">&quot;yy&quot;</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s2">&quot;zz&quot;</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s2">&quot;xy&quot;</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s2">&quot;xz&quot;</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s2">&quot;yz&quot;</span><span class="p">:</span> <span class="p">[],</span>
     <span class="p">}</span>
 
-    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span> <span class="n">tqdm</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">starts</span><span class="p">,</span> <span class="n">ends</span><span class="p">),</span> <span class="n">total</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">starts</span><span class="p">)),</span> <span class="mi">1</span><span class="p">):</span>
-        
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">tqdm</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">starts</span><span class="p">,</span> <span class="n">ends</span><span class="p">),</span> <span class="n">total</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">starts</span><span class="p">)),</span> <span class="mi">1</span><span class="p">):</span>
         <span class="c1"># initialize the trajectory</span>
         <span class="n">univ</span><span class="o">.</span><span class="n">trajectory</span><span class="p">[</span><span class="n">start</span><span class="p">]</span>
 
         <span class="c1"># create the selection of atoms</span>
-        <span class="n">sel</span> <span class="o">=</span> <span class="n">univ</span><span class="o">.</span><span class="n">select_atoms</span><span class="p">(</span><span class="s2">&quot;type </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">atom_type</span><span class="p">))</span>
+        <span class="n">sel</span> <span class="o">=</span> <span class="n">univ</span><span class="o">.</span><span class="n">select_atoms</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;type </span><span class="si">{</span><span class="n">atom_type</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
         <span class="c1"># get the reference positions at the start of the block</span>
         <span class="n">rpos</span> <span class="o">=</span> <span class="n">sel</span><span class="o">.</span><span class="n">positions</span>
-        <span class="n">rposbyframe</span> <span class="o">=</span> <span class="n">sel</span><span class="o">.</span><span class="n">positions</span> <span class="c1"># to avoid problem due to PBC</span>
+        <span class="n">rposbyframe</span> <span class="o">=</span> <span class="n">sel</span><span class="o">.</span><span class="n">positions</span>  <span class="c1"># to avoid problem due to PBC</span>
 
         <span class="c1"># initialize total dr and msd</span>
         <span class="n">d</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">rpos</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
@@ -703,7 +708,6 @@
         <span class="n">positions_per_block</span> <span class="o">=</span> <span class="p">[]</span>
 
         <span class="k">for</span> <span class="n">ts</span> <span class="ow">in</span> <span class="n">univ</span><span class="o">.</span><span class="n">trajectory</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">end</span><span class="p">]:</span>
-
             <span class="c1"># collect positions</span>
             <span class="n">pos</span> <span class="o">=</span> <span class="n">sel</span><span class="o">.</span><span class="n">positions</span>
 
@@ -717,24 +721,24 @@
             <span class="c1">#     dd[idx] += boxv[i]</span>
 
             <span class="c1"># take PBC into account</span>
-            <span class="n">dd</span> <span class="o">-=</span> <span class="n">box</span><span class="p">[:</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">T</span> <span class="o">*</span> <span class="p">(</span><span class="n">dd</span><span class="o">/</span><span class="n">box</span><span class="p">[:</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">)</span><span class="o">.</span><span class="n">round</span><span class="p">()</span>
+            <span class="n">dd</span> <span class="o">-=</span> <span class="n">box</span><span class="p">[:</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">T</span> <span class="o">*</span> <span class="p">(</span><span class="n">dd</span> <span class="o">/</span> <span class="n">box</span><span class="p">[:</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">)</span><span class="o">.</span><span class="n">round</span><span class="p">()</span>
 
             <span class="c1"># Add the the differential displacement to the total displacement</span>
             <span class="n">d</span> <span class="o">+=</span> <span class="n">dd</span>
 
-            <span class="n">msd_values</span><span class="p">[</span><span class="s1">&#39;xx&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">d</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">d</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">])</span>
-            <span class="n">msd_values</span><span class="p">[</span><span class="s1">&#39;yy&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">d</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">d</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">])</span>
-            <span class="n">msd_values</span><span class="p">[</span><span class="s1">&#39;zz&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">d</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">*</span> <span class="n">d</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">])</span>
-            <span class="n">msd_values</span><span class="p">[</span><span class="s1">&#39;xy&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">d</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">d</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">])</span>
-            <span class="n">msd_values</span><span class="p">[</span><span class="s1">&#39;xz&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">d</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">d</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">])</span>
-            <span class="n">msd_values</span><span class="p">[</span><span class="s1">&#39;yz&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">d</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">d</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">])</span>
+            <span class="n">msd_values</span><span class="p">[</span><span class="s2">&quot;xx&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">d</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">d</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">])</span>
+            <span class="n">msd_values</span><span class="p">[</span><span class="s2">&quot;yy&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">d</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">d</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">])</span>
+            <span class="n">msd_values</span><span class="p">[</span><span class="s2">&quot;zz&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">d</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">*</span> <span class="n">d</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">])</span>
+            <span class="n">msd_values</span><span class="p">[</span><span class="s2">&quot;xy&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">d</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">d</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">])</span>
+            <span class="n">msd_values</span><span class="p">[</span><span class="s2">&quot;xz&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">d</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">d</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">])</span>
+            <span class="n">msd_values</span><span class="p">[</span><span class="s2">&quot;yz&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">d</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">d</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">])</span>
 
-            <span class="n">positions_intra_block</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">rposbyframe</span><span class="o">+</span><span class="n">dd</span><span class="p">)[:,</span><span class="n">axid</span><span class="p">])</span>
+            <span class="n">positions_intra_block</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">rposbyframe</span> <span class="o">+</span> <span class="n">dd</span><span class="p">)[:,</span> <span class="n">axid</span><span class="p">])</span>
 
             <span class="c1"># save last frame position</span>
             <span class="n">rpos</span> <span class="o">=</span> <span class="n">pos</span>
             <span class="n">rposbyframe</span> <span class="o">+=</span> <span class="n">dd</span>
-            
+
         <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">values</span> <span class="ow">in</span> <span class="n">msd_values</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="n">msd_per_block</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">values</span><span class="p">)</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
             <span class="c1"># msd_dic[key].extend(np.array(values).T)</span>
@@ -759,38 +763,57 @@
             <span class="n">bin_index</span> <span class="o">-=</span> <span class="mi">1</span>
         <span class="n">column_groups</span><span class="p">[</span><span class="n">bin_index</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">col_index</span><span class="p">)</span>
 
-    <span class="n">coords_var_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">j</span><span class="p">:</span> <span class="n">positions_array</span><span class="p">[</span><span class="n">column_groups</span><span class="p">[</span><span class="n">i</span><span class="p">],:]</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">positions_array</span><span class="p">[</span><span class="n">column_groups</span><span class="p">[</span><span class="n">i</span><span class="p">],:]</span><span class="o">.</span><span class="n">flatten</span><span class="p">())</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">binned_pos</span><span class="p">,</span><span class="mi">2</span><span class="p">))}</span>
+    <span class="n">coords_var_dict</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">j</span><span class="p">:</span> <span class="n">positions_array</span><span class="p">[</span><span class="n">column_groups</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="p">:]</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+        <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">positions_array</span><span class="p">[</span><span class="n">column_groups</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="p">:]</span><span class="o">.</span><span class="n">flatten</span><span class="p">())</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">binned_pos</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+    <span class="p">}</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">remove_empty_arrays</span><span class="p">(</span><span class="n">input_dict</span><span class="p">):</span>
         <span class="n">keys_to_remove</span> <span class="o">=</span> <span class="p">[</span><span class="n">key</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">input_dict</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">value</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">]</span>
         <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">keys_to_remove</span><span class="p">:</span>
             <span class="k">del</span> <span class="n">input_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">input_dict</span>
-    
+
     <span class="n">coords_var_dict</span> <span class="o">=</span> <span class="n">remove_empty_arrays</span><span class="p">(</span><span class="n">coords_var_dict</span><span class="p">)</span>
-        
+
     <span class="c1"># create the histogram for MSD</span>
     <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">values</span> <span class="ow">in</span> <span class="n">msd_dic</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-    
-        <span class="n">binned_msd</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">values</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">((</span><span class="n">avg_pos</span> <span class="o">&gt;</span> <span class="n">low</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">avg_pos</span> <span class="o">&lt;=</span> <span class="n">high</span><span class="p">))],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="k">for</span> <span class="n">low</span><span class="p">,</span> <span class="n">high</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">drange</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">drange</span><span class="p">[</span><span class="mi">1</span><span class="p">:])])</span>
-        <span class="n">binned_std_msd</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">values</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">((</span><span class="n">avg_pos</span> <span class="o">&gt;</span> <span class="n">low</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">avg_pos</span> <span class="o">&lt;=</span> <span class="n">high</span><span class="p">))],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="k">for</span> <span class="n">low</span><span class="p">,</span> <span class="n">high</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">drange</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">drange</span><span class="p">[</span><span class="mi">1</span><span class="p">:])])</span>
+        <span class="n">binned_msd</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">values</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">((</span><span class="n">avg_pos</span> <span class="o">&gt;</span> <span class="n">low</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">avg_pos</span> <span class="o">&lt;=</span> <span class="n">high</span><span class="p">))],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">low</span><span class="p">,</span> <span class="n">high</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">drange</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">drange</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+            <span class="p">]</span>
+        <span class="p">)</span>
+        <span class="n">binned_std_msd</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">values</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">((</span><span class="n">avg_pos</span> <span class="o">&gt;</span> <span class="n">low</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">avg_pos</span> <span class="o">&lt;=</span> <span class="n">high</span><span class="p">))],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">low</span><span class="p">,</span> <span class="n">high</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">drange</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">drange</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+            <span class="p">]</span>
+        <span class="p">)</span>
 
         <span class="n">binned_pos_final</span> <span class="o">=</span> <span class="n">binned_pos</span><span class="p">[</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">binned_msd</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)]</span>
         <span class="n">binned_msd</span> <span class="o">=</span> <span class="n">binned_msd</span><span class="p">[</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">binned_msd</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)]</span>
         <span class="n">binned_std_msd</span> <span class="o">=</span> <span class="n">binned_std_msd</span><span class="p">[</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">binned_std_msd</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)]</span>
 
-        <span class="n">msd_df_dic</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">binned_msd</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">t</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">binned_pos_final</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
-        <span class="n">std_df_dic</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">binned_std_msd</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">t</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">binned_pos_final</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
+        <span class="n">msd_df_dic</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+            <span class="n">binned_msd</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">t</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">binned_pos_final</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">std_df_dic</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+            <span class="n">binned_std_msd</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">t</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">binned_pos_final</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="p">)</span>
 
-        <span class="n">msd_df_dic</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;time&#39;</span>
-        <span class="n">std_df_dic</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;time&#39;</span>
-        
+        <span class="n">msd_df_dic</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;time&quot;</span>
+        <span class="n">std_df_dic</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;time&quot;</span>
+
     <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">msd_df_dic</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">std_df_dic</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span> <span class="n">coords_var_dict</span>
+
 
 <div class="viewcode-block" id="diffusion_coefficient">
 <a class="viewcode-back" href="../../../api/generated/cemd.analysis.diffusion_coefficient.html#cemd.analysis.diffusion_coefficient">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">diffusion_coefficient</span><span class="p">(</span><span class="n">df_msd</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">start</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Calculate the diffusion coefficients for a bulk solution from an MSD DataFrame.</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">diffusion_coefficient</span><span class="p">(</span><span class="n">df_msd</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">start</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+    <span class="p">(</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate the diffusion coefficients for a bulk solution from an MSD DataFrame.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -803,7 +826,9 @@
 <span class="sd">    -------</span>
 <span class="sd">    pd.DataFrame</span>
 <span class="sd">        Calculated diffusion coefficients and errors in m²/s.</span>
-<span class="sd">    &quot;&quot;&quot;</span><span class="s2">&quot;&quot;&quot;Calculate the diffusion coefficients for a bulk solution.&quot;&quot;&quot;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate the diffusion coefficients for a bulk solution.&quot;&quot;&quot;</span>
+    <span class="p">)</span>
     <span class="n">df_msd</span> <span class="o">=</span> <span class="n">df_msd</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">start</span><span class="p">:]</span>
     <span class="n">t</span> <span class="o">=</span> <span class="n">df_msd</span><span class="o">.</span><span class="n">index</span>
 
@@ -812,25 +837,30 @@
 
     <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">df_msd</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
         <span class="n">msd</span> <span class="o">=</span> <span class="n">df_msd</span><span class="p">[</span><span class="n">c</span><span class="p">]</span>
-        
+
         <span class="n">m</span><span class="p">,</span> <span class="n">ci_m</span> <span class="o">=</span> <span class="n">_linear_fit</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">msd</span><span class="p">)</span>
         <span class="n">dc_array</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
         <span class="n">error_array</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ci_m</span><span class="p">)</span>
 
-    <span class="n">res</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">([</span><span class="n">dc_array</span><span class="p">,</span> <span class="n">error_array</span><span class="p">],</span> <span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;DC (m2/s)&#39;</span><span class="p">,</span> <span class="s1">&#39;Error (m2/s)&#39;</span><span class="p">],</span> <span class="n">columns</span><span class="o">=</span><span class="n">df_msd</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+        <span class="p">[</span><span class="n">dc_array</span><span class="p">,</span> <span class="n">error_array</span><span class="p">],</span>
+        <span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;DC (m2/s)&quot;</span><span class="p">,</span> <span class="s2">&quot;Error (m2/s)&quot;</span><span class="p">],</span>
+        <span class="n">columns</span><span class="o">=</span><span class="n">df_msd</span><span class="o">.</span><span class="n">columns</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="n">res</span> <span class="o">*=</span> <span class="mf">1e-8</span> <span class="o">/</span> <span class="mi">2</span>  <span class="c1"># Conversion from A2/ps to m2/s</span>
-    
-    <span class="n">dc_iso</span> <span class="o">=</span> <span class="n">res</span><span class="p">[[</span><span class="s1">&#39;xx&#39;</span><span class="p">,</span> <span class="s1">&#39;yy&#39;</span><span class="p">,</span> <span class="s1">&#39;zz&#39;</span><span class="p">]]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
-    <span class="n">sd_iso</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">((</span><span class="n">res</span><span class="p">[[</span><span class="s1">&#39;xx&#39;</span><span class="p">,</span> <span class="s1">&#39;yy&#39;</span><span class="p">,</span> <span class="s1">&#39;zz&#39;</span><span class="p">]]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span> <span class="o">/</span> <span class="mi">3</span>
 
-    <span class="n">res</span><span class="p">[</span><span class="s1">&#39;3d&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">dc_iso</span><span class="p">,</span> <span class="n">sd_iso</span><span class="p">]</span>
+    <span class="n">dc_iso</span> <span class="o">=</span> <span class="n">res</span><span class="p">[[</span><span class="s2">&quot;xx&quot;</span><span class="p">,</span> <span class="s2">&quot;yy&quot;</span><span class="p">,</span> <span class="s2">&quot;zz&quot;</span><span class="p">]]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+    <span class="n">sd_iso</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">((</span><span class="n">res</span><span class="p">[[</span><span class="s2">&quot;xx&quot;</span><span class="p">,</span> <span class="s2">&quot;yy&quot;</span><span class="p">,</span> <span class="s2">&quot;zz&quot;</span><span class="p">]]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span> <span class="o">/</span> <span class="mi">3</span>
+
+    <span class="n">res</span><span class="p">[</span><span class="s2">&quot;3d&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">dc_iso</span><span class="p">,</span> <span class="n">sd_iso</span><span class="p">]</span>
 
     <span class="k">return</span> <span class="n">res</span></div>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">diffusion_coefficient_profile</span><span class="p">(</span><span class="n">df_msd</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">MultiIndex</span><span class="p">,</span> 
-                      <span class="n">df_std</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">MultiIndex</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> 
-                      <span class="n">start</span><span class="p">:</span><span class="nb">float</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">diffusion_coefficient_profile</span><span class="p">(</span>
+    <span class="n">df_msd</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">MultiIndex</span><span class="p">,</span> <span class="n">df_std</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">MultiIndex</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">start</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Calculate the spatial diffusion coefficient profile from an MSD MultiIndex DataFrame.</span>
 
 <span class="sd">    Parameters</span>
@@ -849,40 +879,54 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">df_msd</span> <span class="o">=</span> <span class="n">df_msd</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">start</span><span class="p">:]</span>
     <span class="n">t</span> <span class="o">=</span> <span class="n">df_msd</span><span class="o">.</span><span class="n">index</span>
-    
+
     <span class="k">if</span> <span class="n">df_std</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">df_std</span> <span class="o">=</span> <span class="n">df_std</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">start</span><span class="p">:]</span>
 
     <span class="n">dc_array</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">error_array</span> <span class="o">=</span> <span class="p">[]</span>
 
-    <span class="n">components</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;xx&#39;</span><span class="p">,</span> <span class="s1">&#39;yy&#39;</span><span class="p">,</span> <span class="s1">&#39;zz&#39;</span><span class="p">,</span> <span class="s1">&#39;xy&#39;</span><span class="p">,</span> <span class="s1">&#39;xz&#39;</span><span class="p">,</span> <span class="s1">&#39;yz&#39;</span><span class="p">]</span>
+    <span class="n">components</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;xx&quot;</span><span class="p">,</span> <span class="s2">&quot;yy&quot;</span><span class="p">,</span> <span class="s2">&quot;zz&quot;</span><span class="p">,</span> <span class="s2">&quot;xy&quot;</span><span class="p">,</span> <span class="s2">&quot;xz&quot;</span><span class="p">,</span> <span class="s2">&quot;yz&quot;</span><span class="p">]</span>
     <span class="k">for</span> <span class="n">comp</span> <span class="ow">in</span> <span class="n">components</span><span class="p">:</span>
         <span class="n">msd_comp</span> <span class="o">=</span> <span class="n">df_msd</span><span class="p">[</span><span class="n">comp</span><span class="p">]</span>
         <span class="n">std_comp</span> <span class="o">=</span> <span class="n">df_std</span><span class="p">[</span><span class="n">comp</span><span class="p">]</span> <span class="k">if</span> <span class="n">df_std</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
-        
+
         <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">msd_comp</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
             <span class="n">msd</span> <span class="o">=</span> <span class="n">msd_comp</span><span class="p">[</span><span class="n">c</span><span class="p">]</span>
             <span class="n">std</span> <span class="o">=</span> <span class="n">std_comp</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="k">if</span> <span class="n">std_comp</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
-            
+
             <span class="n">m</span><span class="p">,</span> <span class="n">ci_m</span> <span class="o">=</span> <span class="n">_linear_fit</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">msd</span><span class="p">,</span> <span class="n">std</span><span class="p">)</span>
             <span class="n">dc_array</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
             <span class="n">error_array</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ci_m</span><span class="p">)</span>
 
-    <span class="n">res</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">([</span><span class="n">dc_array</span><span class="p">,</span> <span class="n">error_array</span><span class="p">],</span> <span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;DC (m2/s)&#39;</span><span class="p">,</span> <span class="s1">&#39;Error (m2/s)&#39;</span><span class="p">],</span> <span class="n">columns</span><span class="o">=</span><span class="n">df_msd</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+        <span class="p">[</span><span class="n">dc_array</span><span class="p">,</span> <span class="n">error_array</span><span class="p">],</span>
+        <span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;DC (m2/s)&quot;</span><span class="p">,</span> <span class="s2">&quot;Error (m2/s)&quot;</span><span class="p">],</span>
+        <span class="n">columns</span><span class="o">=</span><span class="n">df_msd</span><span class="o">.</span><span class="n">columns</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="n">res</span> <span class="o">*=</span> <span class="mf">1e-8</span> <span class="o">/</span> <span class="mi">2</span>
 
     <span class="c1"># Isotropic calculation on the MultiIndex</span>
-    <span class="n">dc_iso</span> <span class="o">=</span> <span class="n">res</span><span class="p">[</span><span class="s1">&#39;xx&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">res</span><span class="p">[</span><span class="s1">&#39;yy&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">res</span><span class="p">[</span><span class="s1">&#39;zz&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">dc_iso</span> <span class="o">=</span> <span class="n">res</span><span class="p">[</span><span class="s2">&quot;xx&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">res</span><span class="p">[</span><span class="s2">&quot;yy&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">res</span><span class="p">[</span><span class="s2">&quot;zz&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
     <span class="n">dc_iso</span> <span class="o">/=</span> <span class="mi">3</span>
-    <span class="n">sd_iso</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="s1">&#39;xx&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">res</span><span class="p">[</span><span class="s1">&#39;yy&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">res</span><span class="p">[</span><span class="s1">&#39;zz&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="mi">3</span>
-    
-    <span class="n">iso_values</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">([</span><span class="n">dc_iso</span><span class="p">,</span> <span class="n">sd_iso</span><span class="p">],</span> <span class="n">index</span><span class="o">=</span><span class="n">res</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">res</span><span class="p">[</span><span class="s1">&#39;xx&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
-    <span class="n">multi_index</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">MultiIndex</span><span class="o">.</span><span class="n">from_product</span><span class="p">([[</span><span class="s1">&#39;iso&#39;</span><span class="p">],</span> <span class="n">iso_values</span><span class="o">.</span><span class="n">columns</span><span class="p">],</span> <span class="n">names</span><span class="o">=</span><span class="n">df_msd</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">names</span><span class="p">)</span>
+    <span class="n">sd_iso</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span>
+            <span class="n">res</span><span class="p">[</span><span class="s2">&quot;xx&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">res</span><span class="p">[</span><span class="s2">&quot;yy&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">res</span><span class="p">[</span><span class="s2">&quot;zz&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span>
+        <span class="p">)</span>
+        <span class="o">/</span> <span class="mi">3</span>
+    <span class="p">)</span>
+
+    <span class="n">iso_values</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+        <span class="p">[</span><span class="n">dc_iso</span><span class="p">,</span> <span class="n">sd_iso</span><span class="p">],</span> <span class="n">index</span><span class="o">=</span><span class="n">res</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">res</span><span class="p">[</span><span class="s2">&quot;xx&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">columns</span>
+    <span class="p">)</span>
+    <span class="n">multi_index</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">MultiIndex</span><span class="o">.</span><span class="n">from_product</span><span class="p">(</span>
+        <span class="p">[[</span><span class="s2">&quot;iso&quot;</span><span class="p">],</span> <span class="n">iso_values</span><span class="o">.</span><span class="n">columns</span><span class="p">],</span> <span class="n">names</span><span class="o">=</span><span class="n">df_msd</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">names</span>
+    <span class="p">)</span>
     <span class="n">iso_values</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="n">multi_index</span>
-    
+
     <span class="n">res</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">res</span><span class="p">,</span> <span class="n">iso_values</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">res</span>
+
 
 <span class="k">def</span><span class="w"> </span><span class="nf">plot_msd</span><span class="p">(</span><span class="n">df_msd</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Plot the MSD values from a pandas DataFrame.</span>
@@ -894,20 +938,20 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="c1"># Plot using Seaborn</span>
-    <span class="n">half_size</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">df_msd</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">half_size</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">df_msd</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
 
     <span class="c1"># Get the colormaps</span>
     <span class="n">cmap</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">get_cmap</span><span class="p">(</span><span class="s2">&quot;coolwarm&quot;</span><span class="p">)</span>
     <span class="n">cmap_r</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">get_cmap</span><span class="p">(</span><span class="s2">&quot;coolwarm_r&quot;</span><span class="p">)</span>
-    
+
     <span class="c1"># Generate arrays of values from 0.0 to 1.0 to sample colors</span>
     <span class="n">colors_forward</span> <span class="o">=</span> <span class="n">cmap</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">half_size</span><span class="p">))</span>
-    
+
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">df_msd</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
         <span class="n">colors_reverse</span> <span class="o">=</span> <span class="n">cmap_r</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">half_size</span><span class="p">))</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">colors_reverse</span> <span class="o">=</span> <span class="n">cmap_r</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">half_size</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)))</span>
-        
+
     <span class="c1"># Combine the lists (Matplotlib handles RGBA arrays natively, no need for hex string conversion)</span>
     <span class="n">palettef</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">([</span><span class="n">colors_forward</span><span class="p">,</span> <span class="n">colors_reverse</span><span class="p">])</span>
 
@@ -915,31 +959,40 @@
     <span class="n">dashes</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">df_msd</span><span class="o">.</span><span class="n">columns</span><span class="p">)):</span>
         <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">i</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">df_msd</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="n">dashes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;--&#39;</span><span class="p">)</span>
+            <span class="n">dashes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;--&quot;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">dashes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="p">)</span>   
+            <span class="n">dashes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">)</span>
 
     <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
     <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">msd</span><span class="p">,</span> <span class="n">col</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">df_msd</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">df_msd</span><span class="o">.</span><span class="n">columns</span><span class="p">)):</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">df_msd</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">msd</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">palettef</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">linestyle</span><span class="o">=</span><span class="n">dashes</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">col</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
-        
+        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
+            <span class="n">df_msd</span><span class="o">.</span><span class="n">index</span><span class="p">,</span>
+            <span class="n">msd</span><span class="p">,</span>
+            <span class="n">color</span><span class="o">=</span><span class="n">palettef</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+            <span class="n">linestyle</span><span class="o">=</span><span class="n">dashes</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+            <span class="n">label</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">col</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
+        <span class="p">)</span>
+
     <span class="c1"># Set labels and title</span>
-    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Time (ps)&#39;</span><span class="p">)</span>
-    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;MSD ($\AA^2$)&#39;</span><span class="p">)</span>
-    <span class="n">ax</span><span class="o">.</span><span class="n">set_xscale</span><span class="p">(</span><span class="s1">&#39;log&#39;</span><span class="p">)</span>
-    <span class="n">ax</span><span class="o">.</span><span class="n">set_yscale</span><span class="p">(</span><span class="s1">&#39;log&#39;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;Time (ps)&quot;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;MSD ($\AA^2$)&quot;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xscale</span><span class="p">(</span><span class="s2">&quot;log&quot;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_yscale</span><span class="p">(</span><span class="s2">&quot;log&quot;</span><span class="p">)</span>
     <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">()</span>
 
     <span class="c1"># Legend labels</span>
-    <span class="n">num_cols</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">df_msd</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span><span class="o">/</span><span class="mi">20</span><span class="p">))</span>
-    <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s1">&#39;z ($\AA$)&#39;</span><span class="p">,</span> <span class="n">bbox_to_anchor</span><span class="o">=</span><span class="p">(</span><span class="mf">1.04</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">),</span> <span class="n">loc</span><span class="o">=</span><span class="s1">&#39;center left&#39;</span><span class="p">,</span> <span class="n">ncols</span><span class="o">=</span><span class="n">num_cols</span><span class="p">)</span>
+    <span class="n">num_cols</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">df_msd</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span> <span class="o">/</span> <span class="mi">20</span><span class="p">))</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span>
+        <span class="n">title</span><span class="o">=</span><span class="s2">&quot;z ($\AA$)&quot;</span><span class="p">,</span> <span class="n">bbox_to_anchor</span><span class="o">=</span><span class="p">(</span><span class="mf">1.04</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">),</span> <span class="n">loc</span><span class="o">=</span><span class="s2">&quot;center left&quot;</span><span class="p">,</span> <span class="n">ncols</span><span class="o">=</span><span class="n">num_cols</span>
+    <span class="p">)</span>
 
     <span class="c1"># Adjust the plot layout to accommodate the legend</span>
-    <span class="n">fig</span><span class="o">.</span><span class="n">subplots_adjust</span><span class="p">(</span><span class="n">right</span><span class="o">=</span><span class="mi">1</span><span class="o">-</span><span class="n">num_cols</span><span class="o">*</span><span class="mf">0.20</span><span class="p">)</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">subplots_adjust</span><span class="p">(</span><span class="n">right</span><span class="o">=</span><span class="mi">1</span> <span class="o">-</span> <span class="n">num_cols</span> <span class="o">*</span> <span class="mf">0.20</span><span class="p">)</span>
 
     <span class="c1"># Show the plot</span>
     <span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
     <span class="n">fig</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
 
 <span class="k">def</span><span class="w"> </span><span class="nf">plot_diffusion_profile</span><span class="p">(</span><span class="n">input_df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Plot the spatial diffusion coefficient profile from a pandas DataFrame.</span>
@@ -954,22 +1007,21 @@
         <span class="n">input_df</span> <span class="o">=</span> <span class="n">input_df</span><span class="o">.</span><span class="n">T</span>
 
     <span class="n">t</span> <span class="o">=</span> <span class="n">input_df</span><span class="o">.</span><span class="n">index</span>
-    <span class="n">dc</span> <span class="o">=</span> <span class="n">input_df</span><span class="p">[</span><span class="s1">&#39;DC (m2/s)&#39;</span><span class="p">]</span>
-    <span class="n">error</span> <span class="o">=</span> <span class="n">input_df</span><span class="p">[</span><span class="s1">&#39;Error (m2/s)&#39;</span><span class="p">]</span>
+    <span class="n">dc</span> <span class="o">=</span> <span class="n">input_df</span><span class="p">[</span><span class="s2">&quot;DC (m2/s)&quot;</span><span class="p">]</span>
+    <span class="n">error</span> <span class="o">=</span> <span class="n">input_df</span><span class="p">[</span><span class="s2">&quot;Error (m2/s)&quot;</span><span class="p">]</span>
 
-    <span class="n">plt</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">dc</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;royalblue&#39;</span><span class="p">)</span>
-    <span class="n">plt</span><span class="o">.</span><span class="n">fill_between</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">dc</span><span class="o">-</span><span class="n">error</span><span class="p">,</span> <span class="n">dc</span><span class="o">+</span><span class="n">error</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;royalblue&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">dc</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;royalblue&quot;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">fill_between</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">dc</span> <span class="o">-</span> <span class="n">error</span><span class="p">,</span> <span class="n">dc</span> <span class="o">+</span> <span class="n">error</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;royalblue&quot;</span><span class="p">)</span>
 
     <span class="n">imax</span> <span class="o">=</span> <span class="n">dc</span><span class="o">.</span><span class="n">argmax</span><span class="p">()</span>
 
     <span class="c1"># Set labels and title</span>
-    <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;Distance ($\AA$)&#39;</span><span class="p">)</span>
-    <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;Diffusion coefficient ($m^2/s$)&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">&quot;Distance ($\AA$)&quot;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s2">&quot;Diffusion coefficient ($m^2/s$)&quot;</span><span class="p">)</span>
 
-    <span class="n">plt</span><span class="o">.</span><span class="n">ylim</span><span class="p">(</span><span class="n">dc</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">dc</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">+</span><span class="n">dc</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">imax</span><span class="p">])</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">ylim</span><span class="p">(</span><span class="n">dc</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">dc</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">+</span> <span class="n">dc</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">imax</span><span class="p">])</span>
     <span class="n">plt</span><span class="o">.</span><span class="n">grid</span><span class="p">()</span>
     <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
-    
 </pre></div>
 
                 </article>

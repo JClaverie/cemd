@@ -406,9 +406,9 @@
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">functools</span><span class="w"> </span><span class="kn">import</span> <span class="n">singledispatch</span>
 
+<span class="kn">import</span><span class="w"> </span><span class="nn">MDAnalysis</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">mda</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">MDAnalysis</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">mda</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">MDAnalysis.lib.distances</span><span class="w"> </span><span class="kn">import</span> <span class="n">capped_distance</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">tqdm</span><span class="w"> </span><span class="kn">import</span> <span class="n">tqdm</span>
 
@@ -416,13 +416,16 @@
 
 <span class="c1"># __all__ = [&#39;compute_rdf&#39;]</span>
 
+
 <div class="viewcode-block" id="compute_rdf">
 <a class="viewcode-back" href="../../../api/generated/cemd.analysis.compute_rdf.html#cemd.analysis.compute_rdf">[docs]</a>
 <span class="nd">@singledispatch</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">compute_rdf</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">type1</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">type2</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">cutoff</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">10.0</span><span class="p">,</span> <span class="n">dr</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">compute_rdf</span><span class="p">(</span>
+    <span class="n">source</span><span class="p">,</span> <span class="n">type1</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">type2</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">cutoff</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">10.0</span><span class="p">,</span> <span class="n">dr</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Calculate the Radial Distribution Function (RDF) g(r), and its derivatives G(r) and n(r).</span>
 
-<span class="sd">    This function uses singledispatch to handle either a static AtomicSystem or </span>
+<span class="sd">    This function uses singledispatch to handle either a static AtomicSystem or</span>
 <span class="sd">    an MDAnalysis Universe (for trajectory analysis).</span>
 
 <span class="sd">    Parameters</span>
@@ -453,17 +456,27 @@
     <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Le type </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">source</span><span class="p">)</span><span class="si">}</span><span class="s2"> n&#39;est pas supporté par compute_rdf.&quot;</span><span class="p">)</span></div>
 
 
+
 <span class="nd">@compute_rdf</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">AtomicSystem</span><span class="p">)</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">_</span><span class="p">(</span><span class="n">source</span><span class="p">:</span> <span class="n">AtomicSystem</span><span class="p">,</span> <span class="n">type1</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">type2</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">cutoff</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">10.0</span><span class="p">,</span> <span class="n">dr</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_</span><span class="p">(</span>
+    <span class="n">source</span><span class="p">:</span> <span class="n">AtomicSystem</span><span class="p">,</span> <span class="n">type1</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">type2</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">cutoff</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">10.0</span><span class="p">,</span> <span class="n">dr</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.1</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
     <span class="c1"># The AtomicSystem knows how to convert to a single frame MDA Universe</span>
     <span class="n">u</span> <span class="o">=</span> <span class="n">source</span><span class="o">.</span><span class="n">to_mda</span><span class="p">()</span>
     <span class="k">return</span> <span class="n">compute_rdf</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">type1</span><span class="o">=</span><span class="n">type1</span><span class="p">,</span> <span class="n">type2</span><span class="o">=</span><span class="n">type2</span><span class="p">,</span> <span class="n">cutoff</span><span class="o">=</span><span class="n">cutoff</span><span class="p">,</span> <span class="n">dr</span><span class="o">=</span><span class="n">dr</span><span class="p">)</span>
 
 
 <span class="nd">@compute_rdf</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">mda</span><span class="o">.</span><span class="n">Universe</span><span class="p">)</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">_</span><span class="p">(</span><span class="n">source</span><span class="p">:</span> <span class="n">mda</span><span class="o">.</span><span class="n">Universe</span><span class="p">,</span> <span class="n">type1</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">type2</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">cutoff</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">10.0</span><span class="p">,</span> <span class="n">dr</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">,</span> <span class="n">skip</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_</span><span class="p">(</span>
+    <span class="n">source</span><span class="p">:</span> <span class="n">mda</span><span class="o">.</span><span class="n">Universe</span><span class="p">,</span>
+    <span class="n">type1</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">type2</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">cutoff</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">10.0</span><span class="p">,</span>
+    <span class="n">dr</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">,</span>
+    <span class="n">skip</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
     <span class="n">bins</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">cutoff</span> <span class="o">+</span> <span class="n">dr</span><span class="p">,</span> <span class="n">dr</span><span class="p">)</span>
-    
+
     <span class="n">sel1</span> <span class="o">=</span> <span class="n">source</span><span class="o">.</span><span class="n">select_atoms</span><span class="p">(</span><span class="s2">&quot;all&quot;</span> <span class="k">if</span> <span class="n">type1</span> <span class="o">==</span> <span class="s2">&quot;all&quot;</span> <span class="k">else</span> <span class="sa">f</span><span class="s2">&quot;type </span><span class="si">{</span><span class="n">type1</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
     <span class="n">sel2</span> <span class="o">=</span> <span class="n">source</span><span class="o">.</span><span class="n">select_atoms</span><span class="p">(</span><span class="s2">&quot;all&quot;</span> <span class="k">if</span> <span class="n">type2</span> <span class="o">==</span> <span class="s2">&quot;all&quot;</span> <span class="k">else</span> <span class="sa">f</span><span class="s2">&quot;type </span><span class="si">{</span><span class="n">type2</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
@@ -474,10 +487,12 @@
     <span class="k">for</span> <span class="n">ts</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">source</span><span class="o">.</span><span class="n">trajectory</span><span class="p">[::</span><span class="n">skip</span><span class="p">],</span> <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;Calcul de la RDF&quot;</span><span class="p">):</span>
         <span class="n">nframes</span> <span class="o">+=</span> <span class="mi">1</span>
         <span class="n">volumes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ts</span><span class="o">.</span><span class="n">volume</span><span class="p">)</span>
-        
-        <span class="n">_</span><span class="p">,</span> <span class="n">dists</span> <span class="o">=</span> <span class="n">capped_distance</span><span class="p">(</span><span class="n">sel1</span><span class="o">.</span><span class="n">positions</span><span class="p">,</span> <span class="n">sel2</span><span class="o">.</span><span class="n">positions</span><span class="p">,</span> <span class="n">max_cutoff</span><span class="o">=</span><span class="n">cutoff</span><span class="p">,</span> <span class="n">box</span><span class="o">=</span><span class="n">ts</span><span class="o">.</span><span class="n">dimensions</span><span class="p">)</span>
+
+        <span class="n">_</span><span class="p">,</span> <span class="n">dists</span> <span class="o">=</span> <span class="n">capped_distance</span><span class="p">(</span>
+            <span class="n">sel1</span><span class="o">.</span><span class="n">positions</span><span class="p">,</span> <span class="n">sel2</span><span class="o">.</span><span class="n">positions</span><span class="p">,</span> <span class="n">max_cutoff</span><span class="o">=</span><span class="n">cutoff</span><span class="p">,</span> <span class="n">box</span><span class="o">=</span><span class="n">ts</span><span class="o">.</span><span class="n">dimensions</span>
+        <span class="p">)</span>
         <span class="n">dists</span> <span class="o">=</span> <span class="n">dists</span><span class="p">[</span><span class="n">dists</span> <span class="o">&gt;</span> <span class="mf">0.01</span><span class="p">]</span>
-        
+
         <span class="n">hist</span><span class="p">,</span> <span class="n">edges</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">histogram</span><span class="p">(</span><span class="n">dists</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="n">bins</span><span class="p">)</span>
         <span class="n">total_hist</span> <span class="o">+=</span> <span class="n">hist</span>
 
@@ -489,19 +504,15 @@
     <span class="n">rho_target</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">sel2</span><span class="p">)</span> <span class="o">/</span> <span class="n">mean_volume</span>
     <span class="n">shell_vols</span> <span class="o">=</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">r</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">dr</span>
     <span class="n">g_r</span> <span class="o">=</span> <span class="n">mean_hist</span> <span class="o">/</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">sel1</span><span class="p">)</span> <span class="o">*</span> <span class="n">rho_target</span> <span class="o">*</span> <span class="n">shell_vols</span><span class="p">)</span>
-    
+
     <span class="n">rho0</span> <span class="o">=</span> <span class="n">source</span><span class="o">.</span><span class="n">atoms</span><span class="o">.</span><span class="n">n_atoms</span> <span class="o">/</span> <span class="n">mean_volume</span>
     <span class="n">G_r</span> <span class="o">=</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">r</span> <span class="o">*</span> <span class="n">rho0</span> <span class="o">*</span> <span class="p">(</span><span class="n">g_r</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
     <span class="n">n_r</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="mi">4</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">r</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">rho_target</span> <span class="o">*</span> <span class="n">g_r</span> <span class="o">*</span> <span class="n">dr</span><span class="p">)</span>
 
-    <span class="n">df_res</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span>
-        <span class="s2">&quot;g_r&quot;</span><span class="p">:</span> <span class="n">g_r</span><span class="p">,</span>
-        <span class="s2">&quot;G_r&quot;</span><span class="p">:</span> <span class="n">G_r</span><span class="p">,</span>
-        <span class="s2">&quot;n_r&quot;</span><span class="p">:</span> <span class="n">n_r</span>
-    <span class="p">},</span> <span class="n">index</span><span class="o">=</span><span class="n">r</span><span class="p">)</span>
+    <span class="n">df_res</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s2">&quot;g_r&quot;</span><span class="p">:</span> <span class="n">g_r</span><span class="p">,</span> <span class="s2">&quot;G_r&quot;</span><span class="p">:</span> <span class="n">G_r</span><span class="p">,</span> <span class="s2">&quot;n_r&quot;</span><span class="p">:</span> <span class="n">n_r</span><span class="p">},</span> <span class="n">index</span><span class="o">=</span><span class="n">r</span><span class="p">)</span>
 
-    <span class="n">df_res</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;r&#39;</span>
-    
+    <span class="n">df_res</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;r&quot;</span>
+
     <span class="k">return</span> <span class="n">df_res</span><span class="p">,</span> <span class="n">rho_target</span>
 </pre></div>
 

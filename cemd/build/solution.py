@@ -17,16 +17,22 @@
 
 from __future__ import annotations
 
-import os
 import tempfile
 import warnings
 from collections.abc import Sequence
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
+import numpy as np
+
 from .._constants import AVOGADRO, MASSES_DICT
-from .._utils import require_program
-from ._packmol import add_packmol_structure, get_structure_path, run_packmol
+from ._packmol import (
+    PackmolInput,
+    PackmolStructure,
+    get_structure_path,
+    run_packmol,
+)
+from .base import require_program
 
 if TYPE_CHECKING:
     from ..core.atomic_system import AtomicSystem
@@ -158,15 +164,7 @@ class SolutionBuilder:
         if self.density <= 0:
             raise ValueError(f"Density must be positive, got {self.density}")
 
-        # Check that you don't have both at the same time
-        if self.molarities and self.counts:
-            raise ValueError(
-                "Provide either 'molarities' OR 'counts', not both.\n"
-                f"molarities: {list(self.molarities.keys())}\n"
-                f"counts: {list(self.counts.keys())}"
-            )
-
-        # Validate the molarities
+        # Validate molarities
         for species, value in self.molarities.items():
             if not isinstance(value, (int, float)):
                 raise TypeError(
@@ -176,7 +174,7 @@ class SolutionBuilder:
             if value < 0:
                 raise ValueError(f"Molarity must be >= 0 for '{species}'")
 
-        # Validate accounts
+        # Validate counts
         for species, value in self.counts.items():
             if not isinstance(value, int):
                 raise TypeError(
@@ -193,47 +191,63 @@ class SolutionBuilder:
             if not isinstance(struct, AtomicSystem):
                 raise TypeError(
                     f"Structure for '{species}' must be an AtomicSystem, "
-                    f"got {type(self.structures[species]).__name__}"
+                    f"got {type(struct).__name__}"
                 )
 
-    def to_counts(self, volume: float) -> dict[str, int]:
+    @classmethod
+    def from_water(
+        cls,
+        density: float = 1.0,
+    ) -> SolutionBuilder:
         """
-        Convert molarities to explicit counts for a given volume.
+        Create a blueprint for pure water.
 
         Parameters
         ----------
-        volume : float
-            Volume in Å³
+        density : float, default=1.0
+            Target density in g/cm³
 
         Returns
         -------
-        dict[str, int]
-            Dictionary mapping species to integer counts
+        SolutionBuilder
+            A blueprint configured for pure water.
+
+        Examples
+        --------
+        >>> water = SolutionBuilder.from_water()
+        >>> solution = water.build(box=[30, 30, 30])
         """
-        # If we already have counts, return them
-        if self.counts:
-            return self.counts.copy()
+        return cls(
+            density=density,
+            molarities={},
+            counts={},
+            structures={},
+        )
 
-        # If we have molarities, convert them
-        if self.molarities:
-            counts = {}
-            errors = {}
+    def to_counts(self, volume: float) -> dict[str, int]:
+        """
+        Convert molarities to explicit counts for a given volume and
+        combine them with explicitly specified counts.
+        """
+        counts = self.counts.copy()
 
-            for species, molarity in self.molarities.items():
-                count, error = concentration2count(molarity, volume)
-                counts[species] = count
-                errors[species] = error
+        for species, molarity in self.molarities.items():
+            if species in counts:
+                raise ValueError(
+                    f"Species '{species}' is specified in both "
+                    "`counts` and `molarities`."
+                )
 
-                if error > 0.1:  # 10% error threshold
-                    warnings.warn(
-                        f"Species '{species}' has {error:.1%} discretization error. "
-                        f"Using {counts[species]} molecules (target: {molarity} M)."
-                    )
+            count, error = concentration2count(molarity, volume)
+            counts[species] = count
 
-            return counts
+            if error > 0.1:
+                warnings.warn(
+                    f"Species '{species}' has {error:.1%} discretization error. "
+                    f"Using {count} molecules (target: {molarity} M)."
+                )
 
-        # Pure water
-        return {}
+        return counts
 
     def get_solute_mass(self, volume: float) -> float:
         """
@@ -304,91 +318,210 @@ class SolutionBuilder:
 
         return int(round((mass_water_g * AVOGADRO) / WATER_MOLAR_MASS))
 
-    def build(self, box: Sequence[float], margin: float = 0.95) -> AtomicSystem:
+    def build(
+        self,
+        box: Sequence[float],
+        margin: float = 0.95,
+    ) -> AtomicSystem:
         """
         Build a standalone solution system from this blueprint.
 
         Parameters
         ----------
         box : Sequence[float]
-            Box dimensions [a, b, c] in Å
+            Box dimensions [a, b, c] in Å.
         margin : float, default=0.95
-        Safety scaling factor to prevent atoms from sitting directly on box edges.
+            Safety scaling factor to prevent atoms from sitting directly
+            on box edges.
 
         Returns
         -------
         AtomicSystem
-            The built solution system
-
-        Examples
-        --------
-        >>> blueprint = SolutionBuilder(
-        ...     density=1.0,
-        ...     molarities={'NaCl': 0.1}
-        ... )
-        >>> solution = blueprint.build(box=[30, 30, 30])
+            The built solution system.
         """
+        from ..core.atomic_system import AtomicSystem
+
         require_program("packmol")
 
+        box = list(box)
         boxa, boxb, boxc = box[:3]
         volume = boxa * boxb * boxc
 
-        # Obtain solute counts
         solute_counts = self.to_counts(volume)
-
-        # Calculate the number of water molecules
         num_water = self.get_water_count(volume)
 
-        box_constraint = f"inside box 0 0 0 {boxa * margin:.4f} {boxb * margin:.4f} {boxc * margin:.4f}"
+        inside_box = (
+            0.0,
+            0.0,
+            0.0,
+            boxa * margin,
+            boxb * margin,
+            boxc * margin,
+        )
 
-        # Build with Packmol
         with tempfile.TemporaryDirectory(dir=".") as tmp:
-            structures = []
-
-            # Add the water
             h2o_path = get_structure_path("H2O", tmp)
-            structures.append(
-                add_packmol_structure(
-                    h2o_path,
-                    num_water,
-                    f"inside box 0 0 0 {boxa * 0.95:.4f} {boxb * 0.95:.4f} {boxc * 0.95:.4f}",
-                )
-            )
+            h2o = AtomicSystem.from_file(h2o_path)
+            h2o.guess_angles()
 
-            # Add the solutes
+            structures = [
+                PackmolStructure(
+                    structure=h2o,
+                    number=num_water,
+                    inside_box=inside_box,
+                )
+            ]
+
             for species, count in solute_counts.items():
                 if count <= 0:
                     continue
 
-                # Check if a custom structure is provided
-                if species in self.structures:
-                    struct_path = os.path.join(tmp, f"custom_{species}.pdb")
-                    self.structures[species].write(struct_path)
-                else:
-                    struct_path = get_structure_path(species, tmp)
+                structure = self.structures.get(species, species)
 
                 structures.append(
-                    add_packmol_structure(
-                        struct_path,
-                        count,
-                        "center",
-                        f"inside box 0 0 0 {boxa * 0.95:.4f} {boxb * 0.95:.4f} {boxc * 0.95:.4f}",
+                    PackmolStructure(
+                        structure=structure,
+                        number=count,
+                        center=True,
+                        inside_box=inside_box,
                     )
                 )
 
-            data = run_packmol(structures)
+            packmol_input = PackmolInput(
+                tolerance=2.0,
+                output="solution.pdb",
+                filetype="pdb",
+                structures=structures,
+            )
 
-        # Set box
-        box_angles = [90.0, 90.0, 90.0]
-        final_box = list(box[:3]) + box_angles if len(box) == 3 else list(box)
+            data = run_packmol(packmol_input)
+
+        final_box = box[:3] + [90.0, 90.0, 90.0] if len(box) == 3 else box
         data.set_box(final_box)
 
-        # Store metadata
         data._solution_metadata = {
             "density": self.density,
             "solutes": solute_counts,
             "num_water": num_water,
             "volume": volume,
+            "blueprint": self,
+        }
+
+        return data
+
+    def build_hemisphere(
+        self,
+        radius: float,
+        axis: str = "z",
+    ) -> AtomicSystem:
+        """
+        Build a hemispherical solution system from this blueprint.
+
+        The hemisphere is centered at the origin, with its flat surface
+        lying in the plane perpendicular to ``axis``.
+
+        Parameters
+        ----------
+        radius : float
+            Hemisphere radius in Å.
+        axis : {"x", "y", "z"}, default="z"
+            Axis normal to the flat surface of the hemisphere.
+
+        Returns
+        -------
+        AtomicSystem
+            The built hemispherical solution system.
+
+        Raises
+        ------
+        ValueError
+            If ``radius`` is not positive or ``axis`` is invalid.
+        """
+        from ..core.atomic_system import AtomicSystem
+
+        require_program("packmol")
+
+        if radius <= 0:
+            raise ValueError("The radius must be positive.")
+
+        if axis not in {"x", "y", "z"}:
+            raise ValueError(f"Invalid axis: {axis!r}. Expected 'x', 'y', or 'z'.")
+
+        # Hemisphere volume
+        volume = 2.0 * np.pi * radius**3 / 3.0
+
+        # Number of solute molecules
+        solute_counts = self.to_counts(volume)
+
+        # Number of water molecules
+        num_water = self.get_water_count(volume)
+
+        # Packmol half-space definition
+        above_plane = {
+            "x": (1.0, 0.0, 0.0, 0.0),
+            "y": (0.0, 1.0, 0.0, 0.0),
+            "z": (0.0, 0.0, 1.0, 0.0),
+        }[axis]
+        inside_sphere = inside_sphere = (0.0, 0.0, 0.0, radius)
+
+        with tempfile.TemporaryDirectory(dir=".") as tmp:
+            h2o_path = get_structure_path("H2O", tmp)
+            h2o = AtomicSystem.from_file(h2o_path)
+
+            structures = [
+                PackmolStructure(
+                    structure=h2o,
+                    number=num_water,
+                    inside_sphere=inside_sphere,
+                    above_plane=above_plane,
+                )
+            ]
+
+            # Solutes
+            for species, count in solute_counts.items():
+                if count <= 0:
+                    continue
+
+                structure = self.structures.get(species, species)
+
+                structures.append(
+                    PackmolStructure(
+                        structure=structure,
+                        number=count,
+                        center=True,
+                        inside_sphere=inside_sphere,
+                        above_plane=above_plane,
+                    )
+                )
+
+            packmol_input = PackmolInput(
+                tolerance=2.0,
+                output="solution_hemisphere.pdb",
+                filetype="pdb",
+                structures=structures,
+            )
+
+            data = run_packmol(packmol_input)
+        # Simulation box
+        box_size = 2.5 * radius
+        final_box = [
+            box_size,
+            box_size,
+            1.5 * radius,
+            90.0,
+            90.0,
+            90.0,
+        ]
+
+        data.set_box(final_box)
+
+        data._solution_metadata = {
+            "density": self.density,
+            "solutes": solute_counts,
+            "num_water": num_water,
+            "volume": volume,
+            "radius": radius,
+            "axis": axis,
             "blueprint": self,
         }
 

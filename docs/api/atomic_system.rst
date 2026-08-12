@@ -33,6 +33,15 @@ Properties
    AtomicSystem.dihedral_types
    AtomicSystem.improper_types
 
+Inspection
+----------
+
+.. autosummary::
+   :toctree: generated/
+   :nosignatures:
+
+   AtomicSystem.summary
+
 Input/Output
 ------------
 
@@ -58,12 +67,15 @@ Topology
 
    AtomicSystem.set_types
    AtomicSystem.set_type2atoms
-   AtomicSystem.reset_types
-   AtomicSystem.reset_types
+   AtomicSystem.set_types_from_elements
    AtomicSystem.set_topology
-   AtomicSystem.reset_topology
+   AtomicSystem_remove_all_connections
    AtomicSystem.remove_connection_types
    AtomicSystem.keep_connection_types
+   AtomicSystem.guess_connections
+   AtomicSystem.guess_angles
+   AtomicSystem.guess_dihedrals
+   AtomicSystem.guess_impropers
    AtomicSystem.add_bond
    AtomicSystem.add_angle
    AtomicSystem.add_dihedral

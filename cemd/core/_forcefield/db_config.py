@@ -31,7 +31,7 @@ def get_current_dir() -> str:
 
 def get_default_config_path() -> str:
     """Returns the path of the default config file (same folder)."""
-    return os.path.join(get_current_dir(), "forcefields")
+    return os.path.join(get_current_dir(), "db")
 
 
 def get_user_config_path() -> str:

@@ -364,6 +364,7 @@
 <li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.angle_types.html">AtomicSystem.angle_types</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.dihedral_types.html">AtomicSystem.dihedral_types</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.improper_types.html">AtomicSystem.improper_types</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.summary.html">AtomicSystem.summary</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.from_file.html">AtomicSystem.from_file</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.from_cod.html">AtomicSystem.from_cod</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.from_pubchem.html">AtomicSystem.from_pubchem</a></li>
@@ -374,12 +375,14 @@
 <li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.write.html">AtomicSystem.write</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.set_types.html">AtomicSystem.set_types</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.set_type2atoms.html">AtomicSystem.set_type2atoms</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.reset_types.html">AtomicSystem.reset_types</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.reset_types.html">AtomicSystem.reset_types</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.set_types_from_elements.html">AtomicSystem.set_types_from_elements</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.set_topology.html">AtomicSystem.set_topology</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.reset_topology.html">AtomicSystem.reset_topology</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.remove_connection_types.html">AtomicSystem.remove_connection_types</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.keep_connection_types.html">AtomicSystem.keep_connection_types</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.guess_connections.html">AtomicSystem.guess_connections</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.guess_angles.html">AtomicSystem.guess_angles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.guess_dihedrals.html">AtomicSystem.guess_dihedrals</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.guess_impropers.html">AtomicSystem.guess_impropers</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.add_bond.html">AtomicSystem.add_bond</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.add_angle.html">AtomicSystem.add_angle</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.add_dihedral.html">AtomicSystem.add_dihedral</a></li>
@@ -498,8 +501,8 @@
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>value</strong><span class="classifier">Sequence of float or dict of {str or int</span><span class="classifier">float}</span></dt><dd><p>If a sequence is provided, it must match the current order of 
-<cite>atom_types</cite>. If a dictionary is provided, it maps specific 
+<dt><strong>value</strong><span class="classifier">Sequence of float or dict of {str or int</span><span class="classifier">float}</span></dt><dd><p>If a sequence is provided, it must match the current order of
+<cite>atom_types</cite>. If a dictionary is provided, it maps specific
 atom types to their corresponding masses.</p>
 </dd>
 </dl>

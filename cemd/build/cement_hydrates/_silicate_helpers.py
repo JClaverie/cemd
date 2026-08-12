@@ -208,14 +208,14 @@ def _find_symmetric_bridging_pairs(
 
             best_l, min_dist = None, float("inf")
 
-            for l, idx2 in enumerate(atoms_j):
+            for l_, idx2 in enumerate(atoms_j):
                 if idx2 in used:
                     continue
 
-                dist = _pbc_dist_xy(xy_i[k], xy_j[l])
+                dist = _pbc_dist_xy(xy_i[k], xy_j[l_])
 
                 if dist < min_dist:
-                    min_dist, best_l = dist, l
+                    min_dist, best_l = dist, l_
 
             if best_l is not None and min_dist < 5.0:
                 idx2 = atoms_j[best_l]

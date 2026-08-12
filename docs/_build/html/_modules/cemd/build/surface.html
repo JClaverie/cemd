@@ -405,21 +405,23 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">TYPE_CHECKING</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Sequence</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">TYPE_CHECKING</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseBuilder</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">..core.atomic_system</span><span class="w"> </span><span class="kn">import</span> <span class="n">AtomicSystem</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseBuilder</span>
 
 <span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">pymatgen.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">Structure</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
+
 <div class="viewcode-block" id="SurfaceBuilder">
 <a class="viewcode-back" href="../../../api/generated/cemd.build.SurfaceBuilder.html#cemd.build.SurfaceBuilder">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">SurfaceBuilder</span><span class="p">(</span><span class="n">BaseBuilder</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Builder for generating surfaces.&quot;&quot;&quot;</span>
-    
+
 <div class="viewcode-block" id="SurfaceBuilder.__init__">
 <a class="viewcode-back" href="../../../api/generated/cemd.build.SurfaceBuilder.html#cemd.build.SurfaceBuilder.__init__">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">system</span><span class="p">:</span> <span class="n">AtomicSystem</span><span class="p">):</span>
@@ -431,7 +433,7 @@
     <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return a styled string representation of the SurfaceBuilder.</span>
-<span class="sd">        </span>
+
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        str</span>
@@ -440,10 +442,10 @@
 
         <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">c</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_structure</span><span class="o">.</span><span class="n">lattice</span><span class="o">.</span><span class="n">abc</span>
         <span class="n">alpha</span><span class="p">,</span> <span class="n">beta</span><span class="p">,</span> <span class="n">gamma</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_structure</span><span class="o">.</span><span class="n">lattice</span><span class="o">.</span><span class="n">angles</span>
-        
+
         <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;&lt;SurfaceBuilder&gt;&quot;</span><span class="p">]</span>
         <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
-        
+
         <span class="c1"># ====== Système ======</span>
         <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;┌─ Structure&quot;</span><span class="p">)</span>
         <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;│   sites   : </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_structure</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
@@ -451,9 +453,9 @@
         <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;│   lattice : a=</span><span class="si">{</span><span class="n">a</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">  b=</span><span class="si">{</span><span class="n">b</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">  c=</span><span class="si">{</span><span class="n">c</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> Å&quot;</span><span class="p">)</span>
         <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;│             α=</span><span class="si">{</span><span class="n">alpha</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">  β=</span><span class="si">{</span><span class="n">beta</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">  γ=</span><span class="si">{</span><span class="n">gamma</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> °&quot;</span><span class="p">)</span>
         <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;│   ordered : </span><span class="si">{</span><span class="s1">&#39;✓&#39;</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="bp">self</span><span class="o">.</span><span class="n">_structure</span><span class="o">.</span><span class="n">is_ordered</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">&#39;✗&#39;</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        
+
         <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
-    
+
     <span class="k">def</span><span class="w"> </span><span class="nf">_get_structure</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Structure</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the structure for surface generation.&quot;&quot;&quot;</span>
         <span class="c1"># Priorité à la structure originale</span>
@@ -461,17 +463,18 @@
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">_pmg_struct</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">to_pmg</span><span class="p">()</span>
-    
-    <span class="k">def</span><span class="w"> </span><span class="nf">build</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
-              <span class="n">miller_indices</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span>
-              <span class="n">min_slab_size</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">25.0</span><span class="p">,</span>
-              <span class="n">min_vacuum_size</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">15.0</span><span class="p">,</span>
-              <span class="n">max_broken_bonds</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">20</span><span class="p">,</span>
-              <span class="n">bonds_dict</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-              <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="n">AtomicSystem</span><span class="p">],</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="nb">int</span><span class="p">]:</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">build</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">miller_indices</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span>
+        <span class="n">min_slab_size</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">25.0</span><span class="p">,</span>
+        <span class="n">min_vacuum_size</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">15.0</span><span class="p">,</span>
+        <span class="n">max_broken_bonds</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">20</span><span class="p">,</span>
+        <span class="n">bonds_dict</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="n">AtomicSystem</span><span class="p">],</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="nb">int</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Generate crystalline surfaces from the structure.</span>
-<span class="sd">        </span>
+
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        miller_indices : Sequence[int]</span>
@@ -485,15 +488,12 @@
 <span class="sd">        bonds_dict : dict, optional</span>
 <span class="sd">            Dictionary of bond lengths for different element pairs.</span>
 <span class="sd">            If None, uses default values.</span>
-<span class="sd">        refine_slabs : bool, default=False</span>
-<span class="sd">            If True, refine the generated slabs using SpacegroupAnalyzer.</span>
-<span class="sd">            Set to False to preserve the original slab structure.</span>
-<span class="sd">        </span>
+
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        tuple</span>
 <span class="sd">            (slabs_list, shift_list, dipole_list, actual_broken)</span>
-<span class="sd">        </span>
+
 <span class="sd">        Raises</span>
 <span class="sd">        ------</span>
 <span class="sd">        RuntimeError</span>
@@ -505,43 +505,45 @@
         <span class="kn">from</span><span class="w"> </span><span class="nn">pymatgen.core.surface</span><span class="w"> </span><span class="kn">import</span> <span class="n">SlabGenerator</span>
 
         <span class="n">struct</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_structure</span>
-        
+
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">struct</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
                 <span class="sa">f</span><span class="s2">&quot;Structure has only </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">struct</span><span class="p">)</span><span class="si">}</span><span class="s2"> atom(s). &quot;</span>
                 <span class="s2">&quot;Surface generation requires at least 2 atoms.&quot;</span>
             <span class="p">)</span>
-        
+
         <span class="k">if</span> <span class="ow">not</span> <span class="n">struct</span><span class="o">.</span><span class="n">is_ordered</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Structure is not fully ordered. Surface generation may fail.&quot;</span><span class="p">)</span>
-        
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                <span class="s2">&quot;Structure is not fully ordered. Surface generation may fail.&quot;</span>
+            <span class="p">)</span>
+
         <span class="c1"># Check that the structure is not too large</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">struct</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">10000</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
                 <span class="sa">f</span><span class="s2">&quot;Structure has </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">struct</span><span class="p">)</span><span class="si">}</span><span class="s2"> atoms. &quot;</span>
                 <span class="s2">&quot;Surface generation may be slow or fail.&quot;</span>
             <span class="p">)</span>
-        
+
         <span class="k">try</span><span class="p">:</span>
             <span class="n">struct</span><span class="o">.</span><span class="n">add_oxidation_state_by_guess</span><span class="p">()</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Oxidation states guessed successfully.&quot;</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Could not guess oxidation states: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        
+
         <span class="k">if</span> <span class="n">bonds_dict</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">bonds_dict</span> <span class="o">=</span> <span class="p">{</span>
                 <span class="c1"># With oxidation states</span>
-                <span class="p">(</span><span class="s1">&#39;Al4+&#39;</span><span class="p">,</span> <span class="s1">&#39;O2-&#39;</span><span class="p">):</span> <span class="mf">1.8</span><span class="p">,</span>
-                <span class="p">(</span><span class="s1">&#39;Si4+&#39;</span><span class="p">,</span> <span class="s1">&#39;O2-&#39;</span><span class="p">):</span> <span class="mf">1.8</span><span class="p">,</span>
-                <span class="p">(</span><span class="s1">&#39;C4+&#39;</span><span class="p">,</span> <span class="s1">&#39;O2-&#39;</span><span class="p">):</span> <span class="mf">1.6</span><span class="p">,</span>
-                <span class="p">(</span><span class="s1">&#39;H+&#39;</span><span class="p">,</span> <span class="s1">&#39;O2-&#39;</span><span class="p">):</span> <span class="mf">1.1</span><span class="p">,</span>
+                <span class="p">(</span><span class="s2">&quot;Al4+&quot;</span><span class="p">,</span> <span class="s2">&quot;O2-&quot;</span><span class="p">):</span> <span class="mf">1.8</span><span class="p">,</span>
+                <span class="p">(</span><span class="s2">&quot;Si4+&quot;</span><span class="p">,</span> <span class="s2">&quot;O2-&quot;</span><span class="p">):</span> <span class="mf">1.8</span><span class="p">,</span>
+                <span class="p">(</span><span class="s2">&quot;C4+&quot;</span><span class="p">,</span> <span class="s2">&quot;O2-&quot;</span><span class="p">):</span> <span class="mf">1.6</span><span class="p">,</span>
+                <span class="p">(</span><span class="s2">&quot;H+&quot;</span><span class="p">,</span> <span class="s2">&quot;O2-&quot;</span><span class="p">):</span> <span class="mf">1.1</span><span class="p">,</span>
                 <span class="c1"># Without oxidation states (fallback)</span>
-                <span class="p">(</span><span class="s1">&#39;Al&#39;</span><span class="p">,</span> <span class="s1">&#39;O&#39;</span><span class="p">):</span> <span class="mf">1.8</span><span class="p">,</span>
-                <span class="p">(</span><span class="s1">&#39;Si&#39;</span><span class="p">,</span> <span class="s1">&#39;O&#39;</span><span class="p">):</span> <span class="mf">1.8</span><span class="p">,</span>
-                <span class="p">(</span><span class="s1">&#39;C&#39;</span><span class="p">,</span> <span class="s1">&#39;O&#39;</span><span class="p">):</span> <span class="mf">1.6</span><span class="p">,</span>
-                <span class="p">(</span><span class="s1">&#39;H&#39;</span><span class="p">,</span> <span class="s1">&#39;O&#39;</span><span class="p">):</span> <span class="mf">1.1</span><span class="p">,</span>
+                <span class="p">(</span><span class="s2">&quot;Al&quot;</span><span class="p">,</span> <span class="s2">&quot;O&quot;</span><span class="p">):</span> <span class="mf">1.8</span><span class="p">,</span>
+                <span class="p">(</span><span class="s2">&quot;Si&quot;</span><span class="p">,</span> <span class="s2">&quot;O&quot;</span><span class="p">):</span> <span class="mf">1.8</span><span class="p">,</span>
+                <span class="p">(</span><span class="s2">&quot;C&quot;</span><span class="p">,</span> <span class="s2">&quot;O&quot;</span><span class="p">):</span> <span class="mf">1.6</span><span class="p">,</span>
+                <span class="p">(</span><span class="s2">&quot;H&quot;</span><span class="p">,</span> <span class="s2">&quot;O&quot;</span><span class="p">):</span> <span class="mf">1.1</span><span class="p">,</span>
             <span class="p">}</span>
-        
+
         <span class="k">try</span><span class="p">:</span>
             <span class="n">slabgen</span> <span class="o">=</span> <span class="n">SlabGenerator</span><span class="p">(</span>
                 <span class="n">struct</span><span class="p">,</span>
@@ -563,10 +565,7 @@
         <span class="n">actual_broken</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">max_broken_bonds</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
             <span class="k">try</span><span class="p">:</span>
-                <span class="n">slabs</span> <span class="o">=</span> <span class="n">slabgen</span><span class="o">.</span><span class="n">get_slabs</span><span class="p">(</span>
-                    <span class="n">bonds</span><span class="o">=</span><span class="n">bonds_dict</span><span class="p">,</span>
-                    <span class="n">max_broken_bonds</span><span class="o">=</span><span class="n">i</span>
-                <span class="p">)</span>
+                <span class="n">slabs</span> <span class="o">=</span> <span class="n">slabgen</span><span class="o">.</span><span class="n">get_slabs</span><span class="p">(</span><span class="n">bonds</span><span class="o">=</span><span class="n">bonds_dict</span><span class="p">,</span> <span class="n">max_broken_bonds</span><span class="o">=</span><span class="n">i</span><span class="p">)</span>
                 <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">slabs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
                     <span class="n">slabs_list_pmg</span> <span class="o">=</span> <span class="n">slabs</span>
                     <span class="n">actual_broken</span> <span class="o">=</span> <span class="n">i</span>
@@ -575,7 +574,7 @@
             <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed with </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2"> broken bonds: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
                 <span class="k">continue</span>
-        
+
         <span class="c1"># Fallback: try without bonds</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">slabs_list_pmg</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">try</span><span class="p">:</span>
@@ -596,35 +595,35 @@
                     <span class="sa">f</span><span class="s2">&quot;Surface generation failed: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
                     <span class="s2">&quot;Try adjusting min_slab_size, min_vacuum_size, or max_broken_bonds.&quot;</span>
                 <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
-        
+
         <span class="n">slabs_list_as</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">dipole_list</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">shift_list</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">raw_slab</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">slabs_list_pmg</span><span class="p">):</span>
-                <span class="n">slab</span> <span class="o">=</span> <span class="n">raw_slab</span><span class="o">.</span><span class="n">get_orthogonal_c_slab</span><span class="p">()</span><span class="o">.</span><span class="n">get_sorted_structure</span><span class="p">()</span>
-                <span class="n">shift_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">slab</span><span class="o">.</span><span class="n">shift</span><span class="p">)</span>
-                <span class="n">dipole_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>
-                <span class="n">as_system</span> <span class="o">=</span> <span class="n">AtomicSystem</span><span class="o">.</span><span class="n">from_pmg</span><span class="p">(</span><span class="n">slab</span><span class="p">,</span> <span class="n">refine</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-                <span class="n">as_system</span><span class="o">.</span><span class="n">_pmg_struct</span> <span class="o">=</span> <span class="n">slab</span>
-                <span class="n">slabs_list_as</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">as_system</span><span class="o">.</span><span class="n">wrap</span><span class="p">())</span>
-        
+            <span class="n">slab</span> <span class="o">=</span> <span class="n">raw_slab</span><span class="o">.</span><span class="n">get_orthogonal_c_slab</span><span class="p">()</span><span class="o">.</span><span class="n">get_sorted_structure</span><span class="p">()</span>
+            <span class="n">shift_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">slab</span><span class="o">.</span><span class="n">shift</span><span class="p">)</span>
+            <span class="n">dipole_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>
+            <span class="n">as_system</span> <span class="o">=</span> <span class="n">AtomicSystem</span><span class="o">.</span><span class="n">from_pmg</span><span class="p">(</span><span class="n">slab</span><span class="p">,</span> <span class="n">refine</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">as_system</span><span class="o">.</span><span class="n">_pmg_struct</span> <span class="o">=</span> <span class="n">slab</span>
+            <span class="n">slabs_list_as</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">as_system</span><span class="o">.</span><span class="n">wrap</span><span class="p">())</span>
+
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">slabs_list_as</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;No slabs could be converted to AtomicSystem.&quot;</span><span class="p">)</span>
-        
+
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Successfully generated </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">slabs_list_as</span><span class="p">)</span><span class="si">}</span><span class="s2"> surfaces.&quot;</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">result</span> <span class="o">=</span> <span class="p">(</span><span class="n">slabs_list_as</span><span class="p">,</span> <span class="n">shift_list</span><span class="p">,</span> <span class="n">dipole_list</span><span class="p">,</span> <span class="n">actual_broken</span><span class="p">)</span>
-        
+
         <span class="k">return</span> <span class="n">slabs_list_as</span><span class="p">,</span> <span class="n">shift_list</span><span class="p">,</span> <span class="n">dipole_list</span><span class="p">,</span> <span class="n">actual_broken</span>
-    
-    <span class="k">def</span><span class="w"> </span><span class="nf">explore</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">AtomicSystem</span><span class="p">]:</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">explore</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AtomicSystem</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Interactive surface explorer.</span>
-<span class="sd">        </span>
+
 <span class="sd">        Allows the user to interactively select Miller indices,</span>
 <span class="sd">        slab thickness, and vacuum size, then generates and displays</span>
 <span class="sd">        the available surfaces.</span>
-<span class="sd">        </span>
+
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        AtomicSystem or None</span>
@@ -636,15 +635,13 @@
         <span class="kn">from</span><span class="w"> </span><span class="nn">prompt_toolkit.layout</span><span class="w"> </span><span class="kn">import</span> <span class="n">Layout</span>
         <span class="kn">from</span><span class="w"> </span><span class="nn">prompt_toolkit.layout.containers</span><span class="w"> </span><span class="kn">import</span> <span class="n">HSplit</span><span class="p">,</span> <span class="n">Window</span>
         <span class="kn">from</span><span class="w"> </span><span class="nn">prompt_toolkit.layout.controls</span><span class="w"> </span><span class="kn">import</span> <span class="n">FormattedTextControl</span>
-        
-        <span class="c1"># ============ 1. Input Miller indices ============</span>
+
         <span class="n">miller_str</span> <span class="o">=</span> <span class="n">questionary</span><span class="o">.</span><span class="n">text</span><span class="p">(</span>
-            <span class="s2">&quot;Enter Miller indices (h k l):&quot;</span><span class="p">,</span>
-            <span class="n">default</span><span class="o">=</span><span class="s2">&quot;1 0 0&quot;</span>
+            <span class="s2">&quot;Enter Miller indices (h k l):&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s2">&quot;1 0 0&quot;</span>
         <span class="p">)</span><span class="o">.</span><span class="n">ask</span><span class="p">()</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">miller_str</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span>
-        
+
         <span class="k">try</span><span class="p">:</span>
             <span class="n">miller</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">miller_str</span><span class="o">.</span><span class="n">split</span><span class="p">()]</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">miller</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">3</span><span class="p">:</span>
@@ -652,108 +649,113 @@
         <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid Miller indices: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="k">return</span> <span class="kc">None</span>
-        
-        <span class="c1"># ============ 2. Input slab parameters ============</span>
+
         <span class="n">min_slab</span> <span class="o">=</span> <span class="n">questionary</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="s2">&quot;Min slab size (Å):&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s2">&quot;25.0&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">ask</span><span class="p">()</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">min_slab</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span>
-        
+
         <span class="n">min_vac</span> <span class="o">=</span> <span class="n">questionary</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="s2">&quot;Min vacuum size (Å):&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s2">&quot;15.0&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">ask</span><span class="p">()</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">min_vac</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span>
-        
+
         <span class="k">try</span><span class="p">:</span>
             <span class="n">slabs</span><span class="p">,</span> <span class="n">shifts</span><span class="p">,</span> <span class="n">dipoles</span><span class="p">,</span> <span class="n">n_broken</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">build</span><span class="p">(</span>
                 <span class="n">miller_indices</span><span class="o">=</span><span class="n">miller</span><span class="p">,</span>
                 <span class="n">min_slab_size</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">min_slab</span><span class="p">),</span>
-                <span class="n">min_vacuum_size</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">min_vac</span><span class="p">)</span>
+                <span class="n">min_vacuum_size</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">min_vac</span><span class="p">),</span>
             <span class="p">)</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error generating surfaces: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="k">return</span> <span class="kc">None</span>
-        
+
         <span class="k">if</span> <span class="ow">not</span> <span class="n">slabs</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">No surfaces generated.&quot;</span><span class="p">)</span>
             <span class="k">return</span> <span class="kc">None</span>
-        
+
         <span class="c1"># Format display</span>
         <span class="n">HEADER_FORMAT</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{cursor}</span><span class="s2"> </span><span class="si">{idx:&gt;4}</span><span class="s2"> | </span><span class="si">{shift:&gt;10}</span><span class="s2"> | </span><span class="si">{dipole:&gt;12}</span><span class="s2"> | </span><span class="si">{natoms:&gt;8}</span><span class="s2">&quot;</span>
-        <span class="n">ROW_FORMAT</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{cursor}</span><span class="s2"> </span><span class="si">{idx:&gt;4}</span><span class="s2"> | </span><span class="si">{shift:&gt;10.4f}</span><span class="s2"> | </span><span class="si">{dipole:&gt;12.4f}</span><span class="s2"> | </span><span class="si">{natoms:&gt;8}</span><span class="s2">&quot;</span>
+        <span class="n">ROW_FORMAT</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="s2">&quot;</span><span class="si">{cursor}</span><span class="s2"> </span><span class="si">{idx:&gt;4}</span><span class="s2"> | </span><span class="si">{shift:&gt;10.4f}</span><span class="s2"> | </span><span class="si">{dipole:&gt;12.4f}</span><span class="s2"> | </span><span class="si">{natoms:&gt;8}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
         <span class="n">index</span> <span class="o">=</span> <span class="mi">0</span>
-        
+
         <span class="k">def</span><span class="w"> </span><span class="nf">render</span><span class="p">():</span>
             <span class="n">header</span> <span class="o">=</span> <span class="n">HEADER_FORMAT</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                <span class="n">cursor</span><span class="o">=</span><span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="n">idx</span><span class="o">=</span><span class="s2">&quot;#&quot;</span><span class="p">,</span> <span class="n">shift</span><span class="o">=</span><span class="s2">&quot;Shift&quot;</span><span class="p">,</span>
-                <span class="n">dipole</span><span class="o">=</span><span class="s2">&quot;Dipole (D)&quot;</span><span class="p">,</span> <span class="n">natoms</span><span class="o">=</span><span class="s2">&quot;N atoms&quot;</span>
+                <span class="n">cursor</span><span class="o">=</span><span class="s2">&quot; &quot;</span><span class="p">,</span>
+                <span class="n">idx</span><span class="o">=</span><span class="s2">&quot;#&quot;</span><span class="p">,</span>
+                <span class="n">shift</span><span class="o">=</span><span class="s2">&quot;Shift&quot;</span><span class="p">,</span>
+                <span class="n">dipole</span><span class="o">=</span><span class="s2">&quot;Dipole (D)&quot;</span><span class="p">,</span>
+                <span class="n">natoms</span><span class="o">=</span><span class="s2">&quot;N atoms&quot;</span><span class="p">,</span>
             <span class="p">)</span>
 
             <span class="k">if</span> <span class="n">n_broken</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
                 <span class="n">generated_str</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">✓ Generated </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">slabs</span><span class="p">)</span><span class="si">}</span><span class="s2"> surfaces&quot;</span>
-            <span class="k">else</span><span class="p">:</span> 
-                <span class="n">generated_str</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">✓ Generated </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">slabs</span><span class="p">)</span><span class="si">}</span><span class="s2"> surfaces with </span><span class="si">{</span><span class="n">n_broken</span><span class="si">}</span><span class="s2"> broken bonds&quot;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">generated_str</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">✓ Generated </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">slabs</span><span class="p">)</span><span class="si">}</span><span class="s2"> surfaces with </span><span class="si">{</span><span class="n">n_broken</span><span class="si">}</span><span class="s2"> broken bonds&quot;</span>
+                <span class="p">)</span>
 
             <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span>
                 <span class="n">generated_str</span><span class="p">,</span>
                 <span class="s2">&quot;↑↓ Move   [Enter] Select   [q] Quit&quot;</span><span class="p">,</span>
                 <span class="s2">&quot;&quot;</span><span class="p">,</span>
                 <span class="n">header</span><span class="p">,</span>
-                <span class="s2">&quot;-&quot;</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">header</span><span class="p">)</span>
+                <span class="s2">&quot;-&quot;</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">header</span><span class="p">),</span>
             <span class="p">]</span>
             <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">slab</span><span class="p">,</span> <span class="n">shift</span><span class="p">,</span> <span class="n">dipole</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">slabs</span><span class="p">,</span> <span class="n">shifts</span><span class="p">,</span> <span class="n">dipoles</span><span class="p">)):</span>
                 <span class="n">cursor</span> <span class="o">=</span> <span class="s2">&quot;➜&quot;</span> <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="n">index</span> <span class="k">else</span> <span class="s2">&quot; &quot;</span>
-                <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ROW_FORMAT</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                    <span class="n">cursor</span><span class="o">=</span><span class="n">cursor</span><span class="p">,</span>
-                    <span class="n">idx</span><span class="o">=</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span>
-                    <span class="n">shift</span><span class="o">=</span><span class="n">shift</span><span class="p">,</span>
-                    <span class="n">dipole</span><span class="o">=</span><span class="n">dipole</span><span class="p">,</span>
-                    <span class="n">natoms</span><span class="o">=</span><span class="n">slab</span><span class="o">.</span><span class="n">num_atoms</span>
-                <span class="p">))</span>
+                <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="n">ROW_FORMAT</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                        <span class="n">cursor</span><span class="o">=</span><span class="n">cursor</span><span class="p">,</span>
+                        <span class="n">idx</span><span class="o">=</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span>
+                        <span class="n">shift</span><span class="o">=</span><span class="n">shift</span><span class="p">,</span>
+                        <span class="n">dipole</span><span class="o">=</span><span class="n">dipole</span><span class="p">,</span>
+                        <span class="n">natoms</span><span class="o">=</span><span class="n">slab</span><span class="o">.</span><span class="n">num_atoms</span><span class="p">,</span>
+                    <span class="p">)</span>
+                <span class="p">)</span>
             <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
-        
+
         <span class="n">selected_idx</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">kb</span> <span class="o">=</span> <span class="n">KeyBindings</span><span class="p">()</span>
-        
+
         <span class="nd">@kb</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">&quot;up&quot;</span><span class="p">)</span>
         <span class="k">def</span><span class="w"> </span><span class="nf">_</span><span class="p">(</span><span class="n">e</span><span class="p">):</span>
             <span class="k">nonlocal</span> <span class="n">index</span>
             <span class="k">if</span> <span class="n">index</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="n">index</span> <span class="o">-=</span> <span class="mi">1</span>
             <span class="n">e</span><span class="o">.</span><span class="n">app</span><span class="o">.</span><span class="n">invalidate</span><span class="p">()</span>
-        
+
         <span class="nd">@kb</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">&quot;down&quot;</span><span class="p">)</span>
         <span class="k">def</span><span class="w"> </span><span class="nf">_</span><span class="p">(</span><span class="n">e</span><span class="p">):</span>
             <span class="k">nonlocal</span> <span class="n">index</span>
             <span class="k">if</span> <span class="n">index</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">slabs</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
                 <span class="n">index</span> <span class="o">+=</span> <span class="mi">1</span>
             <span class="n">e</span><span class="o">.</span><span class="n">app</span><span class="o">.</span><span class="n">invalidate</span><span class="p">()</span>
-        
+
         <span class="nd">@kb</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">&quot;enter&quot;</span><span class="p">)</span>
         <span class="k">def</span><span class="w"> </span><span class="nf">_</span><span class="p">(</span><span class="n">e</span><span class="p">):</span>
             <span class="n">selected_idx</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">index</span>
             <span class="n">e</span><span class="o">.</span><span class="n">app</span><span class="o">.</span><span class="n">exit</span><span class="p">()</span>
-        
+
         <span class="nd">@kb</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">&quot;q&quot;</span><span class="p">)</span>
         <span class="nd">@kb</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">&quot;escape&quot;</span><span class="p">)</span>
         <span class="k">def</span><span class="w"> </span><span class="nf">_</span><span class="p">(</span><span class="n">e</span><span class="p">):</span>
             <span class="n">selected_idx</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
             <span class="n">e</span><span class="o">.</span><span class="n">app</span><span class="o">.</span><span class="n">exit</span><span class="p">()</span>
-        
+
         <span class="n">window</span> <span class="o">=</span> <span class="n">Window</span><span class="p">(</span>
             <span class="n">content</span><span class="o">=</span><span class="n">FormattedTextControl</span><span class="p">(</span><span class="n">render</span><span class="p">),</span>
             <span class="n">always_hide_cursor</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="n">app</span> <span class="o">=</span> <span class="n">Application</span><span class="p">(</span>
-            <span class="n">layout</span><span class="o">=</span><span class="n">Layout</span><span class="p">(</span><span class="n">HSplit</span><span class="p">([</span><span class="n">window</span><span class="p">])),</span>
-            <span class="n">key_bindings</span><span class="o">=</span><span class="n">kb</span><span class="p">,</span>
-            <span class="n">full_screen</span><span class="o">=</span><span class="kc">False</span>
+            <span class="n">layout</span><span class="o">=</span><span class="n">Layout</span><span class="p">(</span><span class="n">HSplit</span><span class="p">([</span><span class="n">window</span><span class="p">])),</span> <span class="n">key_bindings</span><span class="o">=</span><span class="n">kb</span><span class="p">,</span> <span class="n">full_screen</span><span class="o">=</span><span class="kc">False</span>
         <span class="p">)</span>
         <span class="n">app</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
-        
+
         <span class="n">selected_slab</span> <span class="o">=</span> <span class="n">slabs</span><span class="p">[</span><span class="n">selected_idx</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
-        
+
         <span class="k">return</span> <span class="n">selected_slab</span></div>
 
-    
 </pre></div>
 
                 </article>

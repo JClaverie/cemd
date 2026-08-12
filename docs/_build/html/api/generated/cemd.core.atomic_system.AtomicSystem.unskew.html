@@ -365,6 +365,7 @@
 <li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.angle_types.html">AtomicSystem.angle_types</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.dihedral_types.html">AtomicSystem.dihedral_types</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.improper_types.html">AtomicSystem.improper_types</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.summary.html">AtomicSystem.summary</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.from_file.html">AtomicSystem.from_file</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.from_cod.html">AtomicSystem.from_cod</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.from_pubchem.html">AtomicSystem.from_pubchem</a></li>
@@ -375,12 +376,14 @@
 <li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.write.html">AtomicSystem.write</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.set_types.html">AtomicSystem.set_types</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.set_type2atoms.html">AtomicSystem.set_type2atoms</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.reset_types.html">AtomicSystem.reset_types</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.reset_types.html">AtomicSystem.reset_types</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.set_types_from_elements.html">AtomicSystem.set_types_from_elements</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.set_topology.html">AtomicSystem.set_topology</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.reset_topology.html">AtomicSystem.reset_topology</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.remove_connection_types.html">AtomicSystem.remove_connection_types</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.keep_connection_types.html">AtomicSystem.keep_connection_types</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.guess_connections.html">AtomicSystem.guess_connections</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.guess_angles.html">AtomicSystem.guess_angles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.guess_dihedrals.html">AtomicSystem.guess_dihedrals</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.guess_impropers.html">AtomicSystem.guess_impropers</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.add_bond.html">AtomicSystem.add_bond</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.add_angle.html">AtomicSystem.add_angle</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.add_dihedral.html">AtomicSystem.add_dihedral</a></li>
@@ -495,8 +498,8 @@
 <dl class="py method">
 <dt class="sig sig-object py" id="cemd.core.atomic_system.AtomicSystem.unskew">
 <span class="sig-prename descclassname"><span class="pre">AtomicSystem.</span></span><span class="sig-name descname"><span class="pre">unskew</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cemd.core.atomic_system.AtomicSystem.unskew" title="Link to this definition">#</a></dt>
-<dd><p>Unskew the box if the non-diagonal parameters of the box matrix 
-<span class="math notranslate nohighlight">\(|H_{i,j}| &gt; H_{j,j}\)</span> for <span class="math notranslate nohighlight">\(i \neq j\)</span> by adding 
+<dd><p>Unskew the box if the non-diagonal parameters of the box matrix
+<span class="math notranslate nohighlight">\(|H_{i,j}| &gt; H_{j,j}\)</span> for <span class="math notranslate nohighlight">\(i \neq j\)</span> by adding
 <span class="math notranslate nohighlight">\(\pm H_{j,:}\)</span> to <span class="math notranslate nohighlight">\(H_{i,:}\)</span> while <span class="math notranslate nohighlight">\(|H_{i,j}| &gt; H_{j,j}\)</span>.</p>
 </dd></dl>
 

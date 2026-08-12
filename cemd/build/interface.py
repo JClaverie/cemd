@@ -20,14 +20,19 @@ from __future__ import annotations
 
 import os
 import tempfile
-from typing import TYPE_CHECKING
+import warnings
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
 import pandas as pd
 
 from .._constants import AVOGADRO, MASSES_DICT
-from .._utils import lattice2lammps, lattice2vectors, require_program, vectors2lattice
+from ..core._format import (
+    lattice2vectors,
+    vectors2lattice,
+)
 from ..core.atomic_system import AtomicSystem
+from .base import require_program
 from .solution import SolutionBuilder
 
 if TYPE_CHECKING:
@@ -132,12 +137,11 @@ def _merge_data(
     """
     Merge two AtomicSystem objects.
     """
-    from ..core.atomic_system import AtomicSystem
 
     output_topology = {}
 
     # Box
-    output_topology["lmp_box"] = lattice2lammps(box)
+    output_topology["box"] = box
 
     # Merge atoms
     indices_a = system_a.atoms.index.to_numpy()
@@ -179,8 +183,6 @@ def _merge_data(
     charges_dict_a.update(charges_dict_b)
     output_topology["charges"] = dict(sorted(charges_dict_a.items()))
 
-    output_topology["atom_types"] = list(sorted(masses_dict_a.keys()))
-
     # Get topology info
     connectivity_keys = ["bonds", "angles", "dihedrals", "impropers"]
     a_connectivity = {
@@ -207,6 +209,21 @@ def _merge_data(
 
         if a_connectivity[key] is None:
             a_connectivity[key] = pd.DataFrame()
+
+    param_attrs = [
+        "pair_params",
+        "bond_params",
+        "angle_params",
+        "dihedral_params",
+        "improper_params",
+        "bondbond_params",
+        "bondangle_params",
+    ]
+
+    for attr in param_attrs:
+        dict_a = getattr(system_a, attr, {}) or {}
+        dict_b = getattr(system_b, attr, {}) or {}
+        output_topology[attr] = merge_param_dicts(dict_a, dict_b, param_name=attr)
 
     # Set new topology
     for key in connectivity_keys:
@@ -494,3 +511,27 @@ def add_structure(
     result.wrap()
 
     return result
+
+
+def merge_param_dicts(
+    dict_a: dict[Any, Any], dict_b: dict[Any, Any], param_name: str
+) -> dict[Any, Any]:
+    """
+    Fusionne deux dictionnaires de paramètres avec détection des conflits.
+    """
+    merged = dict_a.copy()
+    for key, val_b in dict_b.items():
+        if key in merged:
+            val_a = merged[key]
+            # Si les paramètres sont différents pour la même clé -> Warning
+            if val_a != val_b:
+                warnings.warn(
+                    f"Conflict detected in '{param_name}' for key '{key}':\n"
+                    f"  System A: {val_a}\n"
+                    f"  System B: {val_b}\n"
+                    f"System B parameters will overwrite System A.",
+                    category=UserWarning,
+                    stacklevel=3,
+                )
+        merged[key] = val_b
+    return merged

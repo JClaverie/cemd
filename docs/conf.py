@@ -32,7 +32,7 @@ def generate_ff_data(app):
 
     # Scripts à exécuter dans l'ordre
     scripts = [
-        "toml_to_json.py",  # Génère ff_data.json
+        "db_to_json.py",  # Génère ff_data.json
         "generate_ff_embedded.py",  # Génère ff_viewer.html avec données intégrées
     ]
 

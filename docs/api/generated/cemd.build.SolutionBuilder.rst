@@ -15,6 +15,8 @@
    
       ~SolutionBuilder.__init__
       ~SolutionBuilder.build
+      ~SolutionBuilder.build_hemisphere
+      ~SolutionBuilder.from_water
       ~SolutionBuilder.get_solute_mass
       ~SolutionBuilder.get_water_count
       ~SolutionBuilder.to_counts

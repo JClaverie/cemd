@@ -248,7 +248,7 @@ class AtomicPlotter(QtInteractor):
             )
 
             pts = (v @ np.array(system._box_vectors)) + np.array(
-                [system._lmp_box[0][0], system._lmp_box[1][0], system._lmp_box[2][0]]
+                [system._box_lmp[0][0], system._box_lmp[1][0], system._box_lmp[2][0]]
             )
 
             faces = np.hstack(

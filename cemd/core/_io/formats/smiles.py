@@ -20,7 +20,7 @@ import pandas as pd
 from .base import BaseReader
 
 
-class SmilesReader(BaseReader):
+class SMILESReader(BaseReader):
     """Read from SMILES string using RDKit."""
 
     @classmethod
@@ -100,10 +100,9 @@ class SmilesReader(BaseReader):
         )
 
         return {
-            "lmp_box": lmp_box,
+            "box": lmp_box,
             "masses": masses,
             "charges": charges,
-            "atom_types": atom_types,
             "atoms": df_atoms,
             "bonds": df_bonds,
             "angles": None,

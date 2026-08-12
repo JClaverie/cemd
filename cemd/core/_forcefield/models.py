@@ -48,9 +48,9 @@ class LJParams:
 class BuckinghamParams:
     """Buckingham potential parameters."""
 
-    A: float
+    a: float
     rho: float
-    C: float
+    c: float
     ref: str = ""
     model: str | None = None
 

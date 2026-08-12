@@ -735,7 +735,7 @@ class AtomViewerGUI(QtWidgets.QMainWindow):
         except Exception as e:
             print(f"JSON writing error: {e}")
 
-    def closeEvent(self, event: QtGui.QCloseEvent) -> None:
+    def close_event(self, event: QtGui.QCloseEvent) -> None:
         """Centralized global backup on shutdown."""
         try:
             self.save_global_to_json()

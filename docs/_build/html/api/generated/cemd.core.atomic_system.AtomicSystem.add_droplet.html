@@ -364,6 +364,7 @@
 <li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.angle_types.html">AtomicSystem.angle_types</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.dihedral_types.html">AtomicSystem.dihedral_types</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.improper_types.html">AtomicSystem.improper_types</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.summary.html">AtomicSystem.summary</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.from_file.html">AtomicSystem.from_file</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.from_cod.html">AtomicSystem.from_cod</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.from_pubchem.html">AtomicSystem.from_pubchem</a></li>
@@ -374,12 +375,14 @@
 <li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.write.html">AtomicSystem.write</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.set_types.html">AtomicSystem.set_types</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.set_type2atoms.html">AtomicSystem.set_type2atoms</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.reset_types.html">AtomicSystem.reset_types</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.reset_types.html">AtomicSystem.reset_types</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.set_types_from_elements.html">AtomicSystem.set_types_from_elements</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.set_topology.html">AtomicSystem.set_topology</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.reset_topology.html">AtomicSystem.reset_topology</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.remove_connection_types.html">AtomicSystem.remove_connection_types</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.keep_connection_types.html">AtomicSystem.keep_connection_types</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.guess_connections.html">AtomicSystem.guess_connections</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.guess_angles.html">AtomicSystem.guess_angles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.guess_dihedrals.html">AtomicSystem.guess_dihedrals</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.guess_impropers.html">AtomicSystem.guess_impropers</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.add_bond.html">AtomicSystem.add_bond</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.add_angle.html">AtomicSystem.add_angle</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.add_dihedral.html">AtomicSystem.add_dihedral</a></li>
@@ -525,13 +528,13 @@ in Ångströms.</p>
 <p class="rubric">Examples</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">cemd</span><span class="w"> </span><span class="kn">import</span> <span class="n">AtomicSystem</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">cemd.builders</span><span class="w"> </span><span class="kn">import</span> <span class="n">SolutionBuilder</span>
-<span class="gp">&gt;&gt;&gt; </span>
+<span class="gp">&gt;&gt;&gt;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">surface</span> <span class="o">=</span> <span class="n">AtomicSystem</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="s2">&quot;surface.lmp&quot;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">blueprint</span> <span class="o">=</span> <span class="n">SolutionBuilder</span><span class="o">.</span><span class="n">from_molarities</span><span class="p">(</span>
 <span class="gp">... </span>    <span class="n">density</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
 <span class="gp">... </span>    <span class="n">molarities</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;NaCl&#39;</span><span class="p">:</span> <span class="mf">0.1</span><span class="p">}</span>
 <span class="gp">... </span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span>
+<span class="gp">&gt;&gt;&gt;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># Add a 15 Å radius water droplet on the surface</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">system</span> <span class="o">=</span> <span class="n">surface</span><span class="o">.</span><span class="n">add_droplet</span><span class="p">(</span><span class="n">blueprint</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="mf">15.0</span><span class="p">,</span> <span class="n">distance</span><span class="o">=</span><span class="mf">2.0</span><span class="p">)</span>
 </pre></div>

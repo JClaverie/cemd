@@ -214,7 +214,7 @@ def explore_pubchem(visible_rows: int = 20) -> Any:
         return None
 
     print(f"Searching for '{query}' on PubChem...")
-    results = pubchem_sdq_search(query)
+    results = pubchem_search_by_name(query)
 
     if not results:
         print("No results found.")
@@ -229,10 +229,10 @@ def explore_pubchem(visible_rows: int = 20) -> Any:
     kb = KeyBindings()
 
     # Formatting suitable for PubChem columns
-    ROW_FORMAT = "{cursor} {id:>10} | {name:<30.30} | {formula:<15.15} | {weight:>10}"
+    row_format = "{cursor} {id:>10} | {name:<30.30} | {formula:<15.15} | {weight:>10}"
 
     def render():
-        header = ROW_FORMAT.format(
+        header = row_format.format(
             cursor=" ", id="ID", name="NAME", formula="FORMULA", weight="WEIGHT"
         )
         separator = "-" * len(header)
@@ -252,7 +252,7 @@ def explore_pubchem(visible_rows: int = 20) -> Any:
             real_index = scroll_top + i
             cursor = "➜" if real_index == index else " "
             lines.append(
-                ROW_FORMAT.format(
+                row_format.format(
                     cursor=cursor,
                     id=r["id"],
                     name=r["common_name"],
