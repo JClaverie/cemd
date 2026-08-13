@@ -411,6 +411,7 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">tempfile</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Sequence</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">TYPE_CHECKING</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
@@ -694,7 +695,7 @@
         <span class="k">if</span> <span class="n">min_mcl</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;min_mcl must be &gt;= 2, got </span><span class="si">{</span><span class="n">min_mcl</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
-        <span class="n">system</span> <span class="o">=</span> <span class="n">AtomicSystem</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">STRUCTURES_DIR</span><span class="p">,</span> <span class="n">model</span><span class="p">))</span>
+        <span class="n">system</span> <span class="o">=</span> <span class="n">AtomicSystem</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="n">STRUCTURES_DIR</span> <span class="o">/</span> <span class="n">model</span><span class="p">)</span>
 
         <span class="c1"># Apply supercell</span>
         <span class="k">if</span> <span class="n">model</span> <span class="o">==</span> <span class="s2">&quot;tob11a_hamid.cif&quot;</span><span class="p">:</span>
@@ -823,27 +824,33 @@
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">supercell</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">3</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;supercell must have 3 elements, got </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">supercell</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
-        <span class="n">output_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">PYCSH_DIR</span><span class="p">,</span> <span class="s2">&quot;output&quot;</span><span class="p">)</span>
+        <span class="n">output_path</span> <span class="o">=</span> <span class="n">PYCSH_DIR</span> <span class="o">/</span> <span class="s2">&quot;output&quot;</span>
 
-        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">output_path</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">output_path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
             <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="n">output_path</span><span class="p">)</span>
-        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">output_path</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="n">output_path</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
         <span class="n">seed</span> <span class="o">=</span> <span class="n">seed</span> <span class="ow">or</span> <span class="nb">int</span><span class="o">.</span><span class="n">from_bytes</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">urandom</span><span class="p">(</span><span class="mi">4</span><span class="p">),</span> <span class="s2">&quot;big&quot;</span><span class="p">)</span>
         <span class="n">name</span> <span class="o">=</span> <span class="n">name</span> <span class="ow">or</span> <span class="sa">f</span><span class="s2">&quot;cs</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">cs_ratio</span><span class="si">}</span><span class="s2">_ws</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">ws_ratio</span><span class="si">}</span><span class="s2">&quot;</span>
 
-        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">PYCSH_DIR</span><span class="p">,</span> <span class="s2">&quot;parameters.py&quot;</span><span class="p">),</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;seed = </span><span class="si">{</span><span class="n">seed</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
-            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;shape = </span><span class="si">{</span><span class="n">supercell</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
-            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Ca_Si_ratio = </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">cs_ratio</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
-            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;W_Si_ratio = </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">ws_ratio</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
-            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;N_samples = </span><span class="si">{</span><span class="n">nsamples</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
-            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;create = True</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
-            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;write_lammps = True</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
-            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;write_lammps_erica = False</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
-            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;write_vasp = False</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
-            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;write_siesta = False</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
-            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;prefix = &quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1">&quot;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="n">param_file</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">PYCSH_DIR</span><span class="p">)</span> <span class="o">/</span> <span class="s2">&quot;parameters.py&quot;</span>
+
+        <span class="n">content</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;seed = </span><span class="si">{</span><span class="n">seed</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;shape = </span><span class="si">{</span><span class="n">supercell</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;Ca_Si_ratio = </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">cs_ratio</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;W_Si_ratio = </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">ws_ratio</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;N_samples = </span><span class="si">{</span><span class="n">nsamples</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;create = True</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;write_lammps = True</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;write_lammps_erica = False</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;write_vasp = False</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;write_siesta = False</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="sa">f</span><span class="s1">&#39;prefix = &quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1">&quot;</span><span class="se">\n</span><span class="s1">&#39;</span>
+        <span class="p">)</span>
+
+        <span class="n">param_file</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">content</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
 
         <span class="k">try</span><span class="p">:</span>
             <span class="n">pattern</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;Structure\s+(\d+)\s+converged&quot;</span><span class="p">)</span>
@@ -873,9 +880,9 @@
         <span class="n">atomic_systems</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">nsamples</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
             <span class="n">reax_name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">_reax</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">.data&quot;</span>
-            <span class="n">lmp_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">output_path</span><span class="p">,</span> <span class="n">reax_name</span><span class="p">)</span>
+            <span class="n">lmp_path</span> <span class="o">=</span> <span class="n">output_path</span> <span class="o">/</span> <span class="n">reax_name</span>
 
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">lmp_path</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">lmp_path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
                 <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;pyCSH did not generate </span><span class="si">{</span><span class="n">reax_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
             <span class="n">data</span> <span class="o">=</span> <span class="n">AtomicSystem</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="n">lmp_path</span><span class="p">)</span>
@@ -1057,7 +1064,7 @@
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;supercell must have 3 elements, got </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">supercell</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
         <span class="c1"># Load base structure</span>
-        <span class="n">input_system</span> <span class="o">=</span> <span class="n">AtomicSystem</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">STRUCTURES_DIR</span><span class="p">,</span> <span class="n">model_file</span><span class="p">))</span>
+        <span class="n">input_system</span> <span class="o">=</span> <span class="n">AtomicSystem</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="n">STRUCTURES_DIR</span> <span class="o">/</span> <span class="n">model_file</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">supercell</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">input_system</span><span class="o">.</span><span class="n">replicate</span><span class="p">(</span><span class="n">supercell</span><span class="p">)</span>
@@ -1081,7 +1088,8 @@
             <span class="n">_progress_callback</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;Building </span><span class="si">{</span><span class="n">structure_type</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span><span class="si">}</span><span class="s2">...&quot;</span><span class="p">)</span>
 
         <span class="k">with</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">TemporaryDirectory</span><span class="p">(</span><span class="nb">dir</span><span class="o">=</span><span class="s2">&quot;.&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">tmp</span><span class="p">:</span>
-            <span class="n">tempfile_ipdb</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmp</span><span class="p">,</span> <span class="s2">&quot;itmp.pdb&quot;</span><span class="p">)</span>
+            <span class="n">tmp_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">tmp</span><span class="p">)</span>
+            <span class="n">tempfile_ipdb</span> <span class="o">=</span> <span class="n">tmp_path</span> <span class="o">/</span> <span class="s2">&quot;itmp.pdb&quot;</span>
             <span class="n">sel</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">tempfile_ipdb</span><span class="p">)</span>
 
             <span class="n">h2o_pdb</span> <span class="o">=</span> <span class="n">get_structure_path</span><span class="p">(</span><span class="s2">&quot;h2o&quot;</span><span class="p">,</span> <span class="n">tmp</span><span class="p">)</span>

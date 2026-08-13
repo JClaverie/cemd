@@ -69,7 +69,7 @@ Topology
    AtomicSystem.set_type2atoms
    AtomicSystem.set_types_from_elements
    AtomicSystem.set_topology
-   AtomicSystem_remove_all_connections
+   AtomicSystem.remove_all_connections
    AtomicSystem.remove_connection_types
    AtomicSystem.keep_connection_types
    AtomicSystem.guess_connections

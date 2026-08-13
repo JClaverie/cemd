@@ -32,7 +32,7 @@ from ._base import BaseForceFieldParser, ParseResult
 class CVFFInterfaceParser(BaseForceFieldParser):
     """
     Parser for the CVFF Interface file (cvff_interface_v1_5.txt).
-    
+
     This parser extracts parameters from sections:
     -#atom_types: Definitions of atom types
     -#quadratic_bond: Harmonic bonds
@@ -44,12 +44,15 @@ class CVFFInterfaceParser(BaseForceFieldParser):
     -#bond-angle: Class2 terms bond-angle
     """
 
-    def __init__(self, model_name: str = "CVFF_INTERFACE"):
+    def __init__(
+        self, model_name: str = "iff_cvff", display_name: str = "CVFF INTERFACE FF 1.5"
+    ):
         super().__init__()
         self.model_name = model_name
+        self.display_name = display_name
         self._current_section = None
         self._line_number = 0
-        
+
         # Patterns section for detection
         self._section_patterns = {
             "atom_types": ["#atom_types"],
@@ -74,7 +77,7 @@ class CVFFInterfaceParser(BaseForceFieldParser):
         result = ParseResult(model_name=self.model_name)
         result.metadata = {
             "description": "CVFF Interface force field for clay minerals, silicates, and cements",
-            "ref": "CVFF, Heinz et al. (2013, 2014)",
+            "ref": " https://doi.org/10.1021/la3038846",
             "tags": ["CVFF", "Interface", "Clay", "Silicate", "Cement"],
         }
 
@@ -147,7 +150,7 @@ class CVFFInterfaceParser(BaseForceFieldParser):
             "bond-angle": self._parse_bondangle,
             "morse_bond": self._parse_morse_bond,
         }
-        
+
         handler = handlers.get(section)
         if handler:
             handler(line, result)
@@ -165,10 +168,10 @@ class CVFFInterfaceParser(BaseForceFieldParser):
             except ValueError:
                 mass = 0.0
             element = parts[4]
-            
+
             comment = " ".join(parts[6:]) if len(parts) > 6 else ""
             charge = 0.0
-            
+
             # Extract load from comment
             charge_match = re.search(r"\(([+-]?\d+\.?\d*)\)", comment)
             if charge_match:
@@ -356,12 +359,32 @@ class CVFFInterfaceLoader:
         self.parser = CVFFInterfaceParser()
 
     def load_from_file(self, filepath: str, model_name: str = None) -> None:
+        """
+        Load from file.
+
+        Parameters
+        ----------
+        filepath : str
+            Path to the CVFF file
+        model_name : str, optional
+            Clé dans la base de données (par défaut: 'iff_cvff')
+        """
         if model_name:
             self.parser.model_name = model_name
         result = self.parser.parse_file(filepath)
         result.to_database(self.db)
 
     def load_from_string(self, content: str, model_name: str = None) -> None:
+        """
+        Load from string.
+
+        Parameters
+        ----------
+        content : str
+            CVFF content
+        model_name : str, optional
+            Clé dans la base de données (par défaut: 'iff_cvff')
+        """
         if model_name:
             self.parser.model_name = model_name
         result = self.parser.parse(content)

@@ -377,6 +377,7 @@
 <li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.set_type2atoms.html">AtomicSystem.set_type2atoms</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.set_types_from_elements.html">AtomicSystem.set_types_from_elements</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.set_topology.html">AtomicSystem.set_topology</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.remove_all_connections.html">AtomicSystem.remove_all_connections</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.remove_connection_types.html">AtomicSystem.remove_connection_types</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.keep_connection_types.html">AtomicSystem.keep_connection_types</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.guess_connections.html">AtomicSystem.guess_connections</a></li>
@@ -497,7 +498,19 @@
 <dl class="py method">
 <dt class="sig sig-object py" id="cemd.core.atomic_system.AtomicSystem.write">
 <span class="sig-prename descclassname"><span class="pre">AtomicSystem.</span></span><span class="sig-name descname"><span class="pre">write</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">atom_style</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'full'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">oldstyle</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cemd.core.atomic_system.AtomicSystem.write" title="Link to this definition">#</a></dt>
-<dd><p>Write to a file.</p>
+<dd><p>Write the system to a file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>path</strong><span class="classifier">str or Path</span></dt><dd><p>Path to the output file (supports .data, .pdb, etc.)</p>
+</dd>
+<dt><strong>atom_style</strong><span class="classifier">str, default=’full’</span></dt><dd><p>LAMMPS atom style.</p>
+</dd>
+<dt><strong>oldstyle</strong><span class="classifier">bool, default=False</span></dt><dd><p>Use old style formatting if applicable.</p>
+</dd>
+</dl>
+</dd>
+</dl>
 </dd></dl>
 
 </section>

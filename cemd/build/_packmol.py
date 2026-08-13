@@ -15,11 +15,11 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-import os
 import shutil
 import subprocess
 import tempfile
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Literal
 
 from .. import AtomicSystem
@@ -405,56 +405,47 @@ def _rebuild_topology_from_templates(
 
 def get_structure_path(
     name: str,
-    temp_dir: str,
-) -> str:
-    """Return the path to a structure file.
+    temp_dir: str | Path,
+) -> Path:
+    """Return the path to a structure file as a Path object.
 
-    The function first looks for a PDB file, then for an SDF file
+    The function first looks for an LT file, then a PDB file, then an SDF file
     in the CEMD structure directory. If neither exists and the
     species is monoatomic, a temporary PDB file is generated.
     """
     name_lower = name.lower()
+    temp_path = Path(temp_dir)
 
-    lt_path = os.path.join(
-        STRUCTURES_DIR,
-        f"{name_lower}.lt",
-    )
-
-    if os.path.exists(lt_path):
+    # 1. Vérification du fichier .lt
+    lt_path = STRUCTURES_DIR / f"{name_lower}.lt"
+    if lt_path.exists():
         return lt_path
 
-    pdb_path = os.path.join(
-        STRUCTURES_DIR,
-        f"{name_lower}.pdb",
-    )
-
-    if os.path.exists(pdb_path):
+    # 2. Vérification du fichier .pdb
+    pdb_path = STRUCTURES_DIR / f"{name_lower}.pdb"
+    if pdb_path.exists():
         return pdb_path
 
-    sdf_path = os.path.join(
-        STRUCTURES_DIR,
-        f"{name_lower}.sdf",
-    )
-
-    if os.path.exists(sdf_path):
+    # 3. Vérification du fichier .sdf
+    sdf_path = STRUCTURES_DIR / f"{name_lower}.sdf"
+    if sdf_path.exists():
         return sdf_path
 
+    # 4. Génération d'un fichier temporaire si l'atome est monoatomique
     if name in MASSES_DICT:
-        temp_pdb = os.path.join(
-            temp_dir,
-            f"{name_lower}.pdb",
+        temp_pdb = temp_path / f"{name_lower}.pdb"
+
+        # Écriture propre et directe du fichier texte
+        temp_pdb.write_text(
+            f"HETATM    1 {name:>2s}  {name:>3s} A   1"
+            "       0.000   0.000   0.000"
+            "  1.00  0.00\n"
+            "END\n",
+            encoding="ascii",
         )
-
-        with open(temp_pdb, "w", encoding="ascii") as f:
-            f.write(
-                f"HETATM    1 {name:>2s}  {name:>3s} A   1"
-                "       0.000   0.000   0.000"
-                "  1.00  0.00\n"
-            )
-            f.write("END\n")
-
         return temp_pdb
 
+    # 5. Levée d'erreur si aucune structure n'est trouvée
     raise FileNotFoundError(
         f"Structure for '{name}' not found as ATB (MOLTEMPLATE), PDB or SDF and cannot be generated."
     )
@@ -462,8 +453,8 @@ def get_structure_path(
 
 def run_packmol(
     packmol: PackmolInput,
-    output_path: str | None = None,
-) -> AtomicSystem | str:
+    output_path: str | Path | None = None,
+) -> AtomicSystem | Path | str:
     """
     Run Packmol and return the resulting system.
 
@@ -478,14 +469,9 @@ def run_packmol(
         its topology reconstructed from the input templates.
     """
     with tempfile.TemporaryDirectory(dir=".") as tmp:
-        pdb_output_file = os.path.join(
-            tmp,
-            "tmp_out.pdb",
-        )
-        packmol_input_file = os.path.join(
-            tmp,
-            "tmp.inp",
-        )
+        tmp_path = Path(tmp)
+        pdb_output_file = tmp_path / "tmp_out.pdb"
+        packmol_input_file = tmp_path / "tmp.inp"
 
         structure_paths = []
 
@@ -493,42 +479,32 @@ def run_packmol(
             template = structure.structure
 
             if isinstance(template, AtomicSystem):
-                structure_path = os.path.join(
-                    tmp,
-                    f"structure_{index}.pdb",
-                )
-                template.write(structure_path)
+                structure_path = tmp_path / f"structure_{index}.pdb"
 
-            elif os.path.isfile(template):
-                structure_path = template
+                template.write(str(structure_path))
+
+            elif Path(template).is_file():
+                structure_path = Path(template)
 
             else:
                 structure_path = get_structure_path(
                     template,
-                    tmp,
+                    tmp_path,
                 )
 
             structure_paths.append(structure_path)
 
-        # Generate the Packmol input file.
         input_content = packmol.to_input(
-            structure_paths,
+            [str(p) for p in structure_paths],
         )
 
-        # Packmol needs to write to the temporary output file.
-        # We therefore replace the configured output path.
         input_content = input_content.replace(
             f"output {packmol.output}",
             f"output {pdb_output_file}",
             1,
         )
 
-        with open(
-            packmol_input_file,
-            "w",
-            encoding="utf-8",
-        ) as f:
-            f.write(input_content)
+        packmol_input_file.write_text(input_content, encoding="utf-8")
 
         result = subprocess.run(
             f"packmol < {packmol_input_file}",
@@ -540,14 +516,12 @@ def run_packmol(
         if result.returncode != 0:
             raise RuntimeError(f"Packmol failed with return code {result.returncode}.")
 
-        if not os.path.exists(pdb_output_file):
+        if not pdb_output_file.exists():
             raise RuntimeError("Packmol failed to generate output.")
 
         if output_path is not None:
-            shutil.copy(
-                pdb_output_file,
-                output_path,
-            )
+            out_path = Path(output_path)
+            shutil.copy(pdb_output_file, out_path)
             return output_path
 
         solution = AtomicSystem.from_file(

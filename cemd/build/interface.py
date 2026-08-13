@@ -18,9 +18,9 @@
 
 from __future__ import annotations
 
-import os
 import tempfile
 import warnings
+from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 import numpy as np
@@ -95,10 +95,11 @@ def _build_droplet_from_blueprint(
 
     # Build with Packmol
     with tempfile.TemporaryDirectory(dir=".") as tmp:
+        tmp_path = Path(tmp)
         structures = []
 
         # Eau
-        h2o_path = get_structure_path("H2O", tmp)
+        h2o_path = get_structure_path("H2O", tmp_path)
         structures.append(
             add_packmol_structure(
                 h2o_path, num_water, f"inside sphere 0 0 0 {radius:.4f}", plane
@@ -111,10 +112,12 @@ def _build_droplet_from_blueprint(
                 continue
 
             if species in blueprint.structures:
-                struct_path = os.path.join(tmp, f"custom_{species}.pdb")
-                blueprint.structures[species].write(struct_path)
+                # Remplacement de os.path.join par l'opérateur /
+                struct_path = tmp_path / f"custom_{species}.pdb"
+                # On convertit en str si la méthode write attend une chaîne de caractères
+                blueprint.structures[species].write(str(struct_path))
             else:
-                struct_path = get_structure_path(species, tmp)
+                struct_path = get_structure_path(species, tmp_path)
 
             structures.append(
                 add_packmol_structure(
@@ -160,25 +163,15 @@ def _merge_data(
         output_topology["velocities"] = None
 
     # Merge masses
-    masses_dict_a = {}
-    masses_dict_b = {}
-
-    for t, m in zip(system_a.atom_types, system_a.masses):
-        masses_dict_a[t] = m
-    for t, m in zip(system_b.atom_types, system_b.masses):
-        masses_dict_b[t] = m
+    masses_dict_a = system_a.masses
+    masses_dict_b = system_b.masses
 
     masses_dict_a.update(masses_dict_b)
     output_topology["masses"] = dict(sorted(masses_dict_a.items()))
 
     # Merge charges
-    charges_dict_a = {}
-    charges_dict_b = {}
-
-    for t, m in zip(system_a.atom_types, system_a.charges):
-        charges_dict_a[t] = m
-    for t, m in zip(system_b.atom_types, system_b.charges):
-        charges_dict_b[t] = m
+    charges_dict_a = system_a.charges
+    charges_dict_b = system_b.charges
 
     charges_dict_a.update(charges_dict_b)
     output_topology["charges"] = dict(sorted(charges_dict_a.items()))

@@ -39,13 +39,18 @@ class CHARMMInterfaceParser(BaseForceFieldParser):
     - IMPROPER: Impropers
     - NONBONDED: LJ parameters (with 1-4 scaling)
     - CMAP: CMAP correction grids (stored as metadata)
-    
+
     Atom types are extracted from the NONBONDED section.
     """
 
-    def __init__(self, model_name: str = "CHARMM_INTERFACE"):
+    def __init__(
+        self,
+        model_name: str = "iff_charmm",
+        display_name: str = "CHARMM INTERFACE FF 1.5",
+    ):
         super().__init__()
-        self.model_name = model_name
+        self.model_name = model_name  # Clé dans la base de données
+        self.display_name = display_name  # Nom affiché dans le modèle
         self._current_section = None
         self._line_number = 0
 
@@ -61,7 +66,7 @@ class CHARMMInterfaceParser(BaseForceFieldParser):
 
         # Store CMAP data for metadata
         self._cmap_data: list[dict[str, Any]] = []
-        
+
         # Collect atom types from nonbonded section
         self._atom_types: set[str] = set()
 
@@ -71,8 +76,9 @@ class CHARMMInterfaceParser(BaseForceFieldParser):
 
         result = ParseResult(model_name=self.model_name)
         result.metadata = {
+            "name": self.display_name,  # Nom affiché dans le modèle
             "description": "CHARMM27 Interface force field for clay minerals, silicates, cements, and metals",
-            "ref": "CHARMM27, Heinz et al. (2005, 2008, 2013, 2014)",
+            "ref": " https://doi.org/10.1021/la3038846",
             "tags": ["CHARMM", "Interface", "Clay", "Silicate", "Cement", "Metal"],
         }
 
@@ -473,62 +479,158 @@ class CHARMMInterfaceParser(BaseForceFieldParser):
             return clean_type[0]
 
         return "X"
-    
+
     def _guess_mass(self, atom_type: str) -> float:
         """Guess the mass from atom type name."""
         masses = {
             # Hydrogens
-            "H": 1.008, "HA": 1.008, "HB": 1.008, "HC": 1.008, "HP": 1.008,
-            "HR1": 1.008, "HR2": 1.008, "HR3": 1.008, "HS": 1.008, "HT": 1.008,
-            "HOY": 1.008, "HOK": 1.008, "HOC": 1.008, "HOP": 1.008,
-            "HOL": 1.008, "HAL1": 1.008, "HAL2": 1.008, "HAL3": 1.008,
-            "HEL1": 1.008, "HEL2": 1.008, "HL": 1.008, "HCL": 1.008,
+            "H": 1.008,
+            "HA": 1.008,
+            "HB": 1.008,
+            "HC": 1.008,
+            "HP": 1.008,
+            "HR1": 1.008,
+            "HR2": 1.008,
+            "HR3": 1.008,
+            "HS": 1.008,
+            "HT": 1.008,
+            "HOY": 1.008,
+            "HOK": 1.008,
+            "HOC": 1.008,
+            "HOP": 1.008,
+            "HOL": 1.008,
+            "HAL1": 1.008,
+            "HAL2": 1.008,
+            "HAL3": 1.008,
+            "HEL1": 1.008,
+            "HEL2": 1.008,
+            "HL": 1.008,
+            "HCL": 1.008,
             # Carbons
-            "C": 12.011, "CA": 12.011, "CC": 12.011, "CD": 12.011,
-            "CE1": 12.011, "CE2": 12.011, "CM": 12.011, "CP1": 12.011,
-            "CP2": 12.011, "CP3": 12.011, "CPA": 12.011, "CPB": 12.011,
-            "CPH1": 12.011, "CPH2": 12.011, "CPM": 12.011, "CPT": 12.011,
-            "CS": 12.011, "CST": 12.011, "CT1": 12.011, "CT2": 12.011,
-            "CT3": 12.011, "CY": 12.011, "CT": 12.011,
-            "CL": 12.011, "CTL1": 12.011, "CTL2": 12.011, "CTL3": 12.011,
-            "CTL5": 12.011, "CEL1": 12.011, "CEL2": 12.011,
-            "CF1": 12.011, "CF2": 12.011, "CF3": 12.011,
-            "CAP": 12.011, "CN": 12.011,
+            "C": 12.011,
+            "CA": 12.011,
+            "CC": 12.011,
+            "CD": 12.011,
+            "CE1": 12.011,
+            "CE2": 12.011,
+            "CM": 12.011,
+            "CP1": 12.011,
+            "CP2": 12.011,
+            "CP3": 12.011,
+            "CPA": 12.011,
+            "CPB": 12.011,
+            "CPH1": 12.011,
+            "CPH2": 12.011,
+            "CPM": 12.011,
+            "CPT": 12.011,
+            "CS": 12.011,
+            "CST": 12.011,
+            "CT1": 12.011,
+            "CT2": 12.011,
+            "CT3": 12.011,
+            "CY": 12.011,
+            "CT": 12.011,
+            "CL": 12.011,
+            "CTL1": 12.011,
+            "CTL2": 12.011,
+            "CTL3": 12.011,
+            "CTL5": 12.011,
+            "CEL1": 12.011,
+            "CEL2": 12.011,
+            "CF1": 12.011,
+            "CF2": 12.011,
+            "CF3": 12.011,
+            "CAP": 12.011,
+            "CN": 12.011,
             # Interface carbons
-            "SY1": 28.086, "SY2": 28.086, "SC1": 28.086, "SC4": 28.086,
+            "SY1": 28.086,
+            "SY2": 28.086,
+            "SC1": 28.086,
+            "SC4": 28.086,
             # Nitrogens
-            "N": 14.007, "NC2": 14.007, "NH1": 14.007, "NH2": 14.007,
-            "NH3": 14.007, "NP": 14.007, "NPH": 14.007, "NR1": 14.007,
-            "NR2": 14.007, "NR3": 14.007, "NY": 14.007,
-            "NS1": 14.007, "NS2": 14.007,
-            "NH3L": 14.007, "NTL": 14.007, "NC": 14.007,
+            "N": 14.007,
+            "NC2": 14.007,
+            "NH1": 14.007,
+            "NH2": 14.007,
+            "NH3": 14.007,
+            "NP": 14.007,
+            "NPH": 14.007,
+            "NR1": 14.007,
+            "NR2": 14.007,
+            "NR3": 14.007,
+            "NY": 14.007,
+            "NS1": 14.007,
+            "NS2": 14.007,
+            "NH3L": 14.007,
+            "NTL": 14.007,
+            "NC": 14.007,
             # Oxygens
-            "O": 15.999, "OB": 15.999, "OC": 15.999, "OH1": 15.999,
-            "OM": 15.999, "OS": 15.999, "OST": 15.999, "OT": 15.999,
-            "OY1": 15.999, "OY2": 15.999, "OY3": 15.999, "OY4": 15.999,
-            "OY5": 15.999, "OY6": 15.999, "OY7": 15.999, "OY8": 15.999,
-            "OY9": 15.999, "OC1": 15.999, "OC2": 15.999, "OC23": 15.999,
-            "OC24": 15.999, "OC3": 15.999, "OC4": 15.999, "OC5": 15.999,
-            "OAP1": 15.999, "OAP2": 15.999,
-            "OBL": 15.999, "OCL": 15.999, "OHL": 15.999, "OSL": 15.999,
-            "O2L": 15.999, "OCA": 15.999,
+            "O": 15.999,
+            "OB": 15.999,
+            "OC": 15.999,
+            "OH1": 15.999,
+            "OM": 15.999,
+            "OS": 15.999,
+            "OST": 15.999,
+            "OT": 15.999,
+            "OY1": 15.999,
+            "OY2": 15.999,
+            "OY3": 15.999,
+            "OY4": 15.999,
+            "OY5": 15.999,
+            "OY6": 15.999,
+            "OY7": 15.999,
+            "OY8": 15.999,
+            "OY9": 15.999,
+            "OC1": 15.999,
+            "OC2": 15.999,
+            "OC23": 15.999,
+            "OC24": 15.999,
+            "OC3": 15.999,
+            "OC4": 15.999,
+            "OC5": 15.999,
+            "OAP1": 15.999,
+            "OAP2": 15.999,
+            "OBL": 15.999,
+            "OCL": 15.999,
+            "OHL": 15.999,
+            "OSL": 15.999,
+            "O2L": 15.999,
+            "OCA": 15.999,
             # Sulfurs
-            "S": 32.065, "SM": 32.065, "SS": 32.065,
+            "S": 32.065,
+            "SM": 32.065,
+            "SS": 32.065,
             "SL": 32.065,
             # Metals and others
-            "FE": 55.845, "ZN": 65.380,
-            "PAP": 30.974, "PL": 30.974,
-            "CA++": 40.078, "CA+A": 40.078, "CA+H": 40.078,
-            "CAL": 40.078, "MG": 24.305,
-            "NA+": 22.990, "SOD": 22.990, "K+": 39.098, "POT": 39.098,
-            "CLA": 35.453, "Cl": 35.453,
-            "AG": 107.868, "AL": 26.982, "AU": 196.967,
-            "CU": 63.546, "NI": 58.693, "PB": 207.200,
-            "PD": 106.420, "PT": 195.084,
-            "HE": 4.003, "NE": 20.180,
+            "FE": 55.845,
+            "ZN": 65.380,
+            "PAP": 30.974,
+            "PL": 30.974,
+            "CA++": 40.078,
+            "CA+A": 40.078,
+            "CA+H": 40.078,
+            "CAL": 40.078,
+            "MG": 24.305,
+            "NA+": 22.990,
+            "SOD": 22.990,
+            "K+": 39.098,
+            "POT": 39.098,
+            "CLA": 35.453,
+            "Cl": 35.453,
+            "AG": 107.868,
+            "AL": 26.982,
+            "AU": 196.967,
+            "CU": 63.546,
+            "NI": 58.693,
+            "PB": 207.200,
+            "PD": 106.420,
+            "PT": 195.084,
+            "HE": 4.003,
+            "NE": 20.180,
             "DUM": 0.000,
         }
-        
+
         clean_type = atom_type.rstrip("+-")
         if clean_type in masses:
             return masses[clean_type]
@@ -543,14 +645,14 @@ class CHARMMInterfaceParser(BaseForceFieldParser):
             # Skip wildcards
             if atom_type == "X" or atom_type == "*":
                 continue
-            
+
             # Skip if already present
             if atom_type in result.atoms:
                 continue
-            
+
             element = self._guess_element(atom_type)
             mass = self._guess_mass(atom_type)
-            
+
             result.atoms[atom_type] = AtomType(
                 element=element,
                 charge=0.0,  # Charges are not available in PAR file

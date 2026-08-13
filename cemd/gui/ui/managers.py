@@ -190,9 +190,9 @@ class TypeManagerDialog(BaseBuilderDialog):
         self.table.setRowCount(len(types))
 
         for i, t_name in enumerate(types):
-            m_val = self.system_obj.masses[i]
-            c_val = self.system_obj.charges[i]
-            elem = elements_list[i]
+            m_val = self.system_obj.masses[t_name]
+            c_val = self.system_obj.charges[t_name]
+            elem = elements_list[t_name]
 
             item_id = QtWidgets.QTableWidgetItem(str(t_name))
             item_id.setData(QtCore.Qt.ItemDataRole.UserRole, t_name)

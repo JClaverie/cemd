@@ -15,10 +15,10 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-import os
+from pathlib import Path
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+BASE_DIR = Path(__file__).resolve().parent
 
-FF_DATABASE_DIR = os.path.join(BASE_DIR, "core", "_forcefield", "db")
-STRUCTURES_DIR = os.path.join(BASE_DIR, "build", "_structures")
-PYCSH_DIR = os.path.join(BASE_DIR, "build", "pyCSH-main")
+FF_DATABASE_DIR = BASE_DIR / "core" / "_forcefield" / "db"
+STRUCTURES_DIR = BASE_DIR / "build" / "_structures"
+PYCSH_DIR = BASE_DIR / "build" / "pyCSH-main"

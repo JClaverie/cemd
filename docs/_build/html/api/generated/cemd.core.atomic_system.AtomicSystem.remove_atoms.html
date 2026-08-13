@@ -377,6 +377,7 @@
 <li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.set_type2atoms.html">AtomicSystem.set_type2atoms</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.set_types_from_elements.html">AtomicSystem.set_types_from_elements</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.set_topology.html">AtomicSystem.set_topology</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.remove_all_connections.html">AtomicSystem.remove_all_connections</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.remove_connection_types.html">AtomicSystem.remove_connection_types</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.keep_connection_types.html">AtomicSystem.keep_connection_types</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.guess_connections.html">AtomicSystem.guess_connections</a></li>
@@ -497,19 +498,19 @@
 <dl class="py method">
 <dt class="sig sig-object py" id="cemd.core.atomic_system.AtomicSystem.remove_atoms">
 <span class="sig-prename descclassname"><span class="pre">AtomicSystem.</span></span><span class="sig-name descname"><span class="pre">remove_atoms</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">indices</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cemd.core.atomic_system.AtomicSystem.remove_atoms" title="Link to this definition">#</a></dt>
-<dd><p>Remove the specified atoms and update connectivity accordingly.</p>
+<dd><p>Remove specified atoms from the system and update topology accordingly.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>indices</strong><span class="classifier">list[int] | int</span></dt><dd><p>Indices of the atoms to remove.</p>
+<dt><strong>indices</strong><span class="classifier">Sequence[int] or int</span></dt><dd><p>Index or sequence of indices of the atoms to remove.</p>
 </dd>
 </dl>
 </dd>
 </dl>
 <p class="rubric">Notes</p>
 <p>This method automatically reindexes the remaining atoms, updates velocities,
-and removes any bonds, angles, dihedrals, or impropers containing the
-removed atoms.</p>
+removes unused atom types from internal mass and charge storage, and updates
+or removes any bonds, angles, dihedrals, or impropers containing the removed atoms.</p>
 </dd></dl>
 
 </section>

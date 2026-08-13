@@ -12,13 +12,13 @@ description = "Flexible SPC water model optimized for use with clay minerals and
 # Atom Types
 # ============================================================
 
-[atoms]
+[atom]
 [atoms.Ow]
 element = "O"
 charge = -0.82
 ref = "http://dx.doi.org/10.1063/1.2136877"
 
-[atoms.Hw]
+[atom.Hw]
 element = "H"
 charge = 0.41
 ref = "http://dx.doi.org/10.1063/1.2136877"
@@ -34,15 +34,15 @@ sigma = 3.165492
 ref = "http://dx.doi.org/10.1063/1.2136877"
 
 
-[bonds.harmonic]
-[bonds.harmonic."Ow-Hw"]
+[bond.harmonic]
+[bond.harmonic."Ow-Hw"]
 k = 529.581
 r0 = 1.012
 ref = "http://dx.doi.org/10.1063/1.2136877"
 
 
-[angles.harmonic]
-[angles.harmonic."Hw-Ow-Hw"]
+[angle.harmonic]
+[angle.harmonic."Hw-Ow-Hw"]
 k = 37.95
 theta0 = 113.24
 ref = "http://dx.doi.org/10.1063/1.2136877"

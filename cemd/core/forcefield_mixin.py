@@ -20,21 +20,13 @@ from __future__ import annotations
 import warnings
 from collections.abc import Sequence
 from itertools import combinations, combinations_with_replacement
-from typing import TYPE_CHECKING
+from typing import Any
 
 import numpy as np
 
-from .db_config import get_ff_db_path
-from .forcefield_database import ForceFieldDatabase
-from .models import (
-    BuckinghamParams,
-    HarmonicAngleParams,
-    HarmonicBondParams,
-    LJParams,
-)
-
-if TYPE_CHECKING:
-    from ..atomic_system import AtomicSystem
+from ..forcefield._config import get_ff_db_path
+from ..forcefield.forcefield_database import ForceFieldDatabase
+from ..forcefield.models import LJParams
 
 
 class ForceFieldMixin:
@@ -297,92 +289,135 @@ class ForceFieldMixin:
                 break
 
     def set_masses(self, value: Sequence[float] | dict[str | int, float]) -> None:
-        """
-        Set the masses for the atomic system.
+        """Set or update the atomic masses for the system and the atoms DataFrame.
 
         Parameters
         ----------
         value : Sequence of float or dict of {str or int : float}
-            If a sequence is provided, it must match the current order of
-            `atom_types`. If a dictionary is provided, it maps specific
-            atom types to their corresponding masses.
+            If a sequence is provided, it must match the current order and
+            length of unique `atom_types`. If a dictionary is provided, it
+            performs a partial or full update of the mass mapping.
+
+        Raises
+        ------
+        ValueError
+            If the sequence length does not match `atom_types` or if any mass is <= 0.
+        TypeError
+            If `value` is neither a dictionary nor a supported sequence type.
         """
         if isinstance(value, dict):
-            # Update internal storage by type name
+            current_types = set(self.atom_types)
+            missing_types = [
+                atype for atype in value.keys() if atype not in current_types
+            ]
+
+            if missing_types:
+                warnings.warn(
+                    f"Target atom types not present in current system: {missing_types}",
+                    UserWarning,
+                )
+
+            if any(m <= 0 for m in value.values()):
+                raise ValueError("All masses must be strictly positive (> 0).")
+
             self._masses_storage.update(value)
 
         elif isinstance(value, (list, np.ndarray, tuple)):
-            # Security check: ensure the length matches the number of types
-            current_types = self.atom_types
+            current_types = list(self.atom_types)
+
             if len(value) != len(current_types):
-                import traceback
-
-                traceback.print_stack()  # ← to see where the call is coming from
-                print("ERROR: ...")
-                return
-                print(
-                    f"ERROR: Mass list length ({len(value)}) does not match "
-                    f"the number of types ({len(current_types)})."
+                raise ValueError(
+                    f"Sequence length ({len(value)}) does not match "
+                    f"the number of atom types ({len(current_types)})."
                 )
-                return
 
-            # Create a temporary map to update the internal storage
+            if any(m <= 0 for m in value):
+                raise ValueError("All masses must be strictly positive (> 0).")
+
             new_map = dict(zip(current_types, value))
             self._masses_storage.update(new_map)
 
+        else:
+            raise TypeError(
+                f"Unsupported argument type: {type(value).__name__}. "
+                "Expected dict or sequence of floats."
+            )
+
+        if hasattr(self, "atoms") and self.atoms is not None:
+            mapped_masses = self.atoms["type"].map(self._masses_storage)
+
+            if "mass" in self.atoms.columns:
+                self.atoms["mass"] = mapped_masses.fillna(self.atoms["mass"])
+            else:
+                self.atoms["mass"] = mapped_masses
+
+            if self.atoms["mass"].isna().any():
+                unassigned = self.atoms[self.atoms["mass"].isna()]["type"].unique()
+                warnings.warn(
+                    f"Some atom types have no assigned mass: {list(unassigned)}",
+                    UserWarning,
+                )
+
+        # Clear internal cache
         self._cache = {}
 
     def set_charges(self, value: Sequence[float] | dict[str | int, float]) -> None:
-        """
-        Set or update the charges for the atomic system and the atoms DataFrame.
+        """Set or update the charges for the atomic system and the atoms DataFrame.
 
         Parameters
         ----------
         value : Sequence of float or dict of {str or int : float}
-            If a sequence is provided, it must match the current order of
-            `atom_types`. If a dictionary is provided, it performs a
-            partial or full update of the charge mapping.
+            If a sequence is provided, it must match the current order and
+            length of unique `atom_types`. If a dictionary is provided, it
+            performs a partial or full update of the charge mapping.
         """
-        if isinstance(value, dict):
-            # Optional check: warn the user if a target atom type does not exist
-            current_types = set(self.atom_types)
-            for atype in value.keys():
-                if atype not in current_types:
-                    print(
-                        f"WARNING: Type '{atype}' targeted in set_charges is not currently in the system."
-                    )
 
-            # Update the internal storage (overwrites existing or adds new keys)
+        if isinstance(value, dict):
+            current_types = set(self.atom_types)
+            missing_types = [
+                atype for atype in value.keys() if atype not in current_types
+            ]
+
+            if missing_types:
+                warnings.warn(
+                    f"Targeted types missing from current system: {missing_types}",
+                    UserWarning,
+                )
+
             self._charges_storage.update(value)
 
         elif isinstance(value, (list, np.ndarray, tuple)):
-            current_types = self.atom_types
+            # Make sure atom_types is an ordered list
+            current_types = list(self.atom_types)
+
             if len(value) != len(current_types):
-                print(
-                    f"ERROR: Charge list length ({len(value)}) does not match "
-                    f"the number of types ({len(current_types)})."
+                raise ValueError(
+                    f"Sequence size ({len(value)}) incompatible with "
+                    f"the number of atom types ({len(current_types)})."
                 )
-                return
+
             new_map = dict(zip(current_types, value))
             self._charges_storage.update(new_map)
 
-        # Update the atoms DataFrame while safely handling partial dictionary updates
+        else:
+            raise TypeError(
+                f"Argument type not taken into account: {type(value).__name__}."
+                "Expected: dict or sequence of floats."
+            )
+
         if hasattr(self, "atoms") and self.atoms is not None:
-            # 1. Map current atom types to the stored charges (creates NaN for omitted types)
             mapped_charges = self.atoms["type"].map(self._charges_storage)
 
-            # 2. If mapped_charges contains a NaN, fall back to the existing charge in the DataFrame.
-            #    If the 'charge' column does not exist yet, initialize it directly with mapped_charges.
             if "charge" in self.atoms.columns:
                 self.atoms["charge"] = mapped_charges.fillna(self.atoms["charge"])
             else:
                 self.atoms["charge"] = mapped_charges
 
-            # 3. Final safety check: Warn if any atom row ends up with an unassigned/NaN charge
             if self.atoms["charge"].isna().any():
-                missing = self.atoms[self.atoms["charge"].isna()]["type"].unique()
-                print(
-                    f"WARNING: Some atom types still have no charge assigned: {list(missing)}"
+                unassigned = self.atoms[self.atoms["charge"].isna()]["type"].unique()
+                warnings.warn(
+                    f"Certain types of atoms have no assigned charge:{list(unassigned)}",
+                    UserWarning,
                 )
 
         self._cache = {}
@@ -405,11 +440,10 @@ class ForceFieldMixin:
         self,
         atom_type1: str | int,
         atom_type2: str | int = None,
-        coeffs: list[float] = None,
-        potential_type: str = "lj",
+        params: Any = None,  # Idéalement : LJParams | BuckinghamParams
     ) -> None:
         """
-        Assign non-bond parameters for a pair of atom types (self or cross).
+        Assign non-bond parameter objects for a pair of atom types (self or cross).
 
         Parameters
         ----------
@@ -417,196 +451,111 @@ class ForceFieldMixin:
             The identifier of the first atom type.
         atom_type2 : str or int, optional
             The identifier of the second atom type. If None, assumes self-interaction.
-        coeffs : list of float
-            The potential coefficients.
-            -LJ: [epsilon (kcal/mol), sigma (Å)]
-            -Buckingham: [A (kcal/mol), rho (Å), C (kcal/mol·Å⁶)]
-        potential_type : str, optional
-            Type of potential: 'lj' (Lennard-Jones) or 'buckingham'. Default is 'lj'.
-
-        Raises
-        ------
-        ValueError
-            If the atom types are not present in the system or coeffs length is invalid.
+        params : Interaction object
+            The potential parameter object (e.g., LJParams or BuckinghamParams instance).
         """
-        # Si atom_type2 est None, on fait une auto-interaction
         if atom_type2 is None:
             atom_type2 = atom_type1
 
-        # Check that both types exist
         if atom_type1 not in self.atom_types:
             raise ValueError(f"Atom type '{atom_type1}' does not exist in the system.")
         if atom_type2 not in self.atom_types:
             raise ValueError(f"Atom type '{atom_type2}' does not exist in the system.")
 
-        sorted_key = tuple(sorted([atom_type1, atom_type2]))
+        # Tri sécurisé pour un stockage unique
+        sorted_key = tuple(sorted([atom_type1, atom_type2], key=str))
+        self.pair_params[sorted_key] = params
 
-        if potential_type == "lj":
-            eps, sigma = self._validate_and_convert_coeffs(
-                coeffs, 2, f"LJ potential for pair '{atom_type1}-{atom_type2}'"
-            )
-            self.pair_params[sorted_key] = LJParams(
-                epsilon=eps,
-                sigma=sigma,
-            )
-        elif potential_type == "buckingham":
-            a, rho, c = self._validate_and_convert_coeffs(
-                coeffs, 3, f"Buckingham potential for pair '{atom_type1}-{atom_type2}'"
-            )
-            self.pair_params[sorted_key] = BuckinghamParams(
-                a=a,
-                rho=rho,
-                c=c,
-            )
-        else:
-            raise ValueError(
-                f"Unknown potential type: {potential_type}. Use 'lj' or 'buckingham'."
-            )
-
-    def set_bond_params(
-        self, bond_type: str, coeffs: list[float]
-    ) -> None:
+    def set_bond_params(self, bond_type: str, params: Any) -> None:
         """
-        Assign structural parameters for a specific bond type.
+        Assign a structural parameter object for a specific bond type.
 
         Parameters
         ----------
         bond_type : str
             The identifier of the bond type (e.g., 'H-O').
-        coeffs : list of float
-            The bond coefficients [k (kcal/(mol·Å²)), r0 (Å)].
-
-        Raises
-        ------
-        ValueError
-            If the bond_type is not initialized or does not exist.
-            If coeffs length is invalid.
+        params : Bond object
+            The bond parameter object (e.g., HarmonicBondParams instance).
         """
         if not hasattr(self, "bond_types") or self.bond_types is None:
             raise ValueError("The system does not have any bond types initialized.")
-        if bond_type not in self.bond_types:
-            raise ValueError(f"Bond type '{bond_type}' does not exist in the system.")
 
-        k, r0 = self._validate_and_convert_coeffs(coeffs, 2, f"bond '{bond_type}'")
+        # Normalisation de la liaison (H-O devient identique à O-H)
+        elements = bond_type.split("-")
+        if len(elements) == 2:
+            normalized_bond = "-".join(
+                sorted([elements[0].strip(), elements[1].strip()], key=str)
+            )
+        else:
+            normalized_bond = bond_type
 
-        if k <= 0:
-            raise ValueError(f"k must be positive for bond '{bond_type}', got {k}")
-        if r0 <= 0:
-            raise ValueError(f"r0 must be positive for bond '{bond_type}', got {r0}")
+        if bond_type not in self.bond_types and normalized_bond not in self.bond_types:
+            raise ValueError(
+                f"Bond type '{bond_type}' (or '{normalized_bond}') does not exist in the system."
+            )
 
-        self.bond_params[bond_type] = HarmonicBondParams(k=k, r0=r0)
+        self.bond_params[normalized_bond] = params
 
-    def set_angle_params(
-        self, angle_type: str, coeffs: list[float]
-    ) -> None:
+    def set_angle_params(self, angle_type: str, params: Any) -> None:
         """
-        Assign structural parameters for a specific angle type.
+        Assign a structural parameter object for a specific angle type.
 
         Parameters
         ----------
         angle_type : str
             The identifier of the angle type (e.g., 'H-O-H').
-        coeffs : list of float
-            The angle coefficients [k (kcal/(mol·rad²)), theta0 (deg)].
-
-        Raises
-        ------
-        ValueError
-            If the angle_type is not initialized or does not exist.
-            If coeffs length is invalid.
+        params : Angle object
+            The angle parameter object (e.g., HarmonicAngleParams instance).
         """
         if not hasattr(self, "angle_types") or self.angle_types is None:
             raise ValueError("The system does not have any angle types initialized.")
+
         if angle_type not in self.angle_types:
             raise ValueError(f"Angle type '{angle_type}' does not exist in the system.")
 
-        k, theta0 = self._validate_and_convert_coeffs(
-            coeffs, 2, f"angle '{angle_type}'"
-        )
+        self.angle_params[angle_type] = params
 
-        if k <= 0:
-            raise ValueError(f"k must be positive for angle '{angle_type}', got {k}")
-        if theta0 < 0 or theta0 > 180:
-            raise ValueError(
-                f"theta0 must be between 0 and 180 for angle '{angle_type}', got {theta0}"
-            )
-
-        self.angle_params[angle_type] = HarmonicAngleParams(k=k, theta0=theta0)
-
-    def set_dihedral_params(
-        self, dihedral_type: str, coeffs: list[float]
-    ) -> None:
+    def set_dihedral_params(self, dihedral_type: str, params: Any) -> None:
         """
-        Assign structural parameters for a specific dihedral type.
+        Assign a structural parameter object for a specific dihedral type.
 
         Parameters
         ----------
         dihedral_type : str
             The identifier of the dihedral type (e.g., 'C-C-C-C').
-        coeffs : list of float
-            The dihedral coefficients. Number depends on the dihedral style.
-
-        Raises
-        ------
-        ValueError
-            If the dihedral_type is not initialized or does not exist.
-            If coeffs length is invalid.
+        params : Dihedral object
+            The dihedral parameter object (depends on the style).
         """
         if not hasattr(self, "dihedral_types") or self.dihedral_types is None:
             raise ValueError("The system does not have any dihedral types initialized.")
+
         if dihedral_type not in self.dihedral_types:
             raise ValueError(
                 f"Dihedral type '{dihedral_type}' does not exist in the system."
             )
 
-        # For dihedrals, we do not validate the number of coeffs because it depends on the style
-        # (OPLS: 3 coeffs, CHARMM: 6 coeffs, etc.)
-        try:
-            coeffs = [float(c) for c in coeffs]
-        except (TypeError, ValueError) as e:
-            raise ValueError(
-                f"Invalid coefficient values for dihedral '{dihedral_type}': "
-                f"expected numbers, got {coeffs}"
-            ) from e
+        self.dihedral_params[dihedral_type] = params
 
-        self.dihedral_params[dihedral_type] = coeffs  # Or a dataclass if defined
-
-    def set_improper_params(
-        self, improper_type: str, coeffs: list[float]
-    ) -> None:
+    def set_improper_params(self, improper_type: str, params: Any) -> None:
         """
-        Assign structural parameters for a specific improper type.
+        Assign a structural parameter object for a specific improper type.
 
         Parameters
         ----------
         improper_type : str
             The identifier of the improper type.
-        coeffs : list of float
-            The improper coefficients [k, theta0].
-
-        Raises
-        ------
-        ValueError
-            If the improper_type is not initialized or does not exist.
-            If coeffs length is invalid.
+        params : Improper object
+            The improper parameter object (e.g., HarmonicAngleParams instance).
         """
         if not hasattr(self, "improper_types") or self.improper_types is None:
             raise ValueError("The system does not have any improper types initialized.")
+
         if improper_type not in self.improper_types:
             raise ValueError(
                 f"Improper type '{improper_type}' does not exist in the system."
             )
 
-        k, theta0 = self._validate_and_convert_coeffs(
-            coeffs, 2, f"improper '{improper_type}'"
-        )
-
-        if k <= 0:
-            raise ValueError(
-                f"k must be positive for improper '{improper_type}', got {k}"
-            )
-
-        self.improper_params[improper_type] = HarmonicAngleParams(k=k, theta0=theta0)
+        self.improper_params[improper_type] = params
 
     def apply_pair_mixing_rules(self, rule="arithmetic", overwrite=False) -> None:
         """
@@ -645,12 +594,6 @@ class ForceFieldMixin:
         .. [1] LAMMPS Pair Modify Documentation. https://docs.lammps.org/pair_modify.html
         """
 
-        for t in self.atom_types:
-            if (t, t) not in self.pair_params:
-                self.pair_params[(t, t)] = LJParams(
-                    epsilon=0.0, sigma=0.0, ref="zero", model="default"
-                )
-
         missing_self_params = []
         for t in self.atom_types:
             if (t, t) not in self.pair_params:
@@ -661,6 +604,12 @@ class ForceFieldMixin:
                 f"Missing parameters for self-interaction of the following types: {missing_self_params}. "
                 "You must set these parameters with 'set_pair_params' before blending."
             )
+
+        for t in self.atom_types:
+            if (t, t) not in self.pair_params:
+                self.pair_params[(t, t)] = LJParams(
+                    epsilon=0.0, sigma=0.0, ref="zero", model="default"
+                )
 
         for t in self.atom_types:
             params = self.pair_params[(t, t)]
@@ -710,7 +659,6 @@ class ForceFieldMixin:
         """
         Search the database for pair parameters and apply them.
         """
-        self.pair_params = {}
         missing_pairs = []
 
         for label1, label2 in combinations_with_replacement(
@@ -723,11 +671,11 @@ class ForceFieldMixin:
             params = db.get_lj(ff_t1, ff_t2) or db.get_buckingham(ff_t1, ff_t2)
 
             if params is not None:
-                # Tri sécurisé qui supporte le mélange str / int
+                # Secure sorting that supports str/int mixing
                 pair_key = tuple(sorted([label1, label2], key=str))
                 self.pair_params[pair_key] = params
             elif label1 == label2:
-                # Signaler si une auto-interaction est manquante
+                # Report if a self-interaction is missing
                 missing_pairs.append((label1, ff_t1))
 
         if missing_pairs:
@@ -746,7 +694,6 @@ class ForceFieldMixin:
         if not hasattr(self, "bond_types") or self.bond_types is None:
             return
 
-        self.bond_params = {}
         missing_bonds = []
 
         for bond_str in self.bond_types:
@@ -785,7 +732,6 @@ class ForceFieldMixin:
         if not hasattr(self, "angle_types") or self.angle_types is None:
             return
 
-        self.angle_params = {}
         missing_angles = []
 
         for angle_str in self.angle_types:

@@ -15,36 +15,36 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-import os
 import shutil
 import sys
 import tomllib
+from pathlib import Path
 from typing import Any
 
 
-def get_current_dir() -> str:
+def get_current_dir() -> Path:
     """Returns the directory of this file."""
-    return os.path.dirname(os.path.abspath(__file__))
+    return Path(__file__).resolve().parent
 
 
-def get_default_config_path() -> str:
+def get_default_config_path() -> Path:
     """Returns the path of the default config file (same folder)."""
-    return os.path.join(get_current_dir(), "default_vmd_config.toml")
+    return get_current_dir() / "default_vmd_config.toml"
 
 
-def get_user_config_path() -> str:
+def get_user_config_path() -> Path:
     """Returns the path of the user config file."""
     if sys.platform == "win32":
-        base = os.environ.get("APPDATA", os.path.expanduser("~"))
+        base = Path.home() / "AppData" / "Roaming"
     elif sys.platform == "darwin":
-        base = os.path.expanduser("~/Library/Application Support")
+        base = Path.home() / "Library" / "Application Support"
     else:
-        base = os.path.expanduser("~/.config")
+        base = Path.home() / ".config"
 
-    return os.path.join(base, "cemd", "vmd_config.toml")
+    return base / "cemd" / "vmd_config.toml"
 
 
-def load_toml(path: str) -> dict:
+def load_toml(path: Path) -> dict:
     """Load a TOML file."""
     with open(path, "rb") as f:
         return tomllib.load(f)
@@ -58,14 +58,14 @@ def load_config() -> dict[str, Any]:
     """
     default_path = get_default_config_path()
 
-    if not os.path.exists(default_path):
+    if not default_path.exists():
         raise FileNotFoundError(f"Default config not found: {default_path}")
 
     config = load_toml(default_path)
 
     # Overload with user config if it exists
     user_path = get_user_config_path()
-    if os.path.exists(user_path):
+    if user_path.exists():
         try:
             user_config = load_toml(user_path)
             config = deep_merge(config, user_config)
@@ -93,12 +93,11 @@ def init_user_config() -> None:
     """
     user_path = get_user_config_path()
 
-    if os.path.exists(user_path):
+    if user_path.exists():
         return
 
-    user_dir = os.path.dirname(user_path)
-    if not os.path.exists(user_dir):
-        os.makedirs(user_dir)
+    user_dir = user_path.parent
+    user_dir.mkdir(parents=True, exist_ok=True)
 
     shutil.copy2(get_default_config_path(), user_path)
     print(f"Created user config: {user_path}")

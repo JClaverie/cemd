@@ -377,6 +377,7 @@
 <li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.set_type2atoms.html">AtomicSystem.set_type2atoms</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.set_types_from_elements.html">AtomicSystem.set_types_from_elements</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.set_topology.html">AtomicSystem.set_topology</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.remove_all_connections.html">AtomicSystem.remove_all_connections</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.remove_connection_types.html">AtomicSystem.remove_connection_types</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.keep_connection_types.html">AtomicSystem.keep_connection_types</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cemd.core.atomic_system.AtomicSystem.guess_connections.html">AtomicSystem.guess_connections</a></li>
@@ -496,8 +497,8 @@
 <h1>AtomicSystem.set_pair_params<a class="headerlink" href="#atomicsystem-set-pair-params" title="Link to this heading">#</a></h1>
 <dl class="py method">
 <dt class="sig sig-object py" id="cemd.core.atomic_system.AtomicSystem.set_pair_params">
-<span class="sig-prename descclassname"><span class="pre">AtomicSystem.</span></span><span class="sig-name descname"><span class="pre">set_pair_params</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atom_type1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">atom_type2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coeffs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">potential_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'lj'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cemd.core.atomic_system.AtomicSystem.set_pair_params" title="Link to this definition">#</a></dt>
-<dd><p>Assign non-bond parameters for a pair of atom types (self or cross).</p>
+<span class="sig-prename descclassname"><span class="pre">AtomicSystem.</span></span><span class="sig-name descname"><span class="pre">set_pair_params</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atom_type1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">atom_type2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cemd.core.atomic_system.AtomicSystem.set_pair_params" title="Link to this definition">#</a></dt>
+<dd><p>Assign non-bond parameter objects for a pair of atom types (self or cross).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
@@ -505,17 +506,7 @@
 </dd>
 <dt><strong>atom_type2</strong><span class="classifier">str or int, optional</span></dt><dd><p>The identifier of the second atom type. If None, assumes self-interaction.</p>
 </dd>
-<dt><strong>coeffs</strong><span class="classifier">list of float</span></dt><dd><p>The potential coefficients.
--LJ: [epsilon (kcal/mol), sigma (Å)]
--Buckingham: [A (kcal/mol), rho (Å), C (kcal/mol·Å⁶)]</p>
-</dd>
-<dt><strong>potential_type</strong><span class="classifier">str, optional</span></dt><dd><p>Type of potential: ‘lj’ (Lennard-Jones) or ‘buckingham’. Default is ‘lj’.</p>
-</dd>
-</dl>
-</dd>
-<dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><dl class="simple">
-<dt>ValueError</dt><dd><p>If the atom types are not present in the system or coeffs length is invalid.</p>
+<dt><strong>params</strong><span class="classifier">Interaction object</span></dt><dd><p>The potential parameter object (e.g., LJParams or BuckinghamParams instance).</p>
 </dd>
 </dl>
 </dd>

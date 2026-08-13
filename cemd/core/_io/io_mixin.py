@@ -17,7 +17,7 @@
 
 from __future__ import annotations
 
-import os
+from pathlib import Path
 from typing import Any, Self
 
 import numpy as np
@@ -26,12 +26,8 @@ import numpy as np
 class IOMixin:
     """Mixin for file I/O operations."""
 
-    # ========================================================================
-    # Factory methods
-    # ========================================================================
-
     @classmethod
-    def from_file(cls, path: str, **kwargs) -> Self:
+    def from_file(cls, path: str | Path, **kwargs) -> Self:
         """
         Load a system from a file.
 
@@ -50,10 +46,13 @@ class IOMixin:
                 atom_style : str, default='full'
                     LAMMPS atom style.
         """
-        if not os.path.exists(path):
-            raise FileNotFoundError(f"File not found: {path}")
 
-        ext = os.path.splitext(path)[1].lower()
+        file_path = Path(path)
+        if not file_path.exists():
+            raise FileNotFoundError(f"File not found: {file_path}")
+
+        ext = file_path.suffix.lower()
+
         readers = {
             ".data": cls._from_lammps_data,
             ".lmp": cls._from_lammps_data,
@@ -141,17 +140,33 @@ class IOMixin:
     # ========================================================================
 
     def write(
-        self, path: str, atom_style: str = "full", oldstyle: bool = False
+        self, path: str | Path, atom_style: str = "full", oldstyle: bool = False
     ) -> None:
-        """Write to a file."""
-        ext = os.path.splitext(path)[1].lower()
+        """
+        Write the system to a file.
+
+        Parameters
+        ----------
+        path : str or Path
+            Path to the output file (supports .data, .pdb, etc.)
+        atom_style : str, default='full'
+            LAMMPS atom style.
+        oldstyle : bool, default=False
+            Use old style formatting if applicable.
+        """
+        file_path = Path(path)
+
+        ext = file_path.suffix.lower()
+
         writers = {
             ".data": self._write_lammps_data,
             ".pdb": self._write_pdb,
         }
+
         if ext not in writers:
             raise ValueError(f"Unsupported output format: {ext}")
-        writers[ext](path, atom_style=atom_style, oldstyle=oldstyle)
+
+        writers[ext](str(file_path), atom_style=atom_style, oldstyle=oldstyle)
 
     # ========================================================================
     # Converters
@@ -188,7 +203,7 @@ class IOMixin:
         )
         universe.add_TopologyAttr("elements", atom_elements)
 
-        mass_map = dict(zip(self.atom_types, self.masses))
+        mass_map = self.masses
         atom_masses = np.array(
             [mass_map.get(t, mass_map.get(str(t), 1.0)) for t in atom_types],
             dtype=float,

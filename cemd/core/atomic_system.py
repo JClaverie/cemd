@@ -18,7 +18,6 @@
 from __future__ import annotations
 
 import copy
-from collections.abc import Sequence
 from typing import TYPE_CHECKING, Any, Self
 
 import numpy as np
@@ -26,7 +25,6 @@ import pandas as pd
 
 from .._constants import AVOGADRO, INV_MASSES, MASS_KEYS, MASSES_DICT
 from ._edit import EditMixin
-from ._forcefield import ForceFieldMixin
 from ._format import (
     ANGLES_COLUMNS,
     ATOMS_COLUMNS,
@@ -34,10 +32,13 @@ from ._format import (
     DIHEDRALS_COLUMNS,
     IMPROPERS_COLUMNS,
     VELOCITIES_COLUMNS,
+    normalize_dataframe,
+    normalize_property_to_dict,
 )
 from ._io import IOMixin
 from ._view import view
-from .topology import TopologyMixin
+from .forcefield_mixin import ForceFieldMixin
+from .topology_mixin import TopologyMixin
 
 if TYPE_CHECKING:
     from ..build import SolutionBuilder
@@ -152,12 +153,6 @@ class AtomicSystem(EditMixin, IOMixin, TopologyMixin, ForceFieldMixin):
     angleangletorsion_params: dict[str, Any]
     angleangle_params: dict[str, Any]
 
-    _atom_ff_mapping: dict[str, str]
-    _bond_ff_mapping: dict[str, str]
-    _angle_ff_mapping: dict[str, str]
-    _dihedral_ff_mapping: dict[str, str]
-    _improper_ff_mapping: dict[str, str]
-
     def __init__(self, topology: dict[str, Any]) -> None:
         """
         Initialize an atomic system from topology data.
@@ -217,8 +212,12 @@ class AtomicSystem(EditMixin, IOMixin, TopologyMixin, ForceFieldMixin):
 
         self.set_box(topology["box"])
 
-        self._masses_storage = dict(topology["masses"])
-        self._charges_storage = dict(topology["charges"])
+        self._masses_storage = normalize_property_to_dict(
+            dict(topology["masses"]), [str(t) for t in self.atoms.type.unique()]
+        )
+        self._charges_storage = normalize_property_to_dict(
+            dict(topology["charges"]), [str(t) for t in self.atoms.type.unique()]
+        )
         self._atom_style = topology.get("atom_style", "full")
 
         self._pmg_struct = topology.get("_pmg_struct", None)
@@ -237,73 +236,40 @@ class AtomicSystem(EditMixin, IOMixin, TopologyMixin, ForceFieldMixin):
         self.angleangletorsion_params = topology.get("angleangletorsion_params", {})
         self.angleangle_params = topology.get("angleangle_params", {})
 
-        self._atom_ff_mapping = topology.get("atom_ff_mapping", {})
-        self._bond_ff_mapping = topology.get("bond_ff_mapping", {})
-        self._angle_ff_mapping = topology.get("angle_ff_mapping", {})
-        self._dihedral_ff_mapping = topology.get("dihedral_ff_mapping", {})
-        self._improper_ff_mapping = topology.get("improper_ff_mapping", {})
-
-    def _normalize_dataframe(
-        self,
-        df: pd.DataFrame | None,
-        columns: tuple[str, ...] | list[str] | dict[str, type],
-        name: str,
-    ) -> pd.DataFrame | None:
-        """Validate and normalize a topology DataFrame.
-
-        Ensures required columns exist and reorders them according to
-        the defined standard.
-        """
-        if df is None:
-            return None
-
-        col_names = list(columns.keys()) if isinstance(columns, dict) else list(columns)
-
-        missing = [col for col in col_names if col not in df.columns]
-
-        if missing:
-            raise ValueError(
-                f"Invalid {name} DataFrame. "
-                f"Missing columns: {missing}. "
-                f"Expected: {col_names}."
-            )
-
-        return df.loc[:, col_names]
-
     def _finalize_data(self) -> None:
         """Sorts indices and ensures integer types for atom references."""
 
-        self.atoms = self._normalize_dataframe(
+        self.atoms = normalize_dataframe(
             self.atoms,
             ATOMS_COLUMNS,
             "atoms",
         )
 
-        self.bonds = self._normalize_dataframe(
+        self.bonds = normalize_dataframe(
             self.bonds,
             BONDS_COLUMNS,
             "bonds",
         )
 
-        self.angles = self._normalize_dataframe(
+        self.angles = normalize_dataframe(
             self.angles,
             ANGLES_COLUMNS,
             "angles",
         )
 
-        self.dihedrals = self._normalize_dataframe(
+        self.dihedrals = normalize_dataframe(
             self.dihedrals,
             DIHEDRALS_COLUMNS,
             "dihedrals",
         )
 
-        self.impropers = self._normalize_dataframe(
+        self.impropers = normalize_dataframe(
             self.impropers,
             IMPROPERS_COLUMNS,
             "impropers",
         )
 
-        self.velocities = self._normalize_dataframe(
+        self.velocities = normalize_dataframe(
             self.velocities,
             VELOCITIES_COLUMNS,
             "velocities",
@@ -424,43 +390,42 @@ class AtomicSystem(EditMixin, IOMixin, TopologyMixin, ForceFieldMixin):
         return np.dot(v1, np.cross(v2, v3))
 
     @property
-    def masses(self) -> list[float]:
+    def masses(self) -> dict[str | int, float]:
         """
         Return atomic masses associated with atom types.
 
         Returns
         -------
-        list of float
-            Mass of each atom type.
+        dict[str | int, float]
+            Dictionary matching atom type ID to its mass.
         """
         if "masses" not in self._cache:
-            mass_list = [
-                float(self._masses_storage.get(t, MASSES_DICT.get(t, 1.0)))
+            self._cache["masses"] = {
+                t: float(self._masses_storage.get(t, MASSES_DICT.get(t, 1.0)))
                 for t in self.atom_types
-            ]
-            self._cache["masses"] = mass_list
+            }
         return self._cache["masses"]
 
     @property
-    def charges(self) -> list[float]:
+    def charges(self) -> dict[str | int, float]:
         """
         Return charges associated with atom types.
 
         Returns
         -------
-        list of float
-            Charge of each atom type.
+        dict[str | int, float]
+            Dictionary matching atom type ID to its charge.
         """
         if "charges" not in self._cache:
-            self._cache["charges"] = [
-                float(self._charges_storage.get(atype, 0)) for atype in self.atom_types
-            ]
+            self._cache["charges"] = {
+                atype: float(self._charges_storage.get(atype, 0))
+                for atype in self.atom_types
+            }
         return self._cache["charges"]
 
     @property
     def elements(self) -> dict[str | int, str]:
-        """
-        Return a mapping of atom types to their elemental symbols.
+        """Return a mapping of atom types to their elemental symbols.
 
         Calculates elemental symbols on-the-fly by matching the atomic mass
         of each atom type to the closest element mass available in constant tables.
@@ -472,20 +437,20 @@ class AtomicSystem(EditMixin, IOMixin, TopologyMixin, ForceFieldMixin):
         """
         if "elements" not in self._cache:
             element_dict: dict[str | int, str] = {}
-            current_types = self.atom_types
-            current_masses = self.masses
 
-            for i, t_id in enumerate(current_types):
-                m_val = float(current_masses[i])
-                # Trouve la masse théorique la plus proche de la masse mesurée
+            # Iterate directly over the internal mass dictionary (type -> mass)
+            for t_id, mass_val in self._masses_storage.items():
+                if mass_val is None or np.isnan(mass_val):
+                    continue
+
+                m_val = float(mass_val)
+
+                # Find the theoretical mass closest to the measured mass
                 best_match = MASS_KEYS[(np.abs(MASS_KEYS - m_val)).argmin()]
                 symbol = str(INV_MASSES[best_match])
 
-                # Formate la clé pour conserver le type d'origine (int ou str)
-                clean_id = str(t_id)
-                if clean_id.isdigit():
-                    clean_id = int(clean_id)
-
+                # Format the key to preserve original type (int or str)
+                clean_id = int(t_id) if str(t_id).isdigit() else str(t_id)
                 element_dict[clean_id] = symbol
 
             self._cache["elements"] = element_dict
@@ -710,7 +675,12 @@ class AtomicSystem(EditMixin, IOMixin, TopologyMixin, ForceFieldMixin):
         float
             Sum of all atomic charges.
         """
-        return self.atoms.charge.sum()
+        counts = self.atoms["type"].value_counts()
+        total_charge = sum(
+            counts.get(atype, 0) * self.charges.get(atype, 0.0)
+            for atype in self.atom_types
+        )
+        return total_charge
 
     @property
     def total_mass(self) -> float:
@@ -724,8 +694,8 @@ class AtomicSystem(EditMixin, IOMixin, TopologyMixin, ForceFieldMixin):
         """
         counts = self.atoms["type"].value_counts()
         total_mass = sum(
-            counts.get(atype, 0) * mass
-            for atype, mass in zip(self.atom_types, self.masses)
+            counts.get(atype, 0) * self.masses.get(atype, 0.0)
+            for atype in self.atom_types
         )
         return total_mass
 

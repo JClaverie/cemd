@@ -18,9 +18,9 @@
 from __future__ import annotations
 
 import json
-import os
 import tempfile
 import webbrowser
+from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 import requests
@@ -130,14 +130,14 @@ def get_structure(cid: int, smiles: str = None) -> AtomicSystem | None:
     if response.status_code == 200:
         with tempfile.NamedTemporaryFile(mode="w", suffix=".sdf", delete=False) as f:
             f.write(response.text)
-            temp_path = f.name
+            temp_path = Path(f.name)
 
         try:
             system = AtomicSystem.from_file(temp_path)
-            os.unlink(temp_path)  # Nettoyer
+            temp_path.unlink()
             return system
         except Exception as e:
-            os.unlink(temp_path)
+            temp_path.unlink()
             print(f"Error parsing SDF: {e}")
 
     elif smiles:

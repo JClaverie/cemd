@@ -23,6 +23,16 @@ from dataclasses import dataclass, field
 
 
 @dataclass
+class ForceFieldModel:
+    """Force field model metadata."""
+
+    name: str
+    description: str = ""
+    ref: str = ""
+    tags: list[str] = field(default_factory=list)
+
+
+@dataclass
 class AtomType:
     """Atom type parameters."""
 
@@ -269,13 +279,3 @@ class DistanceImproperParams:
     k4: float
     ref: str = "https://docs.lammps.org/improper_distance.html"
     model: str | None = "Distance"
-
-
-@dataclass
-class ForceFieldModel:
-    """Force field model metadata."""
-
-    name: str
-    description: str = ""
-    ref: str = ""
-    tags: list[str] = field(default_factory=list)

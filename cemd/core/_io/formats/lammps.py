@@ -21,7 +21,7 @@ from typing import Any, TextIO
 import numpy as np
 import pandas as pd
 
-from ..._forcefield.models import (
+from ...forcefield._models import (
     BuckinghamParams,
     CHARMMDihedralParams,
     Class2AngleAngleParams,
@@ -847,16 +847,26 @@ class LAMMPSWriter(BaseWriter):
 
     @staticmethod
     def _write_masses(f, system, oldstyle: bool) -> None:
-        """Write masses."""
+        """Write atomic masses to the file stream."""
         f.write("\n Masses\n\n")
-        if oldstyle or not isinstance(system.atom_types[0], str):
-            # Use digital IDs
-            for i, (t, mass) in enumerate(zip(system.atom_types, system.masses), 1):
+
+        # Ensure atom_types exists and is not empty
+        if not hasattr(system, "atom_types") or not system.atom_types:
+            return
+
+        # Determine formatting mode (numeric IDs vs string labels)
+        use_numeric_ids = oldstyle or not isinstance(system.atom_types[0], str)
+
+        for i, atype in enumerate(system.atom_types, 1):
+            # Safely fetch mass from dictionary (defaults to 0.0 if unassigned)
+            mass = system.masses.get(atype, 0.0)
+
+            if use_numeric_ids:
+                # Write numeric ID (1-based index) and mass
                 f.write(f"{i} {mass}\n")
-        else:
-            # Use text labels
-            for t, mass in zip(system.atom_types, system.masses):
-                f.write(f"{t} {mass}\n")
+            else:
+                # Write string type label and mass
+                f.write(f"{atype} {mass}\n")
 
     @staticmethod
     def _write_header(f, system) -> None:

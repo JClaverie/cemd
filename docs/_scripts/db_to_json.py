@@ -6,7 +6,7 @@ Export all ForceFieldDatabase objects into the structured JSON format.
 import json
 from pathlib import Path
 
-from cemd.core._forcefield.forcefield_database import ForceFieldDatabase
+from cemd.forcefield.forcefield_database import ForceFieldDatabase
 
 SCRIPT_DIR = Path(__file__).parent
 DOCS_DIR = SCRIPT_DIR.parent
@@ -14,14 +14,11 @@ OUTPUT_PATH = DOCS_DIR / "_static" / "ff_data.json"
 
 
 def db_to_json() -> None:
-    """Export ForceFieldDatabase('all') to JSON matching the target schema."""
+    """Export ForceFieldDatabase() to JSON matching the target schema."""
 
-    # 1. Instanciation de la base de données globale
-    db = ForceFieldDatabase("all")
+    db = ForceFieldDatabase()
 
-    # Initialisation du dictionnaire avec la structure JSON attendue
     data = {
-        "metadata": {"models": {}},
         "models": {},
         "list": [],
         "lj_12-6": [],
@@ -32,21 +29,17 @@ def db_to_json() -> None:
         "dihedral": [],
     }
 
-    # 2. Remplissage des métadonnées et modèles
     for model_key, model_obj in db.models.items():
         model_info = {
             "name": getattr(model_obj, "name", model_key),
-            "reference": getattr(model_obj, "ref", ""),
+            "ref": getattr(model_obj, "ref", ""),
             "year": getattr(model_obj, "year", 0),
             "authors": getattr(model_obj, "authors", []),
             "description": getattr(model_obj, "description", ""),
             "tags": getattr(model_obj, "tags", []),
         }
-        # Les sections metadata.models et models partagent le même format
-        data["metadata"]["models"][model_key] = model_info
         data["models"][model_key] = model_info
 
-    # 3. Remplissage de la liste des atomes ("list")
     for full_key, atom_obj in db.atom.items():
         short_type = full_key.split(".")[-1] if "." in full_key else full_key
 
@@ -63,7 +56,6 @@ def db_to_json() -> None:
             }
         )
 
-    # 4. Lennard-Jones (lj_12-6)
     for full_key, lj_obj in db.lj.items():
         pair_str = full_key.split(".")[-1] if "." in full_key else full_key
         parts = pair_str.split("-")
@@ -79,7 +71,6 @@ def db_to_json() -> None:
             }
         )
 
-    # 5. Buckingham
     for full_key, buck_obj in db.buckingham.items():
         pair_str = full_key.split(".")[-1] if "." in full_key else full_key
         parts = pair_str.split("-")
@@ -96,7 +87,6 @@ def db_to_json() -> None:
             }
         )
 
-    # 6. Liaisons (bond)
     for full_key, bond_obj in db.bond.items():
         pair_str = full_key.split(".")[-1] if "." in full_key else full_key
         parts = pair_str.split("-")
@@ -115,7 +105,6 @@ def db_to_json() -> None:
             }
         )
 
-    # 7. Angles (angle)
     for full_key, angle_obj in db.angle.items():
         triple_str = full_key.split(".")[-1] if "." in full_key else full_key
         parts = triple_str.split("-")
@@ -135,7 +124,6 @@ def db_to_json() -> None:
             }
         )
 
-    # 8. Impropres (improper)
     for full_key, imp_obj in db.improper.items():
         quad_str = full_key.split(".")[-1] if "." in full_key else full_key
         parts = quad_str.split("-")
@@ -156,7 +144,6 @@ def db_to_json() -> None:
             }
         )
 
-    # 9. Dièdres (dihedral)
     for full_key, dih_obj in db.dihedral.items():
         quad_str = full_key.split(".")[-1] if "." in full_key else full_key
         parts = quad_str.split("-")
@@ -172,7 +159,6 @@ def db_to_json() -> None:
             }
         )
 
-    # 10. Écriture du fichier JSON
     OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     with open(OUTPUT_PATH, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2, ensure_ascii=False)

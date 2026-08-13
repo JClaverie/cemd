@@ -26,12 +26,91 @@ from typing import Any, TypeAlias
 import numpy as np
 import pandas as pd
 
+
+def normalize_dataframe(
+    df: pd.DataFrame | None,
+    columns: tuple[str, ...] | list[str] | dict[str, type],
+    name: str,
+) -> pd.DataFrame | None:
+    """Validate and normalize a topology DataFrame.
+
+    Ensures required columns exist and reorders them according to
+    the defined standard.
+    """
+    if df is None:
+        return None
+
+    col_names = list(columns.keys()) if isinstance(columns, dict) else list(columns)
+
+    missing = [col for col in col_names if col not in df.columns]
+
+    # Si la colonne 'ff_key' est absente, on l'ajoute automatiquement avec du vide
+    if "ff_key" in missing:
+        df["ff_key"] = ""
+        missing.remove("ff_key")
+
+    if missing:
+        raise ValueError(
+            f"Invalid {name} DataFrame. "
+            f"Missing columns: {missing}. "
+            f"Expected: {col_names}."
+        )
+
+    return df.loc[:, col_names]
+
+
+def normalize_property_to_dict(
+    prop: list | tuple | np.ndarray | dict | None, atom_types: list
+) -> dict:
+    """
+    Convert a sequence of atomic properties (masses, charges) into a dictionary
+    mapping atom types to their respective values. If the property is already
+    a dictionary, it is returned as is.
+
+    Parameters
+    ----------
+    prop : list, tuple, np.ndarray, dict, or None
+        The property to normalize.
+    atom_types : list
+        The list of atom types to use as keys if `prop` is a sequence.
+
+    Returns
+    -------
+    dict
+        A dictionary mapping atom types to property values.
+
+    Raises
+    ------
+    ValueError
+        If `prop` is a sequence but its length does not match `atom_types`.
+    TypeError
+        If `prop` is of an unsupported type.
+    """
+    if prop is None:
+        return {}
+
+    if isinstance(prop, dict):
+        return prop
+
+    if isinstance(prop, (list, tuple, np.ndarray)):
+        if len(prop) != len(atom_types):
+            raise ValueError(
+                f"Length mismatch for property: expected {len(atom_types)} values "
+                f"(to match atom_types), but got {len(prop)}."
+            )
+        # Zip lie chaque type d'atome à sa valeur correspondante dans la liste
+        return dict(zip(atom_types, prop))
+
+    raise TypeError(f"Expected dict or sequence, got {type(prop).__name__}")
+
+
 # ----------------------------------------------------------------
 # DataFrame formats — already implemented
 # ----------------------------------------------------------------
 
 ATOMS_COLUMNS = {
     "type": str | int,
+    "ff_key": str,
     "charge": float,
     "x": float,
     "y": float,
@@ -40,12 +119,14 @@ ATOMS_COLUMNS = {
 
 BONDS_COLUMNS = {
     "type": str | int,
+    "ff_key": str,
     "atom_1": int,
     "atom_2": int,
 }
 
 ANGLES_COLUMNS = {
     "type": str | int,
+    "ff_key": str,
     "atom_1": int,
     "atom_2": int,
     "atom_3": int,
@@ -53,6 +134,7 @@ ANGLES_COLUMNS = {
 
 DIHEDRALS_COLUMNS = {
     "type": str | int,
+    "ff_key": str,
     "atom_1": int,
     "atom_2": int,
     "atom_3": int,

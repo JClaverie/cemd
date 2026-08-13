@@ -110,8 +110,6 @@ class MDAReader(BaseReader):
         try:
             masses = np.asarray(atoms.masses, dtype=float)
 
-            # Si toutes les masses valent exactement 1.0, cela signifie probablement
-            # que MDAnalysis a mis une valeur par défaut. On force le recalcul via MASSES_DICT.
             if (
                 len(masses) == len(atoms)
                 and np.all(np.isfinite(masses))
@@ -123,7 +121,6 @@ class MDAReader(BaseReader):
         except (AttributeError, ValueError, TypeError):
             pass
 
-        # Recalcul des masses réelles avec MASSES_DICT basé sur les vrais éléments (C, H, O...)
         return np.asarray(
             [MASSES_DICT.get(str(element), 1.0) for element in elements],
             dtype=float,

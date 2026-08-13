@@ -16,7 +16,7 @@
 #
 
 
-import os
+from pathlib import Path
 
 import pandas as pd
 
@@ -30,11 +30,12 @@ class SDFReader(BaseReader):
     @classmethod
     def read(cls, source: str) -> dict:
         """Read SDF file or string."""
-        if "\n" in source.strip() or not os.path.exists(source):
+        if isinstance(source, Path):
+            lines = source.read_text(encoding="utf-8").splitlines()
+        elif "\n" in source.strip() or not Path(source).exists():
             lines = source.splitlines()
         else:
-            with open(source, encoding="utf-8") as f:
-                lines = f.read().splitlines()
+            lines = Path(source).read_text(encoding="utf-8").splitlines()
 
         if len(lines) < 4:
             raise ValueError("Invalid or empty SDF file.")

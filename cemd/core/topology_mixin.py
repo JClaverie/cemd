@@ -24,8 +24,8 @@ from typing import TYPE_CHECKING
 import numpy as np
 import pandas as pd
 
-from ..._constants import MASSES_DICT
-from ._apply import (
+from .._constants import MASSES_DICT
+from ..topology._apply import (
     apply_clayff_rules,
     apply_cshff_rules,
     apply_single_dihedral_rule_to_universe,
@@ -33,8 +33,8 @@ from ._apply import (
 )
 
 if TYPE_CHECKING:
-    from ..atomic_system import AtomicSystem
-    from .rules import DihedralRule, TopologyRule
+    from ..topology.rules import DihedralRule, TopologyRule
+    from .atomic_system import AtomicSystem
 
 RULE_SETS: dict[str, callable] = {
     "clayff": apply_clayff_rules,
@@ -166,7 +166,7 @@ class TopologyMixin:
                 "The atom type must be of the same type (string or integer) than existing atom types."
             )
 
-        data_masses_dic = {t: m for t, m in zip(self.atom_types, self.masses)}
+        data_masses_dic = self.masses
         old_type = self.atoms.loc[indices, "type"].iloc[0]
 
         # Edit in place

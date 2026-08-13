@@ -17,13 +17,13 @@
 
 from __future__ import annotations
 
-import os
+from pathlib import Path
 
 import MDAnalysis as mda
 import numpy as np
 
-from ...core._df_format import lattice2vectors
-from .._packmol import add_packmol_structure, get_structure_path, run_packmol
+from ...core._format import lattice2vectors
+from .._packmol import PackmolInput, PackmolStructure, get_structure_path, run_packmol
 from ._silicate_helpers import grouped_average
 
 
@@ -104,50 +104,71 @@ def fill_csh_interlayers(
     nca_layers: list,
     nca_to_add: int,
     nlayers: int,
-    tmp: str,
+    tmp: str | Path,
     progress_callback=None,
-) -> str:
+) -> Path:
     """Runs Packmol iteratively to fill each CSH interlayer with water and Ca."""
-
+    tmp_path = Path(tmp)
     left, right, bottom, top = _get_packmol_bounding_planes(box)
-    h2o_pdb = get_structure_path("h2o", tmp)
-    ca_pdb = get_structure_path("ca", tmp) if nca_to_add != 0 else None
+    h2o_pdb = get_structure_path("h2o", tmp_path)
+    ca_pdb = get_structure_path("ca", tmp_path) if nca_to_add != 0 else None
 
-    current_pdb = os.path.join(tmp, "tmp0.pdb")
-    univ.write(current_pdb)
-    idmin = np.argmin(univ.select_atoms("all").positions[:, 2]) + 1
+    current_pdb = tmp_path / "tmp0.pdb"
+    univ.write(str(current_pdb))
+    idmin = int(np.argmin(univ.select_atoms("all").positions[:, 2]) + 1)
 
     for i in range(nlayers):
         z_start, z_end, dist = interlayers_bounds[i]
-
         z_upper = z_start + dist if z_end < z_start else z_end
 
-        layer_instructions = [
-            f"over plane 0 0 1 {z_start + 1.5:.4f}",
-            f"below plane 0 0 1 {z_upper - 1.5:.4f}",
-            f"over plane {bottom}",
-            f"below plane {top}",
-            f"over plane {left}",
-            f"below plane {right}",
+        # Définition des plans pour restreindre le remplissage à la couche
+        above_planes = [
+            (0.0, 0.0, 1.0, z_start + 1.5),
+            bottom,
+            left,
+        ]
+        below_planes = [
+            (0.0, 0.0, 1.0, z_upper - 1.5),
+            top,
+            right,
         ]
 
         structures = [
-            add_packmol_structure(
-                current_pdb,
-                1,
-                f"inside box 0 0 0 {box[0]:.4f} {box[1]:.4f} {box[2]:.4f}",
-                f"atoms {idmin}",
-                "fixed 0 0 0 0 0 0",
+            PackmolStructure(
+                structure=current_pdb,
+                number=1,
+                inside_box=(0.0, 0.0, 0.0, float(box[0]), float(box[1]), float(box[2])),
+                fixed=(0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
+                fixed_atoms=idmin,
             ),
-            add_packmol_structure(h2o_pdb, int(nw_layers[i]), *layer_instructions),
+            PackmolStructure(
+                structure=h2o_pdb,
+                number=int(nw_layers[i]),
+                above_plane=above_planes,
+                below_plane=below_planes,
+            ),
         ]
+
         if nca_to_add != 0:
             structures.append(
-                add_packmol_structure(ca_pdb, int(nca_layers[i]), *layer_instructions)
+                PackmolStructure(
+                    structure=ca_pdb,
+                    number=int(nca_layers[i]),
+                    above_plane=above_planes,
+                    below_plane=below_planes,
+                )
             )
 
-        next_pdb = os.path.join(tmp, f"tmp{i + 1}.pdb")
-        run_packmol(structures, next_pdb)
+        next_pdb = tmp_path / f"tmp{i + 1}.pdb"
+
+        # Construction de l'objet de configuration Packmol
+        packmol_input = PackmolInput(
+            tolerance=2.0,
+            output=str(next_pdb),
+            structures=structures,
+        )
+
+        run_packmol(packmol_input, next_pdb)
         current_pdb = next_pdb
 
         msg = f"Adding {nw_layers[i]} H2O" + (

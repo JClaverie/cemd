@@ -24,6 +24,7 @@ import subprocess
 import tempfile
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -305,7 +306,7 @@ class CSHBuilder(BaseBuilder):
         if min_mcl < 2:
             raise ValueError(f"min_mcl must be >= 2, got {min_mcl}")
 
-        system = AtomicSystem.from_file(os.path.join(STRUCTURES_DIR, model))
+        system = AtomicSystem.from_file(STRUCTURES_DIR / model)
 
         # Apply supercell
         if model == "tob11a_hamid.cif":
@@ -434,27 +435,33 @@ class CSHBuilder(BaseBuilder):
         if len(supercell) != 3:
             raise ValueError(f"supercell must have 3 elements, got {len(supercell)}")
 
-        output_path = os.path.join(PYCSH_DIR, "output")
+        output_path = PYCSH_DIR / "output"
 
-        if os.path.exists(output_path):
+        if output_path.exists():
             shutil.rmtree(output_path)
-        os.makedirs(output_path, exist_ok=True)
+
+        output_path.mkdir(parents=True, exist_ok=True)
 
         seed = seed or int.from_bytes(os.urandom(4), "big")
         name = name or f"cs{self.cs_ratio}_ws{self.ws_ratio}"
 
-        with open(os.path.join(PYCSH_DIR, "parameters.py"), "w") as f:
-            f.write(f"seed = {seed}\n")
-            f.write(f"shape = {supercell}\n")
-            f.write(f"Ca_Si_ratio = {self.cs_ratio}\n")
-            f.write(f"W_Si_ratio = {self.ws_ratio}\n")
-            f.write(f"N_samples = {nsamples}\n")
-            f.write("create = True\n")
-            f.write("write_lammps = True\n")
-            f.write("write_lammps_erica = False\n")
-            f.write("write_vasp = False\n")
-            f.write("write_siesta = False\n")
-            f.write(f'prefix = "{name}"\n')
+        param_file = Path(PYCSH_DIR) / "parameters.py"
+
+        content = (
+            f"seed = {seed}\n"
+            f"shape = {supercell}\n"
+            f"Ca_Si_ratio = {self.cs_ratio}\n"
+            f"W_Si_ratio = {self.ws_ratio}\n"
+            f"N_samples = {nsamples}\n"
+            "create = True\n"
+            "write_lammps = True\n"
+            "write_lammps_erica = False\n"
+            "write_vasp = False\n"
+            "write_siesta = False\n"
+            f'prefix = "{name}"\n'
+        )
+
+        param_file.write_text(content, encoding="utf-8")
 
         try:
             pattern = re.compile(r"Structure\s+(\d+)\s+converged")
@@ -484,9 +491,9 @@ class CSHBuilder(BaseBuilder):
         atomic_systems = []
         for i in range(1, nsamples + 1):
             reax_name = f"{name}_reax{i}.data"
-            lmp_path = os.path.join(output_path, reax_name)
+            lmp_path = output_path / reax_name
 
-            if not os.path.exists(lmp_path):
+            if not lmp_path.exists():
                 raise FileNotFoundError(f"pyCSH did not generate {reax_name}")
 
             data = AtomicSystem.from_file(lmp_path)
@@ -667,7 +674,7 @@ class AFBuilder(BaseBuilder):
             raise ValueError(f"supercell must have 3 elements, got {len(supercell)}")
 
         # Load base structure
-        input_system = AtomicSystem.from_file(os.path.join(STRUCTURES_DIR, model_file))
+        input_system = AtomicSystem.from_file(STRUCTURES_DIR / model_file)
 
         if supercell is not None:
             input_system.replicate(supercell)
@@ -691,7 +698,8 @@ class AFBuilder(BaseBuilder):
             _progress_callback(10, f"Building {structure_type.upper()}...")
 
         with tempfile.TemporaryDirectory(dir=".") as tmp:
-            tempfile_ipdb = os.path.join(tmp, "itmp.pdb")
+            tmp_path = Path(tmp)
+            tempfile_ipdb = tmp_path / "itmp.pdb"
             sel.write(tempfile_ipdb)
 
             h2o_pdb = get_structure_path("h2o", tmp)

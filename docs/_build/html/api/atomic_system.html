@@ -632,7 +632,7 @@ systems.</p>
 <td><p>Convert to Pymatgen Structure.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/cemd.core.atomic_system.AtomicSystem.write.html#cemd.core.atomic_system.AtomicSystem.write" title="cemd.core.atomic_system.AtomicSystem.write"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AtomicSystem.write</span></code></a></p></td>
-<td><p>Write to a file.</p></td>
+<td><p>Write the system to a file.</p></td>
 </tr>
 </tbody>
 </table>
@@ -654,34 +654,37 @@ systems.</p>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/cemd.core.atomic_system.AtomicSystem.set_topology.html#cemd.core.atomic_system.AtomicSystem.set_topology" title="cemd.core.atomic_system.AtomicSystem.set_topology"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AtomicSystem.set_topology</span></code></a></p></td>
 <td><p>Apply a predefined style or custom rule(s) to the system.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="generated/cemd.core.atomic_system.AtomicSystem.remove_connection_types.html#cemd.core.atomic_system.AtomicSystem.remove_connection_types" title="cemd.core.atomic_system.AtomicSystem.remove_connection_types"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AtomicSystem.remove_connection_types</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/cemd.core.atomic_system.AtomicSystem.remove_all_connections.html#cemd.core.atomic_system.AtomicSystem.remove_all_connections" title="cemd.core.atomic_system.AtomicSystem.remove_all_connections"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AtomicSystem.remove_all_connections</span></code></a></p></td>
+<td><p>Apply a predefined topology style or a custom connectivity rule.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/cemd.core.atomic_system.AtomicSystem.remove_connection_types.html#cemd.core.atomic_system.AtomicSystem.remove_connection_types" title="cemd.core.atomic_system.AtomicSystem.remove_connection_types"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AtomicSystem.remove_connection_types</span></code></a></p></td>
 <td><p>Remove specific connection types from the system.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="generated/cemd.core.atomic_system.AtomicSystem.keep_connection_types.html#cemd.core.atomic_system.AtomicSystem.keep_connection_types" title="cemd.core.atomic_system.AtomicSystem.keep_connection_types"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AtomicSystem.keep_connection_types</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/cemd.core.atomic_system.AtomicSystem.keep_connection_types.html#cemd.core.atomic_system.AtomicSystem.keep_connection_types" title="cemd.core.atomic_system.AtomicSystem.keep_connection_types"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AtomicSystem.keep_connection_types</span></code></a></p></td>
 <td><p>Keep only the specified connection types and remove all others.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="generated/cemd.core.atomic_system.AtomicSystem.guess_connections.html#cemd.core.atomic_system.AtomicSystem.guess_connections" title="cemd.core.atomic_system.AtomicSystem.guess_connections"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AtomicSystem.guess_connections</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/cemd.core.atomic_system.AtomicSystem.guess_connections.html#cemd.core.atomic_system.AtomicSystem.guess_connections" title="cemd.core.atomic_system.AtomicSystem.guess_connections"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AtomicSystem.guess_connections</span></code></a></p></td>
 <td><p>Guess angles, dihedrals and/or impropers directly from existing bonds.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="generated/cemd.core.atomic_system.AtomicSystem.guess_angles.html#cemd.core.atomic_system.AtomicSystem.guess_angles" title="cemd.core.atomic_system.AtomicSystem.guess_angles"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AtomicSystem.guess_angles</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/cemd.core.atomic_system.AtomicSystem.guess_angles.html#cemd.core.atomic_system.AtomicSystem.guess_angles" title="cemd.core.atomic_system.AtomicSystem.guess_angles"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AtomicSystem.guess_angles</span></code></a></p></td>
 <td><p>Guess only angles from existing bonds.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="generated/cemd.core.atomic_system.AtomicSystem.guess_dihedrals.html#cemd.core.atomic_system.AtomicSystem.guess_dihedrals" title="cemd.core.atomic_system.AtomicSystem.guess_dihedrals"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AtomicSystem.guess_dihedrals</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/cemd.core.atomic_system.AtomicSystem.guess_dihedrals.html#cemd.core.atomic_system.AtomicSystem.guess_dihedrals" title="cemd.core.atomic_system.AtomicSystem.guess_dihedrals"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AtomicSystem.guess_dihedrals</span></code></a></p></td>
 <td><p>Guess only dihedrals from existing bonds.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="generated/cemd.core.atomic_system.AtomicSystem.guess_impropers.html#cemd.core.atomic_system.AtomicSystem.guess_impropers" title="cemd.core.atomic_system.AtomicSystem.guess_impropers"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AtomicSystem.guess_impropers</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/cemd.core.atomic_system.AtomicSystem.guess_impropers.html#cemd.core.atomic_system.AtomicSystem.guess_impropers" title="cemd.core.atomic_system.AtomicSystem.guess_impropers"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AtomicSystem.guess_impropers</span></code></a></p></td>
 <td><p>Guess only impropers from existing bonds.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="generated/cemd.core.atomic_system.AtomicSystem.add_bond.html#cemd.core.atomic_system.AtomicSystem.add_bond" title="cemd.core.atomic_system.AtomicSystem.add_bond"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AtomicSystem.add_bond</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/cemd.core.atomic_system.AtomicSystem.add_bond.html#cemd.core.atomic_system.AtomicSystem.add_bond" title="cemd.core.atomic_system.AtomicSystem.add_bond"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AtomicSystem.add_bond</span></code></a></p></td>
 <td><p>Set a bond between two atoms.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="generated/cemd.core.atomic_system.AtomicSystem.add_angle.html#cemd.core.atomic_system.AtomicSystem.add_angle" title="cemd.core.atomic_system.AtomicSystem.add_angle"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AtomicSystem.add_angle</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/cemd.core.atomic_system.AtomicSystem.add_angle.html#cemd.core.atomic_system.AtomicSystem.add_angle" title="cemd.core.atomic_system.AtomicSystem.add_angle"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AtomicSystem.add_angle</span></code></a></p></td>
 <td><p>Set a angle between two atoms.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="generated/cemd.core.atomic_system.AtomicSystem.add_dihedral.html#cemd.core.atomic_system.AtomicSystem.add_dihedral" title="cemd.core.atomic_system.AtomicSystem.add_dihedral"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AtomicSystem.add_dihedral</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/cemd.core.atomic_system.AtomicSystem.add_dihedral.html#cemd.core.atomic_system.AtomicSystem.add_dihedral" title="cemd.core.atomic_system.AtomicSystem.add_dihedral"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AtomicSystem.add_dihedral</span></code></a></p></td>
 <td><p>Set a dihedral between two atoms.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="generated/cemd.core.atomic_system.AtomicSystem.add_improper.html#cemd.core.atomic_system.AtomicSystem.add_improper" title="cemd.core.atomic_system.AtomicSystem.add_improper"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AtomicSystem.add_improper</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/cemd.core.atomic_system.AtomicSystem.add_improper.html#cemd.core.atomic_system.AtomicSystem.add_improper" title="cemd.core.atomic_system.AtomicSystem.add_improper"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AtomicSystem.add_improper</span></code></a></p></td>
 <td><p>Set a improper between two atoms.</p></td>
 </tr>
 </tbody>
@@ -693,7 +696,7 @@ systems.</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/cemd.core.atomic_system.AtomicSystem.set_masses.html#cemd.core.atomic_system.AtomicSystem.set_masses" title="cemd.core.atomic_system.AtomicSystem.set_masses"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AtomicSystem.set_masses</span></code></a></p></td>
-<td><p>Set the masses for the atomic system.</p></td>
+<td><p>Set or update the atomic masses for the system and the atoms DataFrame.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/cemd.core.atomic_system.AtomicSystem.set_charges.html#cemd.core.atomic_system.AtomicSystem.set_charges" title="cemd.core.atomic_system.AtomicSystem.set_charges"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AtomicSystem.set_charges</span></code></a></p></td>
 <td><p>Set or update the charges for the atomic system and the atoms DataFrame.</p></td>
@@ -705,13 +708,13 @@ systems.</p>
 <td><p>Interactive Forcefield Explorer using the prompt_toolkit UI pattern.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/cemd.core.atomic_system.AtomicSystem.set_pair_params.html#cemd.core.atomic_system.AtomicSystem.set_pair_params" title="cemd.core.atomic_system.AtomicSystem.set_pair_params"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AtomicSystem.set_pair_params</span></code></a></p></td>
-<td><p>Assign non-bond parameters for a pair of atom types (self or cross).</p></td>
+<td><p>Assign non-bond parameter objects for a pair of atom types (self or cross).</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/cemd.core.atomic_system.AtomicSystem.set_bond_params.html#cemd.core.atomic_system.AtomicSystem.set_bond_params" title="cemd.core.atomic_system.AtomicSystem.set_bond_params"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AtomicSystem.set_bond_params</span></code></a></p></td>
-<td><p>Assign structural parameters for a specific bond type.</p></td>
+<td><p>Assign a structural parameter object for a specific bond type.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/cemd.core.atomic_system.AtomicSystem.set_angle_params.html#cemd.core.atomic_system.AtomicSystem.set_angle_params" title="cemd.core.atomic_system.AtomicSystem.set_angle_params"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AtomicSystem.set_angle_params</span></code></a></p></td>
-<td><p>Assign structural parameters for a specific angle type.</p></td>
+<td><p>Assign a structural parameter object for a specific angle type.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/cemd.core.atomic_system.AtomicSystem.apply_pair_mixing_rules.html#cemd.core.atomic_system.AtomicSystem.apply_pair_mixing_rules" title="cemd.core.atomic_system.AtomicSystem.apply_pair_mixing_rules"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AtomicSystem.apply_pair_mixing_rules</span></code></a></p></td>
 <td><p>Calculate and update cross-interaction parameters (i != j).</p></td>
@@ -749,7 +752,7 @@ systems.</p>
 <td><p>Remove a single atom.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/cemd.core.atomic_system.AtomicSystem.remove_atoms.html#cemd.core.atomic_system.AtomicSystem.remove_atoms" title="cemd.core.atomic_system.AtomicSystem.remove_atoms"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AtomicSystem.remove_atoms</span></code></a></p></td>
-<td><p>Remove the specified atoms and update connectivity accordingly.</p></td>
+<td><p>Remove specified atoms from the system and update topology accordingly.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/cemd.core.atomic_system.AtomicSystem.set_atom_position.html#cemd.core.atomic_system.AtomicSystem.set_atom_position" title="cemd.core.atomic_system.AtomicSystem.set_atom_position"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AtomicSystem.set_atom_position</span></code></a></p></td>
 <td><p>Modify the coordinates of a single atom using a vector (x, y, z).</p></td>

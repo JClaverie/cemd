@@ -255,7 +255,7 @@ def apply_clayff_rules(universe: mda.Universe) -> tuple[mda.Universe, dict]:
 
 def apply_cshff_rules(universe: mda.Universe) -> tuple[mda.Universe, dict]:
     """Applies CSHFF to the universe and returns the calcium indices to modify."""
-    from ...build.cement_hydrates._silicate_helpers import get_interlayer_ca_indices
+    from ..build.cement_hydrates._silicate_helpers import get_interlayer_ca_indices
 
     universe, _ = apply_clayff_rules(universe)
     list_ids_cw = get_interlayer_ca_indices(universe)

@@ -15,11 +15,7 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-# import shutil
-# import logging
-
 from .core.atomic_system import AtomicSystem
-from .core.topology import NeighborCriterion, TopologyRule
 
 __author__ = "Jérôme Claverie"
 
@@ -28,16 +24,3 @@ __copyright__ = "Copyright (c) 2022-2026 Jérôme Claverie"
 __license__ = "GPL-3.0"
 
 __all__ = ["AtomicSystem"]
-
-# logger = logging.getLogger(__name__)
-# _packmol_path = shutil.which("packmol")
-# if _packmol_path:
-#     logger.warning(f"✓ Packmol is installed here: {_packmol_path}")
-# else:
-#     logger.warning("✕ Packmol was not found in the $PATH.")
-
-# _vmd_path = shutil.which("vmd")
-# if _vmd_path:
-#     logger.warning(f"✓ VMD is installed here: {_vmd_path}")
-# else:
-#     logger.warning("✕ VMD was not found in the $PATH.")

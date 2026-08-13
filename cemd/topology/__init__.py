@@ -15,7 +15,6 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-from .rules import NeighborCriterion, TopologyRule
-from .topology_mixin import TopologyMixin
+from .rules import DihedralRule, NeighborCriterion, TopologyRule
 
-__all__ = ["TopologyMixin", "TopologyRule", "NeighborCriterion"]
+__all__ = ["TopologyRule", "NeighborCriterion", "DihedralRule"]

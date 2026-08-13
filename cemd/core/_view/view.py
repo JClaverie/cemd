@@ -17,11 +17,11 @@
 
 from __future__ import annotations
 
-import os
 import shutil
 import subprocess
 import tempfile
 from functools import lru_cache
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 from .config import (
@@ -56,9 +56,9 @@ def require_program(name) -> str:
 # ============================================================================
 
 
-def _get_view_script_path() -> str:
+def _get_view_script_path() -> Path:
     """Returns the path to view.tcl (same folder as this file)."""
-    return os.path.join(os.path.dirname(os.path.abspath(__file__)), "view.tcl")
+    return Path(__file__).resolve().parent / "view.tcl"
 
 
 def _hex_to_vmd_rgb(hex_color: str) -> tuple:
@@ -266,8 +266,8 @@ class TCLGenerator:
 class TempFileManager:
     """Manage temporary files for VMD."""
 
-    def __init__(self, base_dir: str = "."):
-        self.base_dir = base_dir
+    def __init__(self, base_dir: str | Path = "."):
+        self.base_dir = Path(base_dir)
         self.temp_dir = None
         self.files = {}
 
@@ -278,18 +278,18 @@ class TempFileManager:
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.temp_dir.cleanup()
 
-    def create_file(self, name: str, content: str) -> str:
+    def create_file(self, name: str, content: str) -> Path:
         """Create a temporary file with content."""
         if not self.temp_dir:
             raise RuntimeError("TempFileManager not initialized")
 
-        filepath = os.path.join(self.temp_dir.name, name)
+        filepath = Path(self.temp_dir.name) / name
         with open(filepath, "w") as f:
             f.write(content)
         self.files[name] = filepath
         return filepath
 
-    def get_path(self, name: str) -> str:
+    def get_path(self, name: str) -> Path | None:
         """Get path of a created file."""
         return self.files.get(name)
 
@@ -308,30 +308,36 @@ class VMDLauncher:
 
     def launch(
         self,
-        topology: str,
-        trajectory: str | None = None,
-        config_file: str | None = None,
-        rep_file: str | None = None,
+        topology: str | Path,
+        trajectory: str | Path | None = None,
+        config_file: str | Path | None = None,
+        rep_file: str | Path | None = None,
     ) -> None:
         """Launch VMD with given files."""
-        # Validate files
-        if not os.path.exists(topology):
-            raise FileNotFoundError(f"Topology file not found: {topology}")
+        # Convert to Path for validation
+        topology_path = Path(topology)
+        trajectory_path = Path(trajectory) if trajectory else None
+        config_path = Path(config_file) if config_file else None
+        rep_path = Path(rep_file) if rep_file else None
 
-        if trajectory and not os.path.exists(trajectory):
-            raise FileNotFoundError(f"Trajectory file not found: {trajectory}")
+        # Validate files
+        if not topology_path.exists():
+            raise FileNotFoundError(f"Topology file not found: {topology_path}")
+
+        if trajectory_path and not trajectory_path.exists():
+            raise FileNotFoundError(f"Trajectory file not found: {trajectory_path}")
 
         # Build command
-        cmd = ["vmd", "-e", self.view_script, "-args", topology]
+        cmd = ["vmd", "-e", str(self.view_script), "-args", str(topology_path)]
 
-        if config_file:
-            cmd.extend(["--config", config_file])
+        if config_path:
+            cmd.extend(["--config", str(config_path)])
 
-        if rep_file:
-            cmd.extend(["--rep", rep_file])
+        if rep_path:
+            cmd.extend(["--rep", str(rep_path)])
 
-        if trajectory:
-            cmd.append(trajectory)
+        if trajectory_path:
+            cmd.append(str(trajectory_path))
 
         # Execute
         try:
@@ -347,7 +353,7 @@ class VMDLauncher:
 
 def view(
     system,
-    trajectory: str | None = None,
+    trajectory: str | Path | None = None,
     material: str = "AOEdgy",
     resolution: int = 12,
 ) -> None:
@@ -372,7 +378,7 @@ def view(
 
     with TempFileManager() as tmp:
         topology_file = tmp.create_file("tmp.data", "")
-        system.write(topology_file)
+        system.write(str(topology_file))
 
         config_file = tmp.create_file(
             "vmd_config.tcl", TCLGenerator.generate_config(system)

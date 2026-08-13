@@ -17,6 +17,7 @@
 
 from __future__ import annotations
 
+import warnings
 from collections.abc import Sequence
 from typing import TYPE_CHECKING, Self
 
@@ -144,73 +145,107 @@ class EditMixin:
         """Add a proton to a single atom."""
         self.protonate_atoms([atom_index], bond_length)
 
-    def remove_atoms(self, indices: list[int] | int) -> None:
-        """
-        Remove the specified atoms and update connectivity accordingly.
+    def remove_atoms(self, indices: Sequence[int] | int) -> None:
+        """Remove specified atoms from the system and update topology accordingly.
 
         Parameters
         ----------
-        indices : list[int] | int
-            Indices of the atoms to remove.
+        indices : Sequence[int] or int
+            Index or sequence of indices of the atoms to remove.
 
         Notes
         -----
         This method automatically reindexes the remaining atoms, updates velocities,
-        and removes any bonds, angles, dihedrals, or impropers containing the
-        removed atoms.
+        removes unused atom types from internal mass and charge storage, and updates
+        or removes any bonds, angles, dihedrals, or impropers containing the removed atoms.
         """
-
-        # create a copy of the atoms DataFrame
-        df_atoms = self.atoms.copy()
-        old_types = self.atom_types
-
+        # 1. Normalize input to a list of integers
         if isinstance(indices, int):
-            indices = [indices]
+            target_indices = [indices]
+        else:
+            target_indices = list(indices)
 
-        indices_valides = [idx for idx in indices if idx in df_atoms.index]
-
-        if not indices_valides:
-            print(f"None of the {indices} atoms were found in the current system.")
+        if not hasattr(self, "atoms") or self.atoms is None or self.atoms.empty:
+            warnings.warn("System contains no atoms to remove.", UserWarning)
             return
 
-        # remove atoms that are in the 'indices' list
-        df_atoms = df_atoms.drop(indices)
+        # 2. Filter out indices that do not exist in the current system
+        valid_indices = [idx for idx in target_indices if idx in self.atoms.index]
 
-        # create list to remap the atom indices in the DataFrame
+        if not valid_indices:
+            warnings.warn(
+                f"None of the target indices {target_indices} were found in the system.",
+                UserWarning,
+            )
+            return
+
+        # Store unique atom types before removal
+        old_types = set(self.atom_types)
+
+        # 3. Remove selected atoms from the DataFrame
+        df_atoms = self.atoms.drop(index=valid_indices).copy()
+
+        # Create mapping from old atom IDs to new contiguous IDs (1 to N)
         old_ids = df_atoms.index
         new_ids = np.arange(1, len(df_atoms) + 1)
-        df_atoms.set_index(new_ids, inplace=True)
+        df_atoms.index = new_ids
         self.atoms = df_atoms
 
-        new_types = self.atom_types
-
-        for i, t in enumerate(old_types):
-            if t not in new_types:
-                self.masses.pop(i)
-
-        if self.velocities is not None:
-            df_vel = self.velocities.copy()
-            df_vel = df_vel.drop(indices)
-            df_vel.set_index(new_ids, inplace=True)
+        # 4. Synchronize velocities DataFrame if present
+        if hasattr(self, "velocities") and self.velocities is not None:
+            df_vel = self.velocities.drop(index=valid_indices).copy()
+            df_vel.index = new_ids
             self.velocities = df_vel
 
+        # 5. Clean up unused atom types from internal storage (dictionaries)
+        new_types = set(self.atom_types)
+        removed_types = old_types - new_types
+
+        for atype in removed_types:
+            if hasattr(self, "_masses_storage") and isinstance(
+                self._masses_storage, dict
+            ):
+                self._masses_storage.pop(atype, None)
+            if hasattr(self, "_charges_storage") and isinstance(
+                self._charges_storage, dict
+            ):
+                self._charges_storage.pop(atype, None)
+
+        # 6. Update topology tables (bonds, angles, dihedrals, impropers)
         id_map = dict(zip(old_ids, new_ids))
 
-        for name, n_cols in [
+        topology_names = [
             ("bonds", 2),
             ("angles", 3),
             ("dihedrals", 4),
             ("impropers", 4),
-        ]:
-            df = getattr(self, name)
-            if df is None:
+        ]
+
+        for name, n_cols in topology_names:
+            df = getattr(self, name, None)
+            if df is None or df.empty:
                 continue
+
             atom_cols = [f"atom_{i}" for i in range(1, n_cols + 1)]
-            df = df.loc[~df[atom_cols].isin(indices).any(axis=1)].copy()
-            df.index = np.arange(1, len(df) + 1)
+
+            # Filter out any interaction involving at least one removed atom
+            mask_keep = ~df[atom_cols].isin(valid_indices).any(axis=1)
+            df = df.loc[mask_keep].copy()
+
+            if df.empty:
+                setattr(self, name, None)
+                continue
+
+            # Remap old atom IDs to new IDs
             for col in atom_cols:
                 df[col] = df[col].map(id_map)
-            setattr(self, name, df if len(df) > 0 else None)
+
+            # Reset row index from 1 to N
+            df.index = np.arange(1, len(df) + 1)
+            setattr(self, name, df)
+
+        # Clear internal cache
+        self._cache = {}
 
     def remove_atom(self, index: int) -> None:
         """Remove a single atom. See :meth:`remove_atoms` for batch removal."""
