@@ -4,7 +4,7 @@
 
 [model]
 name = "IFF"
-reference = "https://doi.org/10.1039/C4DT00438H"
+ref = "https://doi.org/10.1039/C4DT00438H"
 description = "Interface Force Field for cement minerals"
 
 # ============================================================

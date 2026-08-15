@@ -4,7 +4,7 @@
 
 [model]
 name = "Guillot & Sator 2007"
-reference = "https://doi.org/10.1016/j.gca.2006.11.015"
+ref = "https://doi.org/10.1016/j.gca.2006.11.015"
 description = "Force field for silica melts"
 
 # ============================================================

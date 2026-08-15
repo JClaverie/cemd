@@ -36,10 +36,6 @@ from .models import (
     LJParams,
 )
 
-# ============================================================================
-# ForceFieldDatabase
-# ============================================================================
-
 
 class ForceFieldDatabase:
     """
@@ -100,25 +96,18 @@ class ForceFieldDatabase:
         # Load all available forcefields
         self._load_all()
 
-    # ===============================================================================
-    # Loading Methods
-    # ===============================================================================
-
     @staticmethod
     def _get_forcefield_dir() -> Path:
         """Get the forcefield database directory."""
-        # 1. Default: package directory
         current_dir = Path(__file__).parent
         default_dir = current_dir / "db"
         if default_dir.exists():
             return default_dir
 
-        # 2. Try current working directory
         cwd_dir = Path.cwd() / "db"
         if cwd_dir.exists():
             return cwd_dir
 
-        # 3. Create default directory if it doesn't exist
         default_dir.mkdir(parents=True, exist_ok=True)
         return default_dir
 
@@ -132,12 +121,8 @@ class ForceFieldDatabase:
 
             # TOML files
             if filename.endswith(".toml"):
-                if filename == "_metadata.toml":
-                    continue
-                with open(filepath, "rb") as f:
-                    model_data = tomllib.load(f)
                 model_name = filepath.stem
-                self._load_model_from_dict(model_name, model_data)
+                self._load_toml_model(filepath, model_name)
 
             # GROMOS .lt files
             elif filename.endswith(".lt"):
@@ -154,134 +139,65 @@ class ForceFieldDatabase:
                 # Utiliser "iff_cvff" comme clé
                 self._load_cvff_frc(filepath, "iff_cvff")
 
-    def _load_model_from_dict(self, model_name: str, model_data: dict) -> None:
-        """Load a single model from its data dictionary."""
-        model_info = model_data.get("model", model_data)
+    def _load_toml_model(self, filepath: Path, model_name: str) -> None:
+        """Load a TOML force field file using the TOMLParser."""
+        from ._parsers._toml import TOMLParser
 
-        if model_name not in self.models:
-            self.models[model_name] = ForceFieldModel(
-                name=model_info.get("name", model_name),
-                description=model_info.get("description", ""),
-                ref=model_info.get("ref", ""),
-                tags=model_info.get("tags", []),
-            )
+        parser = TOMLParser()
+        parse_result = parser.parse_file(str(filepath))
 
-        # Atom types
-        for key, params in model_data.get("atom", {}).items():
-            full_key = f"{model_name}.{key}"
-            self.atom[full_key] = AtomType(
-                element=params["element"],
-                charge=params.get("charge", 0.0),
-                environment=params.get("environment", ""),
-                ref=params.get("ref", ""),
-                mass=params.get("mass"),
-                model=model_name,
-            )
+        # Le nom du modèle peut être dans le fichier TOML ou dérivé du nom de fichier
+        actual_model_name = (
+            parse_result.model_name
+            if parse_result.model_name != "unknown"
+            else model_name
+        )
+
+        # Charger les métadonnées du modèle
+        self.models[actual_model_name] = ForceFieldModel(
+            name=actual_model_name,
+            description=parse_result.metadata.get("description", ""),
+            ref=parse_result.metadata.get("ref", ""),
+            tags=parse_result.metadata.get("tags", []),
+        )
+
+        # Fusionner les résultats dans les dictionnaires de la base de données
+        # Atomes
+        for short_name, atom_type in parse_result.atoms.items():
+            full_key = f"{actual_model_name}.{short_name}"
+            self.atom[full_key] = atom_type
 
         # LJ
-        for key, params in model_data.get("lj", {}).items():
-            self.lj[f"{model_name}.{key}"] = LJParams(
-                epsilon=params["epsilon"],
-                sigma=params["sigma"],
-                ref=params.get("ref", ""),
-                model=model_name,
-            )
+        for short_name, params in parse_result.lj.items():
+            self.lj[f"{actual_model_name}.{short_name}"] = params
 
         # Buckingham
-        for key, params in model_data.get("buckingham", {}).items():
-            self.buckingham[f"{model_name}.{key}"] = BuckinghamParams(
-                a=params["A"],
-                rho=params["rho"],
-                c=params.get("C", 0.0),
-                ref=params.get("ref", ""),
-                model=model_name,
-            )
+        for short_name, params in parse_result.buckingham.items():
+            self.buckingham[f"{actual_model_name}.{short_name}"] = params
 
-        # Bond
-        bond_data = model_data.get("bond", {})
-        for key, params in bond_data.get("harmonic", {}).items():
-            self.bond[f"{model_name}.{key}"] = HarmonicBondParams(
-                k=params["k"],
-                r0=params["r0"],
-                ref=params.get("ref", ""),
-                model=model_name,
-            )
+        # Bonds
+        for short_name, params in parse_result.bonds.items():
+            self.bond[f"{actual_model_name}.{short_name}"] = params
 
-        for key, params in bond_data.get("class2", {}).items():
-            self.bond[f"{model_name}.{key}"] = Class2BondParams(
-                r0=params["r0"],
-                k2=params["k2"],
-                k3=params.get("k3", 0.0),
-                k4=params.get("k4", 0.0),
-                ref=params.get("ref", ""),
-                model=model_name,
-            )
+        # Angles
+        for short_name, params in parse_result.angles.items():
+            self.angle[f"{actual_model_name}.{short_name}"] = params
 
-        # Angle
-        angle_data = model_data.get("angle", {})
-        for key, params in angle_data.get("harmonic", {}).items():
-            self.angle[f"{model_name}.{key}"] = HarmonicAngleParams(
-                k=params["k"],
-                theta0=params["theta0"],
-                ref=params.get("ref", ""),
-                model=model_name,
-            )
-
-        for key, params in angle_data.get("class2", {}).items():
-            self.angle[f"{model_name}.{key}"] = Class2AngleParams(
-                theta0=params["theta0"],
-                k2=params["k2"],
-                k3=params.get("k3", 0.0),
-                k4=params.get("k4", 0.0),
-                ref=params.get("ref", ""),
-                model=model_name,
-            )
-
-        # Improper
-        improper_data = model_data.get("improper", {})
-        for key, params in improper_data.get("distance", {}).items():
-            self.improper[f"{model_name}.{key}"] = DistanceImproperParams(
-                k2=params["k2"],
-                k4=params.get("k4", 0.0),
-                ref=params.get("ref", ""),
-                model=model_name,
-            )
-
-        for key, params in improper_data.get("harmonic", {}).items():
-            self.improper[f"{model_name}.{key}"] = HarmonicImproperParams(
-                k=params["k"],
-                chi0=params.get("chi0", 0.0),
-                ref=params.get("ref", ""),
-                model=model_name,
-            )
+        # Impropers
+        for short_name, params in parse_result.impropers.items():
+            self.improper[f"{actual_model_name}.{short_name}"] = params
 
         # Bondbond
-        bondbond_data = model_data.get("bondbond", {})
-        for key, params in bondbond_data.get("class2", {}).items():
-            self.bondbond[f"{model_name}.{key}"] = Class2BondBondParams(
-                m=params["m"],
-                r1=params["r1"],
-                r2=params["r2"],
-                ref=params.get("ref", ""),
-                model=model_name,
-            )
+        for short_name, params in parse_result.bondbond.items():
+            self.bondbond[f"{actual_model_name}.{short_name}"] = params
 
         # Bondangle
-        bondangle_data = model_data.get("bondangle", {})
-        for key, params in bondangle_data.get("class2", {}).items():
-            self.bondangle[f"{model_name}.{key}"] = Class2BondAngleParams(
-                n1=params["n1"],
-                n2=params["n2"],
-                r1=params["r1"],
-                r2=params["r2"],
-                ref=params.get("ref", ""),
-                model=model_name,
-            )
+        for short_name, params in parse_result.bondangle.items():
+            self.bondangle[f"{actual_model_name}.{short_name}"] = params
 
-        # Dihedral
-        if "dihedral" in model_data:
-            for key, params in model_data["dihedral"].items():
-                self.dihedral[f"{model_name}.{key}"] = params
+        # Dihedrals
+        for short_name, params in parse_result.dihedrals.items():
+            self.dihedral[f"{actual_model_name}.{short_name}"] = params
 
     def _load_gromos_lt(self, filepath: Path, model_name: str) -> None:
         """Load a GROMOS force field from a moltemplate .lt file."""

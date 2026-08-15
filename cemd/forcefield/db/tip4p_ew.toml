@@ -4,7 +4,7 @@
 
 [model]
 name = "TIP4P-EW"
-reference = "https://doi.org/10.1063/1.1683075"
+ref = "https://doi.org/10.1063/1.1683075"
 description = "Transferable Intermolecular Potential 4-point water model (Ewald)"
 
 # ============================================================

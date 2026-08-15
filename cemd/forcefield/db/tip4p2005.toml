@@ -4,7 +4,7 @@
 
 [model]
 name = "TIP4P-2005"
-reference = "https://doi.org/10.1063/1.2121687"
+ref= "https://doi.org/10.1063/1.2121687"
 description = "Transferable Intermolecular Potential 4-point water model (2005)"
 
 # ============================================================

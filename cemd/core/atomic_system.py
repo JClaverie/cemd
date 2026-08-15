@@ -18,6 +18,7 @@
 from __future__ import annotations
 
 import copy
+from types import MappingProxyType
 from typing import TYPE_CHECKING, Any, Self
 
 import numpy as np
@@ -117,8 +118,8 @@ class AtomicSystem(EditMixin, IOMixin, TopologyMixin, ForceFieldMixin):
     _impropers: pd.DataFrame | None
     _velocities: pd.DataFrame | None
 
-    _masses_storage: dict[str | float]
-    _charges_storage: dict[str | float]
+    _masses: dict[str | float]
+    _charges: dict[str | float]
     _forcefield_keys: ForceFieldKeys
     _forcefield_params: ForceFieldParams
     _atom_style: str
@@ -144,11 +145,6 @@ class AtomicSystem(EditMixin, IOMixin, TopologyMixin, ForceFieldMixin):
         """
         self._assign_topology(topology)
         self._finalize_data()
-
-    def __setattr__(self, name, value) -> None:
-        if name in ("atoms", "bonds", "angles", "dihedrals", "impropers"):
-            self.__dict__["_cache"] = {}
-        super().__setattr__(name, value)
 
     def __repr__(self) -> str:
         """Return a concise string representation of the AtomicSystem."""
@@ -181,7 +177,7 @@ class AtomicSystem(EditMixin, IOMixin, TopologyMixin, ForceFieldMixin):
 
     def _assign_topology(self, topology: dict[str, Any]) -> None:
         """Helper to map the topology dictionary to class attributes."""
-        self._cache = {}
+
         self._atoms = topology["atoms"]
         self._bonds = topology.get("bonds")
         self._angles = topology.get("angles")
@@ -191,10 +187,10 @@ class AtomicSystem(EditMixin, IOMixin, TopologyMixin, ForceFieldMixin):
 
         self.set_box(topology["box"])
 
-        self._masses_storage = normalize_property_to_dict(
+        self._masses = normalize_property_to_dict(
             dict(topology["masses"]), [str(t) for t in self.atoms.type.unique()]
         )
-        self._charges_storage = normalize_property_to_dict(
+        self._charges = normalize_property_to_dict(
             dict(topology["charges"]), [str(t) for t in self.atoms.type.unique()]
         )
         self._atom_style = topology.get("atom_style", "full")
@@ -265,8 +261,6 @@ class AtomicSystem(EditMixin, IOMixin, TopologyMixin, ForceFieldMixin):
         """Replace internal content with that of another system."""
         import copy
 
-        self._cache = {}
-
         self._atoms = other._atoms.copy()
         self._bonds = other._bonds.copy() if other._bonds is not None else None
         self._angles = other._angles.copy() if other._angles is not None else None
@@ -280,9 +274,9 @@ class AtomicSystem(EditMixin, IOMixin, TopologyMixin, ForceFieldMixin):
             other._velocities.copy() if other._velocities is not None else None
         )
 
-        self._box_lmp = other._box_lmp.copy()
-        self._masses_storage = dict(other._masses_storage)
-        self._charges_storage = dict(other._charges_storage)
+        self._box_lmp = other._box_lmp
+        self._masses = dict(other._masses)
+        self._charges = dict(other._charges)
         self._atom_style = other._atom_style
 
         self._forcefield_params = copy.deepcopy(other._forcefield_params)
@@ -300,18 +294,11 @@ class AtomicSystem(EditMixin, IOMixin, TopologyMixin, ForceFieldMixin):
         The copied object contains duplicated atomic coordinates,
         topology tables, simulation box information and force field
         parameters.
-
-        Returns
-        -------
-        AtomicSystem
-            Independent copy of the current system.
         """
         import copy
 
         new = self.__class__.__new__(self.__class__)
-        new._cache = {}
 
-        # Bypass setters — données déjà normalisées
         new._atoms = self._atoms.copy()
         new._bonds = self._bonds.copy() if self._bonds is not None else None
         new._angles = self._angles.copy() if self._angles is not None else None
@@ -322,8 +309,8 @@ class AtomicSystem(EditMixin, IOMixin, TopologyMixin, ForceFieldMixin):
         )
 
         new._box_lmp = self._box_lmp.copy()
-        new._masses_storage = dict(self._masses_storage)
-        new._charges_storage = dict(self._charges_storage)
+        new._masses = dict(self._masses)
+        new._charges = dict(self._charges)
         new._atom_style = self._atom_style
         new._forcefield_params = copy.deepcopy(self._forcefield_params)
         new._forcefield_keys = copy.deepcopy(self._forcefield_keys)
@@ -340,7 +327,6 @@ class AtomicSystem(EditMixin, IOMixin, TopologyMixin, ForceFieldMixin):
     @atoms.setter
     def atoms(self, value: pd.DataFrame) -> None:
         self._atoms = normalize_dataframe(value, ATOMS_COLUMNS, "atoms")
-        self._cache = {}
 
     @property
     def bonds(self) -> pd.DataFrame:
@@ -349,7 +335,6 @@ class AtomicSystem(EditMixin, IOMixin, TopologyMixin, ForceFieldMixin):
     @bonds.setter
     def bonds(self, value: pd.DataFrame) -> None:
         self._bonds = normalize_dataframe(value, BONDS_COLUMNS, "bonds")
-        self._cache = {}
 
     @property
     def angles(self) -> pd.DataFrame:
@@ -358,7 +343,6 @@ class AtomicSystem(EditMixin, IOMixin, TopologyMixin, ForceFieldMixin):
     @angles.setter
     def angles(self, value: pd.DataFrame) -> None:
         self._angles = normalize_dataframe(value, ANGLES_COLUMNS, "angles")
-        self._cache = {}
 
     @property
     def dihedrals(self) -> pd.DataFrame:
@@ -367,7 +351,6 @@ class AtomicSystem(EditMixin, IOMixin, TopologyMixin, ForceFieldMixin):
     @dihedrals.setter
     def dihedrals(self, value: pd.DataFrame) -> None:
         self._dihedrals = normalize_dataframe(value, DIHEDRALS_COLUMNS, "dihedrals")
-        self._cache = {}
 
     @property
     def impropers(self) -> pd.DataFrame:
@@ -376,7 +359,6 @@ class AtomicSystem(EditMixin, IOMixin, TopologyMixin, ForceFieldMixin):
     @impropers.setter
     def impropers(self, value: pd.DataFrame) -> None:
         self._impropers = normalize_dataframe(value, IMPROPERS_COLUMNS, "dihedrals")
-        self._cache = {}
 
     @property
     def velocities(self) -> pd.DataFrame:
@@ -385,7 +367,6 @@ class AtomicSystem(EditMixin, IOMixin, TopologyMixin, ForceFieldMixin):
     @velocities.setter
     def velocities(self, value: pd.DataFrame) -> None:
         self._velocities = normalize_dataframe(value, VELOCITIES_COLUMNS, "velocities")
-        self._cache = {}
 
     @property
     def box(self) -> np.ndarray:
@@ -414,20 +395,56 @@ class AtomicSystem(EditMixin, IOMixin, TopologyMixin, ForceFieldMixin):
 
     @property
     def masses(self) -> dict[str | int, float]:
-        """
-        Return atomic masses associated with atom types.
+        """Return atomic masses associated with atom types (read-only).
 
         Returns
         -------
         dict[str | int, float]
             Dictionary matching atom type ID to its mass.
         """
-        if "masses" not in self._cache:
-            self._cache["masses"] = {
-                t: float(self._masses_storage.get(t, MASSES_DICT.get(t, 1.0)))
+        return MappingProxyType(
+            {
+                t: float(self._masses.get(t, MASSES_DICT.get(t, 1.0)))
                 for t in self.atom_types
             }
-        return self._cache["masses"]
+        )
+
+    @property
+    def charges(self) -> dict[str | int, float]:
+        """
+        Return atomic charges associated with atom types (read-only).
+
+        Returns
+        -------
+        dict[str | int, float]
+            Dictionary matching atom type ID to its charge.
+        """
+        return MappingProxyType(
+            {t: float(self._charges.get(t, 0)) for t in self.atom_types}
+        )
+
+    @property
+    def elements(self) -> dict[str | int, str]:
+        """Return a mapping of atom types to their elemental symbols (read-only).
+
+        Calculates elemental symbols on-the-fly by matching the atomic mass
+        of each atom type to the closest element mass available in constant tables.
+
+        Returns
+        -------
+        dict[str | int, str]
+            Dictionary matching atom type ID to its inferred element symbol.
+        """
+        element_dict: dict[str | int, str] = {}
+
+        for t, mass_val in self.masses.items():
+            if mass_val is None or np.isnan(mass_val):
+                continue
+
+            best_match = MASS_KEYS[(np.abs(MASS_KEYS - mass_val)).argmin()]
+            element_dict[t] = str(INV_MASSES[best_match])
+
+        return MappingProxyType(element_dict)
 
     @property
     def ff_keys(self) -> ForceFieldKeys:
@@ -440,57 +457,6 @@ class AtomicSystem(EditMixin, IOMixin, TopologyMixin, ForceFieldMixin):
         return self._forcefield_params.active_for(self)
 
     @property
-    def charges(self) -> dict[str | int, float]:
-        """
-        Return charges associated with atom types.
-
-        Returns
-        -------
-        dict[str | int, float]
-            Dictionary matching atom type ID to its charge.
-        """
-        if "charges" not in self._cache:
-            self._cache["charges"] = {
-                atype: float(self._charges_storage.get(atype, 0))
-                for atype in self.atom_types
-            }
-        return self._cache["charges"]
-
-    @property
-    def elements(self) -> dict[str | int, str]:
-        """Return a mapping of atom types to their elemental symbols.
-
-        Calculates elemental symbols on-the-fly by matching the atomic mass
-        of each atom type to the closest element mass available in constant tables.
-
-        Returns
-        -------
-        dict[str | int, str]
-            Dictionary matching atom type ID to its inferred element symbol.
-        """
-        if "elements" not in self._cache:
-            element_dict: dict[str | int, str] = {}
-
-            # Iterate directly over the internal mass dictionary (type -> mass)
-            for t_id, mass_val in self._masses_storage.items():
-                if mass_val is None or np.isnan(mass_val):
-                    continue
-
-                m_val = float(mass_val)
-
-                # Find the theoretical mass closest to the measured mass
-                best_match = MASS_KEYS[(np.abs(MASS_KEYS - m_val)).argmin()]
-                symbol = str(INV_MASSES[best_match])
-
-                # Format the key to preserve original type (int or str)
-                clean_id = int(t_id) if str(t_id).isdigit() else str(t_id)
-                element_dict[clean_id] = symbol
-
-            self._cache["elements"] = element_dict
-
-        return self._cache["elements"]
-
-    @property
     def atom_types(self) -> list[str | int]:
         """
         Return the list of unique atom types.
@@ -500,11 +466,7 @@ class AtomicSystem(EditMixin, IOMixin, TopologyMixin, ForceFieldMixin):
         list of str or int
             Sorted list of atom types.
         """
-        if "atom_types" not in self._cache:
-            self._cache["atom_types"] = sorted(
-                [str(t) for t in self.atoms.type.unique()]
-            )
-        return self._cache["atom_types"]
+        return sorted([str(t) for t in self.atoms.type.unique()])
 
     @property
     def bond_types(self) -> list[str | int]:
@@ -748,27 +710,22 @@ class AtomicSystem(EditMixin, IOMixin, TopologyMixin, ForceFieldMixin):
         """
         Return a summarized DataFrame of atom types, numbers, masses and charges.
         """
-        if "type_summary" not in self._cache:
-            df_atoms = self.atoms.copy()
+        df_atoms = self.atoms.copy()
 
-            df_atoms["number"] = df_atoms.groupby("type")["type"].transform("size")
+        df_atoms["number"] = df_atoms.groupby("type")["type"].transform("size")
 
-            red_df = df_atoms.drop_duplicates(subset="type")[
-                ["type", "number", "charge"]
-            ]
+        red_df = df_atoms.drop_duplicates(subset="type")[["type", "number", "charge"]]
 
-            red_df["sort_key"] = red_df["type"].apply(
-                lambda x: (not str(x).isdigit(), int(x) if str(x).isdigit() else x)
-            )
-            red_df = red_df.sort_values("sort_key").drop(columns=["sort_key"])
+        red_df["sort_key"] = red_df["type"].apply(
+            lambda x: (not str(x).isdigit(), int(x) if str(x).isdigit() else x)
+        )
+        red_df = red_df.sort_values("sort_key").drop(columns=["sort_key"])
 
-            red_df["mass"] = red_df["type"].apply(
-                lambda t: float(self._masses_storage.get(t, MASSES_DICT.get(t, 1.0)))
-            )
+        red_df["mass"] = red_df["type"].apply(
+            lambda t: float(self._masses.get(t, MASSES_DICT.get(t, 1.0)))
+        )
 
-            self._cache["type_summary"] = red_df
-
-        return self._cache["type_summary"]
+        return red_df
 
     def summary(self) -> None:
         """
@@ -1080,7 +1037,7 @@ class AtomicSystem(EditMixin, IOMixin, TopologyMixin, ForceFieldMixin):
             np.ndarray: [x, y, z] coordinates of the center of mass.
         """
         atom_masses = self.atoms["type"].map(
-            lambda t: self._masses_storage.get(t, MASSES_DICT.get(t, 1.0))
+            lambda t: self._masses.get(t, MASSES_DICT.get(t, 1.0))
         )
 
         total_mass = atom_masses.sum()

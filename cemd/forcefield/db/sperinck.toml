@@ -4,7 +4,7 @@
 
 [model]
 name = "Sperinck 2016"
-reference = "https://doi.org/10.1063/1.4964301"
+ref = "https://doi.org/10.1063/1.4964301"
 description = "Force field for geopolymer/metakaolin"
 
 # ============================================================

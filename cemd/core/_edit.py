@@ -84,17 +84,16 @@ class EditMixin:
                     "charge": float(charge),
                 }
             )
-            if atype not in self._masses_storage:
+            if atype not in self._masses:
                 if mass is not None:
-                    self._masses_storage[atype] = float(mass)
+                    self._masses[atype] = float(mass)
                 elif atype in MASSES_DICT:
-                    self._masses_storage[atype] = MASSES_DICT[atype]
+                    self._masses[atype] = MASSES_DICT[atype]
                 else:
-                    self._masses_storage[atype] = 1.0
+                    self._masses[atype] = 1.0
 
         new_df = pd.DataFrame(new_rows, index=new_ids)
         self.atoms = pd.concat([self.atoms, new_df])
-        self._cache = {}
 
     def add_atom(
         self,
@@ -202,14 +201,10 @@ class EditMixin:
         removed_types = old_types - new_types
 
         for atype in removed_types:
-            if hasattr(self, "_masses_storage") and isinstance(
-                self._masses_storage, dict
-            ):
-                self._masses_storage.pop(atype, None)
-            if hasattr(self, "_charges_storage") and isinstance(
-                self._charges_storage, dict
-            ):
-                self._charges_storage.pop(atype, None)
+            if hasattr(self, "_masses") and isinstance(self._masses, dict):
+                self._masses.pop(atype, None)
+            if hasattr(self, "_charges") and isinstance(self._charges, dict):
+                self._charges.pop(atype, None)
 
         # 6. Update topology tables (bonds, angles, dihedrals, impropers)
         id_map = dict(zip(old_ids, new_ids))
@@ -245,7 +240,6 @@ class EditMixin:
             setattr(self, name, df)
 
         # Clear internal cache
-        self._cache = {}
 
     def remove_atom(self, index: int) -> None:
         """Remove a single atom. See :meth:`remove_atoms` for batch removal."""
@@ -260,7 +254,6 @@ class EditMixin:
             The box in any valid format (Lattice parameters, LAMMPS bounds/tilts, or 3x3 matrix).
         """
         # Vider le cache car la géométrie de la boîte change
-        self._cache = {}
 
         # Conversion/Normalisation vers les 3 formats internes
         self._box = normalize_box(new_box, target=BoxFormat.LATTICE)
@@ -564,5 +557,5 @@ class EditMixin:
         shift = center - com
 
         self.atoms[["x", "y", "z"]] += shift
-        self._cache = {}
+
         self.wrap()

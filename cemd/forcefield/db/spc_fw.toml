@@ -5,7 +5,7 @@
 
 [model]
 name = "SPC/Fw Water Model"
-reference = "http://dx.doi.org/10.1063/1.2136877"
+ref = "http://dx.doi.org/10.1063/1.2136877"
 description = "Flexible SPC water model optimized for use with clay minerals and calcite"
 
 # ============================================================

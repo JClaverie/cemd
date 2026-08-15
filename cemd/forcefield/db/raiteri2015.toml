@@ -6,7 +6,7 @@
 
 [model]
 name = "Raiteri et al. 2015 (Calcite-Water Interface)"
-reference = "https://doi.org/10.1021/acs.jpcc.5b07532"
+ref = "https://doi.org/10.1021/acs.jpcc.5b07532"
 description = "Force field parameters for calcite-water interface. All energies converted to kcal/mol."
 
 [atom]

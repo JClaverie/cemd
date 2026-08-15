@@ -4,7 +4,7 @@
 
 [model]
 name = "Wang 2008"
-reference = "https://doi.org/10.2138/am.2009.2939"
+ref = "https://doi.org/10.2138/am.2009.2939"
 description = "Force field for vaterite"
 
 # ============================================================

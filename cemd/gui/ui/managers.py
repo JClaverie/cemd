@@ -501,7 +501,7 @@ class TypeManagerDialog(BaseBuilderDialog):
 
         new_charges = {}
         for atype in system.atom_types:
-            current_q = system._charges_storage.get(atype, 0.0)
+            current_q = system._charges.get(atype, 0.0)
             if atype in weights:
                 new_charges[atype] = current_q + (weights[atype] * charge_delta)
             else:

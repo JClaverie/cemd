@@ -4,7 +4,7 @@
 
 [model]
 name = "ClayFF"
-reference = "https://doi.org/10.1021/jp0363287"
+ref = "https://doi.org/10.1021/jp0363287"
 description = "Force field for clay minerals and aqueous solutions"
 
 # ============================================================

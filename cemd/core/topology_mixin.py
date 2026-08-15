@@ -22,7 +22,6 @@ import warnings
 from collections.abc import Sequence
 from typing import TYPE_CHECKING
 
-import numpy as np
 import pandas as pd
 
 from .._constants import MASSES_DICT
@@ -44,176 +43,130 @@ RULE_SETS: dict[str, callable] = {
 
 
 class TopologyMixin:
-    def _remap_connection_types(self, connection_type: str):
+    def _remap_connection_types(self):
         """Generic method to update connection types.
         connection_type must be 'bond', 'angle', 'dihedral' or 'improper'.
         """
-        df = getattr(self, connection_type + "s")
-        if df is None:
-            return
 
-        def get_new_type(row):
-            indices = [row[f"atom_{i + 1}"] for i in range(len(row) - 1)]
-            types = [str(self.atoms.loc[idx, "type"]) for idx in indices]
-
-            if connection_type == "bond":
-                types.sort()
-
-            elif connection_type == "angle":
-                if types[0] > types[2]:
-                    types = [types[2], types[1], types[0]]
-
-            return "-".join(types)
-
-        df["type"] = df.apply(get_new_type, axis=1)
-        setattr(self, connection_type + "s", df)
-
-    def set_types(
-        self,
-        new_types: Sequence[str | int] | dict[str | int, str | int],
-    ) -> AtomicSystem:
-        """Assign types to atoms, supporting full lists and partial mappings."""
-
-        self._cache = {}
-
-        old_types_snapshot = list(map(str, self.atom_types))
-
-        if isinstance(self.masses, dict):
-            old_masses_dict = {str(k): v for k, v in self.masses.items()}
-        else:
-            old_masses_dict = dict(zip(old_types_snapshot, self.masses))
-
-        if isinstance(new_types, Sequence):
-            if len(new_types) != len(old_types_snapshot):
-                raise ValueError(
-                    "The new list of atom types must match "
-                    "the length of the current atom types."
-                )
-
-            mapping = dict(
-                zip(
-                    old_types_snapshot,
-                    map(str, new_types),
-                )
-            )
-
-        elif isinstance(new_types, dict):
-            for k in new_types:
-                if str(k) not in old_types_snapshot:
-                    warnings.warn(
-                        f"Type '{k}' targeted in set_types "
-                        "is not currently in the system.",
-                        UserWarning,
-                    )
-
-            mapping = {t: t for t in old_types_snapshot}
-
-            for k, v in new_types.items():
-                mapping[str(k)] = str(v)
-
-        else:
-            raise TypeError("new_types must be either a list or a dict.")
-
-        # --------------------------------------------------------------
-        # Atom types
-        # --------------------------------------------------------------
-
-        self.atoms["type"] = self.atoms["type"].astype(str).replace(mapping)
-
-        # --------------------------------------------------------------
-        # Bond / angle / dihedral / improper types
-        # --------------------------------------------------------------
-
-        for connection in [
+        for connection_type in [
             "bond",
             "angle",
             "dihedral",
             "improper",
         ]:
-            self._remap_connection_types(connection)
+            df = getattr(self, connection_type + "s")
+            if df is None:
+                return
 
-        # --------------------------------------------------------------
-        # Force-field keys
-        # --------------------------------------------------------------
+            def get_new_type(row):
+                indices = [row[f"atom_{i + 1}"] for i in range(len(row) - 1)]
+                types = [str(self.atoms.loc[idx, "type"]) for idx in indices]
 
+                if connection_type == "bond":
+                    types.sort()
+
+                elif connection_type == "angle":
+                    if types[0] > types[2]:
+                        types = [types[2], types[1], types[0]]
+
+                return "-".join(types)
+
+            df["type"] = df.apply(get_new_type, axis=1)
+            setattr(self, connection_type + "s", df)
+
+    def set_types(
+        self,
+        new_types: dict[str | int, str | int],
+    ) -> AtomicSystem:
+        """Assign new types to atoms via a mapping {old_type: new_type}."""
+
+        old_types = list(map(str, self.atom_types))
+
+        for k in new_types:
+            if str(k) not in old_types:
+                warnings.warn(
+                    f"Type '{k}' is not currently in the system.",
+                    UserWarning,
+                )
+
+        mapping = {t: t for t in old_types}
+        mapping.update({str(k): str(v) for k, v in new_types.items()})
+
+        self.atoms["type"] = self.atoms["type"].astype(str).replace(mapping)
+
+        self._remap_connection_types()
         self._remap_ff_keys(mapping)
 
-        # --------------------------------------------------------------
-        # Masses
-        # --------------------------------------------------------------
+        new_masses = {new: self._masses.get(old, 1.008) for old, new in mapping.items()}
+        new_charges = {new: self._charges.get(old, 0.0) for old, new in mapping.items()}
 
-        new_masses_dict = {}
-
-        for old_name, mass in old_masses_dict.items():
-            new_name = mapping[old_name]
-
-            if new_name not in new_masses_dict or mass > 0:
-                new_masses_dict[new_name] = mass
-
-        self.set_masses(new_masses_dict)
+        self.set_masses(new_masses)
+        self.set_charges(new_charges)
 
         return self
 
     def set_types_from_elements(
-        self, prevent: Sequence[str | int] = None
+        self, prevent: dict[str | int, str | int] | None = None
     ) -> AtomicSystem:
-        """
-        Reset atom types to their corresponding chemical elements.
-        """
-
-        self._cache = {}
-        prevent = set(prevent or [])
-
-        new_types = [
-            atype if atype in prevent else self.elements[int(atype)]
-            for atype in self.atom_types
-        ]
-
-        return self.set_types(new_types)
-
-    def set_type2atoms(
-        self, indices: Sequence[int], atom_type: str | int
-    ) -> AtomicSystem:
-        """
-        Assign a new type to a specific subset of atoms.
+        """Reset atom types to their corresponding chemical elements, inferred from mass.
 
         Parameters
         ----------
-        indices : Sequence[int]
-            The indices of the atoms to modify.
-        atom_type : str | int
-            The new type to assign to these atoms.
+        prevent : dict[str | int, str | int], optional
+            Mapping of atom types to keep unchanged (or remap to a custom value)
+            instead of replacing them with their mass-inferred element symbol.
+            Keys not present in this dict fall back to the inferred element.
 
         Returns
         -------
         AtomicSystem
             The updated system.
         """
+        prevent = prevent or {}
 
-        self._cache = {}
+        new_types: dict[str | int, str | int] = {}
+        for atype in self.atom_types:
+            if atype in prevent:
+                new_types[atype] = prevent[atype]
+            elif atype in self.elements:
+                new_types[atype] = self.elements[atype]
+            else:
+                warnings.warn(
+                    f"Could not infer element for type '{atype}' (missing or invalid mass); "
+                    "keeping original type.",
+                    UserWarning,
+                )
+                new_types[atype] = atype
 
-        if not np.issubdtype(type(atom_type), type(self.atom_types[0])):
+        return self.set_types(new_types)
+
+    def set_type2atoms(
+        self, indices: Sequence[int], atom_type: str | int
+    ) -> AtomicSystem:
+        """Assign a new type to a specific subset of atoms."""
+        if not isinstance(atom_type, type(self.atom_types[0])):
             raise TypeError(
-                "The atom type must be of the same type (string or integer) than existing atom types."
+                "The atom type must be of the same type (string or integer) as existing atom types."
             )
 
-        data_masses_dic = self.masses
-        old_type = self.atoms.loc[indices, "type"].iloc[0]
+        old_types = self.atoms.loc[indices, "type"].unique()
+        if len(old_types) > 1:
+            warnings.warn(
+                f"Indices span multiple existing types {list(old_types)}; "
+                f"using '{old_types[0]}' as mass/charge fallback reference.",
+                UserWarning,
+            )
+        old_type = old_types[0]
 
-        # Edit in place
         self.atoms.loc[indices, "type"] = atom_type
 
-        updated_atom_types = sorted(self.atoms["type"].unique().tolist())
+        if atom_type not in self.masses:
+            fallback_mass = MASSES_DICT.get(atom_type, self.masses.get(old_type, 1.0))
+            self.set_masses({atom_type: fallback_mass})
 
-        for t in updated_atom_types:
-            if t not in data_masses_dic:
-                if t in MASSES_DICT:
-                    data_masses_dic[t] = MASSES_DICT[t]
-                else:
-                    data_masses_dic[t] = data_masses_dic.get(old_type, 1.0)
-
-        # CHANGE: pass a dict instead of a list to avoid order/length issues
-        self.set_masses(data_masses_dic)
+        if atom_type not in self.charges:
+            fallback_charge = self.charges.get(old_type, 0.0)
+            self.set_charges({atom_type: fallback_charge})
 
         return self
 
@@ -577,6 +530,8 @@ class TopologyMixin:
             -DihedralRule: Single dihedral rule
             - list[TopologyRule | DihedralRule]: Mixed list of rules
         """
+        from .atomic_system import AtomicSystem
+
         universe = self.to_mda()
         actions = {}
 
@@ -615,8 +570,7 @@ class TopologyMixin:
             atom_ids, new_type = actions["rename_atoms"]
             self.set_type2atoms(atom_ids, new_type)
 
-        for connection in ["bond", "angle", "dihedral", "improper"]:
-            self._remap_connection_types(connection)
+        self._remap_connection_types()
 
         return self
 

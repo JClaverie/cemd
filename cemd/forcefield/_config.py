@@ -64,7 +64,7 @@ def get_ff_db_path() -> Path:
     if user_path.exists():
         try:
             has_files = any(
-                f.endswith(".toml") for f in user_path.iterdir() if f.is_file()
+                f.is_file() and f.suffix == ".toml" for f in user_path.iterdir()
             )
             if has_files:
                 return user_path

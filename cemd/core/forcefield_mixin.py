@@ -73,8 +73,6 @@ class ForceFieldMixin:
                     if system_type not in target:
                         target[system_type] = ff_key
 
-        self._cache = {}
-
     def set_ff_from_database(
         self,
         atom_assignments: dict[str, str] = None,
@@ -155,8 +153,6 @@ class ForceFieldMixin:
                 "Expected dict or sequence of strings."
             )
 
-        self._cache = {}
-
     def set_bond_ff_keys(self, value: Sequence[str] | dict[str, str]) -> None:
         self._apply_topology_ff_keys("bond", value)
 
@@ -234,10 +230,7 @@ class ForceFieldMixin:
         from prompt_toolkit.layout import HSplit, Layout, ScrollOffsets, Window
         from prompt_toolkit.layout.controls import FormattedTextControl
 
-        if ff_database_dir is None:
-            ff_database_dir = get_ff_db_path()
-
-        db = ForceFieldDatabase(ff_database_dir)
+        db = ForceFieldDatabase()
         dfs = db.to_dataframes()
 
         if "list" not in dfs or dfs["list"].empty:
@@ -379,11 +372,11 @@ class ForceFieldMixin:
 
     def set_masses(self, value: Sequence[float] | dict[str | int, float]) -> None:
         """Set or update the atomic masses for the system and the atoms DataFrame."""
-        self._apply_property_mapping("mass", value, self._masses_storage)
+        self._apply_property_mapping("mass", value, self._masses)
 
     def set_charges(self, value: Sequence[float] | dict[str | int, float]) -> None:
         """Set or update the charges for the atomic system and the atoms DataFrame."""
-        self._apply_property_mapping("charge", value, self._charges_storage)
+        self._apply_property_mapping("charge", value, self._charges)
 
     def set_pair_params(
         self,
@@ -488,93 +481,54 @@ class ForceFieldMixin:
                 model="mixed",
             )
 
-    def _apply_topology_param(self, kind: str, topo_type: str, params: Any) -> None:
-        """Helper method to validate and set a single topology parameter."""
-        types_list = getattr(self, f"{kind}_types", None)
-
-        if types_list is None:
-            raise ValueError(f"The system does not have any {kind} types initialized.")
-
-        # Les liaisons nécessitent une normalisation spécifique
-        if kind == "bond":
-            topo_type = self._normalize_binary_key(*topo_type.split("-"))
-
-        if topo_type not in types_list:
-            raise ValueError(
-                f"{kind.capitalize()} type '{topo_type}' does not exist in the system."
-            )
-
-        target_dict = getattr(self._forcefield_params, kind)
-        target_dict[topo_type] = params
-
     def _apply_property_mapping(
         self,
         property_name: str,
-        value: Sequence[float] | dict[str | int, float],
-        storage: dict,
+        value: dict[str | int, float],
+        storage: dict[str | int, float],
     ) -> None:
-        """Helper method to validate and apply mass or charge mappings."""
-        if isinstance(value, dict):
-            current_types = set(self.atom_types)
-            missing_types = [
-                atype for atype in value.keys() if atype not in current_types
-            ]
-
-            if missing_types:
-                warnings.warn(
-                    f"Targeted types missing from current system for {property_name}: {missing_types}",
-                    UserWarning,
-                )
-
-            if property_name == "mass" and any(m <= 0 for m in value.values()):
-                raise ValueError("All masses must be strictly positive (> 0).")
-
-            storage.update(value)
-
-        elif isinstance(value, (list, np.ndarray, tuple)):
-            current_types = list(self.atom_types)
-            if len(value) != len(current_types):
-                raise ValueError(
-                    f"Sequence size ({len(value)}) incompatible with "
-                    f"the number of atom types ({len(current_types)}) for {property_name}."
-                )
-
-            if property_name == "mass" and any(m <= 0 for m in value):
-                raise ValueError("All masses must be strictly positive (> 0).")
-
-            storage.update(dict(zip(current_types, value)))
-
-        else:
+        """Validate and apply a mass or charge mapping to the given storage dict."""
+        if not isinstance(value, dict):
             raise TypeError(
-                f"Unsupported argument type for {property_name}: {type(value).__name__}."
-                "Expected: dict or sequence of floats."
+                f"Unsupported argument type for {property_name}: "
+                f"{type(value).__name__}. Expected a dict."
             )
 
-        # Update self.atoms DataFrame ONLY for charges
-        if (
-            property_name == "charge"
-            and hasattr(self, "atoms")
-            and self.atoms is not None
-        ):
+        current_types = set(self.atom_types)
+        missing_types = [t for t in value if t not in current_types]
+        if missing_types:
+            warnings.warn(
+                f"Targeted types missing from current system for {property_name}: {missing_types}",
+                UserWarning,
+            )
+
+        if property_name == "mass":
+            try:
+                invalid = any(float(m) <= 0 for m in value.values())
+            except (TypeError, ValueError) as e:
+                raise ValueError(
+                    f"Invalid mass value detected. All masses must be numbers. Details: {e}"
+                ) from e
+            if invalid:
+                raise ValueError("All masses must be strictly positive (> 0).")
+
+        storage.update(value)
+
+        # Charges live per-atom in the atoms DataFrame; masses are per-type only.
+        if property_name == "charge" and getattr(self, "atoms", None) is not None:
             mapped_values = self.atoms["type"].map(storage)
 
-            if property_name in self.atoms.columns:
-                self.atoms[property_name] = mapped_values.fillna(
-                    self.atoms[property_name]
-                )
+            if "charge" in self.atoms.columns:
+                self.atoms["charge"] = mapped_values.fillna(self.atoms["charge"])
             else:
-                self.atoms[property_name] = mapped_values
+                self.atoms["charge"] = mapped_values
 
-            if self.atoms[property_name].isna().any():
-                unassigned = self.atoms[self.atoms[property_name].isna()][
-                    "type"
-                ].unique()
+            unassigned = self.atoms.loc[self.atoms["charge"].isna(), "type"].unique()
+            if len(unassigned):
                 warnings.warn(
-                    f"Certain types of atoms have no assigned {property_name}: {list(unassigned)}",
+                    f"Certain types of atoms have no assigned charge: {list(unassigned)}",
                     UserWarning,
                 )
-
-        self._cache = {}
 
     def _apply_topology_ff_keys(
         self, kind: str, value: Sequence[str] | dict[str, str]
@@ -614,8 +568,6 @@ class ForceFieldMixin:
             target_dict.update(dict(zip(current_types_list, value)))
         else:
             raise TypeError(f"Unsupported argument type: {type(value).__name__}.")
-
-        self._cache = {}
 
     def _resolve_pair_parameters(
         self,
@@ -908,8 +860,6 @@ class ForceFieldMixin:
                 new_keys[new_interaction_type] = ff_key
 
             setattr(self._forcefield_keys, kind, new_keys)
-
-        self._cache = {}
 
     def _validate_and_convert_coeffs(self, coeffs, expected_len, name):
         """Validates and converts a list of coefficients."""

@@ -4,7 +4,7 @@
 
 [model]
 name = "TIP3P"
-reference = "https://doi.org/10.1063/1.1808117"
+ref = "https://doi.org/10.1063/1.1808117"
 description = "Transferable Intermolecular Potential 3-point water model"
 
 # ============================================================
