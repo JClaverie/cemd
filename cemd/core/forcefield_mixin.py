@@ -27,62 +27,147 @@ import numpy as np
 from ..forcefield._config import get_ff_db_path
 from ..forcefield.forcefield_database import ForceFieldDatabase
 from ..forcefield.models import LJParams
+from ._format import canonical_ff_type
 
 
 class ForceFieldMixin:
     """Mixin for force field operations on AtomicSystem."""
 
-    atom_types: list[str]
-    pair_params: dict
-    bond_params: dict
-    angle_params: dict
-    dihedral_params: dict
-    improper_params: dict
-    bondbond_params: dict
-    bondangle_params: dict
-    bond_types: list[str] | None
-    angle_types: list[str] | None
-    dihedral_types: list[str] | None
-    improper_types: list[str] | None
+    def set_ff_keys(
+        self,
+        atom: dict[str, str] | None = None,
+        bond: dict[str, str] | None = None,
+        angle: dict[str, str] | None = None,
+        dihedral: dict[str, str] | None = None,
+        improper: dict[str, str] | None = None,
+        overwrite: bool = True,
+    ) -> None:
+        """Set or update force-field keys for atom and interaction types.
+
+        Parameters
+        ----------
+        atom, bond, angle, dihedral, improper
+            Mapping between system types and force-field keys.
+        overwrite
+            If True, existing assignments are replaced.
+        """
+
+        mappings = {
+            "atom": atom,
+            "bond": bond,
+            "angle": angle,
+            "dihedral": dihedral,
+            "improper": improper,
+        }
+
+        for kind, values in mappings.items():
+            if not values:
+                continue
+
+            target = getattr(self._forcefield_keys, kind)
+
+            if overwrite:
+                target.update(values)
+            else:
+                for system_type, ff_key in values.items():
+                    if system_type not in target:
+                        target[system_type] = ff_key
+
+        self._cache = {}
 
     def set_ff_from_database(
-        self, assignments: dict[str | int, str], ff_database_dir: str = None
+        self,
+        atom_assignments: dict[str, str] = None,
+        bond_assignments: dict[str, str] = None,
+        angle_assignments: dict[str, str] = None,
+        dihedral_assignments: dict[str, str] = None,
+        improper_assignments: dict[str, str] = None,
+        ff_database_dir: str = None,
+        overwrite: bool = True,
     ) -> None:
-        """
-        Apply force field parameters from the TOML database.
-        """
-        if ff_database_dir is None:
-            ff_database_dir = get_ff_db_path()
 
-        db = ForceFieldDatabase(ff_database_dir)
+        db = ForceFieldDatabase()
 
-        # Resolve assignments to complete types (explicit format)
-        resolved_assignments = {}
-        for sys_type, db_type in assignments.items():
-            # If already a full_type, we keep it
-            if "." in db_type:
-                resolved_assignments[sys_type] = db_type
-            else:
-                # Search type in all models
-                found = None
-                for full_type in db.atom.keys():
-                    if full_type.endswith(f".{db_type}"):
-                        found = full_type
-                        break
-                if found is None:
-                    warnings.warn(
-                        f"Type '{db_type}' not found in any model in database",
-                        category=UserWarning,
-                        stacklevel=2,
-                    )
-                    continue
-                resolved_assignments[sys_type] = found
+        atom_assignments = atom_assignments or {}
+        bond_assignments = bond_assignments or {}
+        angle_assignments = angle_assignments or {}
+        dihedral_assignments = dihedral_assignments or {}
+        improper_assignments = improper_assignments or {}
 
-        # Apply settings
-        self._set_pair_params_from_db(resolved_assignments, db)
-        self._set_bond_params_from_db(resolved_assignments, db)
-        self._set_angle_params_from_db(resolved_assignments, db)
-        self._update_masses_and_charges(resolved_assignments, db)
+        resolved_atom_assignments = self._resolve_atom_assignments(
+            atom_assignments,
+            db,
+        )
+
+        self.set_ff_keys(
+            atom=resolved_atom_assignments,
+            bond=bond_assignments,
+            angle=angle_assignments,
+            dihedral=dihedral_assignments,
+            improper=improper_assignments,
+            overwrite=overwrite,
+        )
+
+        self._update_masses_and_charges(db)
+        self._set_pair_params_from_db(resolved_atom_assignments, db, overwrite)
+        self._set_bond_params_from_db(
+            bond_assignments, resolved_atom_assignments, db, overwrite
+        )
+        self._set_angle_params_from_db(
+            angle_assignments, resolved_atom_assignments, db, overwrite
+        )
+        self._set_dihedral_params_from_db(
+            dihedral_assignments, resolved_atom_assignments, db, overwrite
+        )
+        self._set_improper_params_from_db(
+            improper_assignments, resolved_atom_assignments, db, overwrite
+        )
+
+    def set_atom_ff_keys(self, value: Sequence[str] | dict[str | int, str]) -> None:
+        if isinstance(value, dict):
+            current_types = set(self.atom_types)
+            missing_types = [
+                atype for atype in value.keys() if atype not in current_types
+            ]
+
+            if missing_types:
+                warnings.warn(
+                    f"Target atom types not present in current system: {missing_types}",
+                    UserWarning,
+                )
+
+            self._forcefield_keys.atom.update(value)
+
+        elif isinstance(value, (list, np.ndarray, tuple)):
+            current_types = list(self.atom_types)
+
+            if len(value) != len(current_types):
+                raise ValueError(
+                    f"Sequence length ({len(value)}) does not match "
+                    f"the number of atom types ({len(current_types)})."
+                )
+
+            new_map = dict(zip(current_types, value))
+            self._forcefield_keys.atom.update(new_map)
+        else:
+            raise TypeError(
+                f"Unsupported argument type: {type(value).__name__}. "
+                "Expected dict or sequence of strings."
+            )
+
+        self._cache = {}
+
+    def set_bond_ff_keys(self, value: Sequence[str] | dict[str, str]) -> None:
+        self._apply_topology_ff_keys("bond", value)
+
+    def set_angle_ff_keys(self, value: Sequence[str] | dict[str, str]) -> None:
+        self._apply_topology_ff_keys("angle", value)
+
+    def set_dihedral_ff_keys(self, value: Sequence[str] | dict[str, str]) -> None:
+        self._apply_topology_ff_keys("dihedral", value)
+
+    def set_improper_ff_keys(self, value: Sequence[str] | dict[str, str]) -> None:
+        self._apply_topology_ff_keys("improper", value)
 
     def explore_ff_database(
         self, ff_database_dir: str = None, visible_rows: int = 20
@@ -283,95 +368,152 @@ class ForceFieldMixin:
             if selected:
                 assignments[t] = selected["full_type"]
                 print(f"Assigned: {t} -> {selected['full_type']} ({selected['model']})")
-                self.set_ff_from_database(assignments, ff_database_dir)
+
+                # Utilisation des arguments nommés pour éviter l'erreur de position
+                self.set_ff_from_database(
+                    atom_assignments=assignments, ff_database_dir=ff_database_dir
+                )
             else:
                 print("Selection cancelled.")
                 break
 
     def set_masses(self, value: Sequence[float] | dict[str | int, float]) -> None:
-        """Set or update the atomic masses for the system and the atoms DataFrame.
-
-        Parameters
-        ----------
-        value : Sequence of float or dict of {str or int : float}
-            If a sequence is provided, it must match the current order and
-            length of unique `atom_types`. If a dictionary is provided, it
-            performs a partial or full update of the mass mapping.
-
-        Raises
-        ------
-        ValueError
-            If the sequence length does not match `atom_types` or if any mass is <= 0.
-        TypeError
-            If `value` is neither a dictionary nor a supported sequence type.
-        """
-        if isinstance(value, dict):
-            current_types = set(self.atom_types)
-            missing_types = [
-                atype for atype in value.keys() if atype not in current_types
-            ]
-
-            if missing_types:
-                warnings.warn(
-                    f"Target atom types not present in current system: {missing_types}",
-                    UserWarning,
-                )
-
-            if any(m <= 0 for m in value.values()):
-                raise ValueError("All masses must be strictly positive (> 0).")
-
-            self._masses_storage.update(value)
-
-        elif isinstance(value, (list, np.ndarray, tuple)):
-            current_types = list(self.atom_types)
-
-            if len(value) != len(current_types):
-                raise ValueError(
-                    f"Sequence length ({len(value)}) does not match "
-                    f"the number of atom types ({len(current_types)})."
-                )
-
-            if any(m <= 0 for m in value):
-                raise ValueError("All masses must be strictly positive (> 0).")
-
-            new_map = dict(zip(current_types, value))
-            self._masses_storage.update(new_map)
-
-        else:
-            raise TypeError(
-                f"Unsupported argument type: {type(value).__name__}. "
-                "Expected dict or sequence of floats."
-            )
-
-        if hasattr(self, "atoms") and self.atoms is not None:
-            mapped_masses = self.atoms["type"].map(self._masses_storage)
-
-            if "mass" in self.atoms.columns:
-                self.atoms["mass"] = mapped_masses.fillna(self.atoms["mass"])
-            else:
-                self.atoms["mass"] = mapped_masses
-
-            if self.atoms["mass"].isna().any():
-                unassigned = self.atoms[self.atoms["mass"].isna()]["type"].unique()
-                warnings.warn(
-                    f"Some atom types have no assigned mass: {list(unassigned)}",
-                    UserWarning,
-                )
-
-        # Clear internal cache
-        self._cache = {}
+        """Set or update the atomic masses for the system and the atoms DataFrame."""
+        self._apply_property_mapping("mass", value, self._masses_storage)
 
     def set_charges(self, value: Sequence[float] | dict[str | int, float]) -> None:
-        """Set or update the charges for the atomic system and the atoms DataFrame.
+        """Set or update the charges for the atomic system and the atoms DataFrame."""
+        self._apply_property_mapping("charge", value, self._charges_storage)
 
-        Parameters
-        ----------
-        value : Sequence of float or dict of {str or int : float}
-            If a sequence is provided, it must match the current order and
-            length of unique `atom_types`. If a dictionary is provided, it
-            performs a partial or full update of the charge mapping.
-        """
+    def set_pair_params(
+        self,
+        atom_type1: str | int,
+        atom_type2: str | int = None,
+        params: Any = None,
+    ) -> None:
+        """Set pair-interaction parameters for two atom types."""
 
+        if atom_type2 is None:
+            atom_type2 = atom_type1
+
+        if atom_type1 not in self.atom_types:
+            raise ValueError(f"Atom type '{atom_type1}' does not exist in the system.")
+
+        if atom_type2 not in self.atom_types:
+            raise ValueError(f"Atom type '{atom_type2}' does not exist in the system.")
+
+        pair_key = self._normalize_binary_key(atom_type1, atom_type2)
+        self._forcefield_params.pair[pair_key] = params
+
+    def set_bond_params(self, bond_type: str, params: Any) -> None:
+        self._apply_topology_param("bond", bond_type, params)
+
+    def set_angle_params(self, angle_type: str, params: Any) -> None:
+        self._apply_topology_param("angle", angle_type, params)
+
+    def set_dihedral_params(self, dihedral_type: str, params: Any) -> None:
+        self._apply_topology_param("dihedral", dihedral_type, params)
+
+    def set_improper_params(self, improper_type: str, params: Any) -> None:
+        self._apply_topology_param("improper", improper_type, params)
+
+    def apply_pair_mixing_rules(
+        self,
+        rule: str = "arithmetic",
+        overwrite: bool = False,
+    ) -> None:
+        """Calculate missing cross-interaction parameters."""
+
+        missing_self_params = []
+
+        for atom_type in self.atom_types:
+            key = self._normalize_binary_key(atom_type, atom_type)
+
+            if key not in self._forcefield_params.pair:
+                missing_self_params.append(atom_type)
+
+        if missing_self_params:
+            raise ValueError(
+                "Missing parameters for self-interaction of the following types: "
+                f"{missing_self_params}. "
+                "You must set these parameters with 'set_pair_params' "
+                "before blending."
+            )
+
+        for atom_type in self.atom_types:
+            key = self._normalize_binary_key(atom_type, atom_type)
+            params = self._forcefield_params.pair[key]
+
+            if not isinstance(params, LJParams):
+                raise ValueError(
+                    f"Self-interaction for type '{atom_type}' is not LJ "
+                    f"parameters (got {type(params).__name__}). "
+                    "Mixing rules only apply to LJ parameters."
+                )
+
+        for atom_type1, atom_type2 in combinations(self.atom_types, 2):
+            pair_key = self._normalize_binary_key(atom_type1, atom_type2)
+
+            if pair_key in self._forcefield_params.pair and not overwrite:
+                continue
+
+            params1 = self._forcefield_params.pair[
+                self._normalize_binary_key(atom_type1, atom_type1)
+            ]
+            params2 = self._forcefield_params.pair[
+                self._normalize_binary_key(atom_type2, atom_type2)
+            ]
+
+            eps1, sig1 = params1.epsilon, params1.sigma
+            eps2, sig2 = params2.epsilon, params2.sigma
+
+            if rule == "arithmetic":
+                eps_mixed = (eps1 * eps2) ** 0.5
+                sig_mixed = (sig1 + sig2) / 2.0
+
+            elif rule == "geometric":
+                eps_mixed = (eps1 * eps2) ** 0.5
+                sig_mixed = (sig1 * sig2) ** 0.5
+
+            else:
+                raise ValueError(
+                    f"Unknown mixing rule: '{rule}'. "
+                    "Supported rules: 'arithmetic', 'geometric'."
+                )
+
+            self._forcefield_params.pair[pair_key] = LJParams(
+                epsilon=eps_mixed,
+                sigma=sig_mixed,
+                ref="mixed",
+                model="mixed",
+            )
+
+    def _apply_topology_param(self, kind: str, topo_type: str, params: Any) -> None:
+        """Helper method to validate and set a single topology parameter."""
+        types_list = getattr(self, f"{kind}_types", None)
+
+        if types_list is None:
+            raise ValueError(f"The system does not have any {kind} types initialized.")
+
+        # Les liaisons nécessitent une normalisation spécifique
+        if kind == "bond":
+            topo_type = self._normalize_binary_key(*topo_type.split("-"))
+
+        if topo_type not in types_list:
+            raise ValueError(
+                f"{kind.capitalize()} type '{topo_type}' does not exist in the system."
+            )
+
+        target_dict = getattr(self._forcefield_params, kind)
+        target_dict[topo_type] = params
+
+    def _apply_property_mapping(
+        self,
+        property_name: str,
+        value: Sequence[float] | dict[str | int, float],
+        storage: dict,
+    ) -> None:
+        """Helper method to validate and apply mass or charge mappings."""
         if isinstance(value, dict):
             current_types = set(self.atom_types)
             missing_types = [
@@ -380,45 +522,392 @@ class ForceFieldMixin:
 
             if missing_types:
                 warnings.warn(
-                    f"Targeted types missing from current system: {missing_types}",
+                    f"Targeted types missing from current system for {property_name}: {missing_types}",
                     UserWarning,
                 )
 
-            self._charges_storage.update(value)
+            if property_name == "mass" and any(m <= 0 for m in value.values()):
+                raise ValueError("All masses must be strictly positive (> 0).")
+
+            storage.update(value)
 
         elif isinstance(value, (list, np.ndarray, tuple)):
-            # Make sure atom_types is an ordered list
             current_types = list(self.atom_types)
-
             if len(value) != len(current_types):
                 raise ValueError(
                     f"Sequence size ({len(value)}) incompatible with "
-                    f"the number of atom types ({len(current_types)})."
+                    f"the number of atom types ({len(current_types)}) for {property_name}."
                 )
 
-            new_map = dict(zip(current_types, value))
-            self._charges_storage.update(new_map)
+            if property_name == "mass" and any(m <= 0 for m in value):
+                raise ValueError("All masses must be strictly positive (> 0).")
+
+            storage.update(dict(zip(current_types, value)))
 
         else:
             raise TypeError(
-                f"Argument type not taken into account: {type(value).__name__}."
+                f"Unsupported argument type for {property_name}: {type(value).__name__}."
                 "Expected: dict or sequence of floats."
             )
 
-        if hasattr(self, "atoms") and self.atoms is not None:
-            mapped_charges = self.atoms["type"].map(self._charges_storage)
+        # Update self.atoms DataFrame ONLY for charges
+        if (
+            property_name == "charge"
+            and hasattr(self, "atoms")
+            and self.atoms is not None
+        ):
+            mapped_values = self.atoms["type"].map(storage)
 
-            if "charge" in self.atoms.columns:
-                self.atoms["charge"] = mapped_charges.fillna(self.atoms["charge"])
+            if property_name in self.atoms.columns:
+                self.atoms[property_name] = mapped_values.fillna(
+                    self.atoms[property_name]
+                )
             else:
-                self.atoms["charge"] = mapped_charges
+                self.atoms[property_name] = mapped_values
 
-            if self.atoms["charge"].isna().any():
-                unassigned = self.atoms[self.atoms["charge"].isna()]["type"].unique()
+            if self.atoms[property_name].isna().any():
+                unassigned = self.atoms[self.atoms[property_name].isna()][
+                    "type"
+                ].unique()
                 warnings.warn(
-                    f"Certain types of atoms have no assigned charge:{list(unassigned)}",
+                    f"Certain types of atoms have no assigned {property_name}: {list(unassigned)}",
                     UserWarning,
                 )
+
+        self._cache = {}
+
+    def _apply_topology_ff_keys(
+        self, kind: str, value: Sequence[str] | dict[str, str]
+    ) -> None:
+        """Helper method to set or update force field keys for a given topology kind."""
+        current_types_list = getattr(self, f"{kind}_types", [])
+        current_types = set(current_types_list)
+        target_dict = getattr(self._forcefield_keys, kind)
+
+        if isinstance(value, dict):
+            missing_types = []
+            for t in value.keys():
+                normalized_t = (
+                    self._normalize_binary_key(*t.split("-")) if kind == "bond" else t
+                )
+                if t not in current_types and normalized_t not in current_types:
+                    missing_types.append(t)
+
+            if missing_types:
+                warnings.warn(
+                    f"Target {kind} types not present: {missing_types}", UserWarning
+                )
+
+            for topo_type, ff_key in value.items():
+                final_key = (
+                    self._normalize_binary_key(*topo_type.split("-"))
+                    if kind == "bond"
+                    else topo_type
+                )
+                target_dict[final_key] = ff_key
+
+        elif isinstance(value, (list, np.ndarray, tuple)):
+            if len(value) != len(current_types_list):
+                raise ValueError(
+                    f"Sequence length ({len(value)}) does not match {kind} types count ({len(current_types_list)})."
+                )
+            target_dict.update(dict(zip(current_types_list, value)))
+        else:
+            raise TypeError(f"Unsupported argument type: {type(value).__name__}.")
+
+        self._cache = {}
+
+    def _resolve_pair_parameters(
+        self,
+        db: ForceFieldDatabase,
+        ff_t1: str,
+        ff_t2: str,
+        orig_t1: str,
+        orig_t2: str,
+        is_self_interaction: bool,
+    ) -> Any:
+        """Helper method to find or derive pair parameters from the database."""
+
+        # 1. Search with exact keys (ex: db.lj or db.buckingham)
+        params = db.get_lj(ff_t1, ff_t2) or db.get_buckingham(ff_t1, ff_t2)
+        if params is not None:
+            return params
+
+        # 2. Search with the original keys (without the suffix)
+        params = db.get_lj(orig_t1, orig_t2) or db.get_buckingham(orig_t1, orig_t2)
+        if params is not None:
+            return params
+
+        # 3. If not found, we try to calculate from individual atoms (mixing)
+        atom1 = db.get_atom_type(ff_t1)
+        atom2 = db.get_atom_type(ff_t2)
+
+        if atom1 is not None and atom2 is not None:
+            if hasattr(atom1, "epsilon") and hasattr(atom2, "epsilon"):
+                eps_mixed = (atom1.epsilon * atom2.epsilon) ** 0.5
+                sig_mixed = (atom1.sigma + atom2.sigma) / 2.0
+                return LJParams(
+                    epsilon=eps_mixed,
+                    sigma=sig_mixed,
+                    ref="mixed from atom",
+                    model="gromos",
+                )
+
+        # 4. FALLback: if still not found and it is the same atom, we put 0
+        if is_self_interaction:
+            return LJParams(
+                epsilon=0.0,
+                sigma=0.0,
+                ref="zero (not found in DB)",
+                model="gromos",
+            )
+
+        return None
+
+    def _set_pair_params_from_db(
+        self, atom_assignments: dict, db: ForceFieldDatabase, overwrite: bool
+    ) -> None:
+        """Set pair parameters by searching the database or applying mixing rules."""
+        if not self._forcefield_keys.atom:
+            return
+
+        missing_pairs = []
+
+        # Using a "dictionary comprehension" to do this in 1 line
+        original_types = {
+            atype: atype.split("_")[0] for atype in self._forcefield_keys.atom
+        }
+
+        for atom_type1, atom_type2 in combinations_with_replacement(
+            self._forcefield_keys.atom, 2
+        ):
+            pair_key = self._normalize_binary_key(atom_type1, atom_type2)
+
+            if pair_key in self._forcefield_params.pair and not overwrite:
+                continue
+
+            ff_t1 = self._forcefield_keys.atom[atom_type1]
+            ff_t2 = self._forcefield_keys.atom[atom_type2]
+
+            orig_t1 = original_types[atom_type1]
+            orig_t2 = original_types[atom_type2]
+
+            is_self_interaction = atom_type1 == atom_type2
+
+            # We call our new method tool for doing research
+            params = self._resolve_pair_parameters(
+                db, ff_t1, ff_t2, orig_t1, orig_t2, is_self_interaction
+            )
+
+            if params is not None:
+                self._forcefield_params.pair[pair_key] = params
+            elif is_self_interaction:
+                missing_pairs.append((atom_type1, ff_t1))
+
+        if missing_pairs:
+            warnings.warn(
+                f"Missing pair parameters for atomic types:{missing_pairs}",
+                category=UserWarning,
+                stacklevel=2,
+            )
+
+    def _set_topology_params_from_db(
+        self,
+        topo_type: str,
+        assignments: dict,
+        db: ForceFieldDatabase,
+        overwrite: bool,
+    ) -> None:
+        """Generic method to retrieve topology parameters (bonds, angles, etc.) from the DB."""
+        missing_items = []
+
+        types_list = getattr(self, f"{topo_type}_types", [])
+        ff_keys_dict = getattr(self._forcefield_keys, topo_type)
+        db_attr = getattr(db, topo_type, None)
+        db_get_method = getattr(db, f"get_{topo_type}", None)
+        params_storage = getattr(self._forcefield_params, topo_type)
+
+        for topo_str in types_list:
+            params = None
+
+            ff_key = ff_keys_dict.get(topo_str)
+            if ff_key and db_attr:
+                params = db_attr.get(ff_key)
+
+            if params is None and topo_str in assignments:
+                target_key = assignments[topo_str]
+                if db_attr:
+                    params = db_attr.get(target_key)
+
+            if params is None and db_get_method:
+                elements = [e.strip() for e in topo_str.split("-")]
+                ff_types = [self._get_ff_key_for_type(e) for e in elements]
+
+                if all(ff_types):
+                    params = db_get_method(*ff_types)
+
+            if params is not None:
+                if topo_str not in params_storage or overwrite:
+                    params_storage[topo_str] = params
+            else:
+                missing_items.append(topo_str)
+
+        if missing_items:
+            fr_names = {
+                "bond": "liaisons",
+                "angle": "d'angles",
+                "dihedral": "de dièdres",
+                "improper": "impropres",
+            }
+            warnings.warn(
+                f"Parameters {fr_names.get(topo_type, topo_type)} not found for: {missing_items}",
+                category=UserWarning,
+                stacklevel=2,
+            )
+
+    def _set_bond_params_from_db(
+        self,
+        bond_assignments: dict,
+        atom_assignments: dict,
+        db: ForceFieldDatabase,
+        overwrite: bool,
+    ) -> None:
+        self._set_topology_params_from_db("bond", bond_assignments, db, overwrite)
+
+    def _set_angle_params_from_db(
+        self,
+        angle_assignments: dict,
+        atom_assignments: dict,
+        db: ForceFieldDatabase,
+        overwrite: bool,
+    ) -> None:
+        self._set_topology_params_from_db("angle", angle_assignments, db, overwrite)
+
+    def _set_dihedral_params_from_db(
+        self,
+        dihedral_assignments: dict,
+        atom_assignments: dict,
+        db: ForceFieldDatabase,
+        overwrite: bool,
+    ) -> None:
+        self._set_topology_params_from_db(
+            "dihedral", dihedral_assignments, db, overwrite
+        )
+
+    def _set_improper_params_from_db(
+        self,
+        improper_assignments: dict,
+        atom_assignments: dict,
+        db: ForceFieldDatabase,
+        overwrite: bool,
+    ) -> None:
+        self._set_topology_params_from_db(
+            "improper", improper_assignments, db, overwrite
+        )
+
+    def _resolve_atom_assignments(
+        self, assignments: dict, db: ForceFieldDatabase
+    ) -> dict:
+        """Resolves atom abbreviations (ex: 'h_star' -> 'clayff.h_star')."""
+        resolved = {}
+        for sys_type, db_type in assignments.items():
+            if "." in db_type:
+                resolved[sys_type] = db_type
+            else:
+                found = next(
+                    (
+                        full_type
+                        for full_type in db.atom.keys()
+                        if full_type.endswith(f".{db_type}")
+                    ),
+                    None,
+                )
+
+                if found is None:
+                    warnings.warn(
+                        f"Atom type '{db_type}' not found in database.",
+                        category=UserWarning,
+                        stacklevel=3,
+                    )
+                    continue
+
+                resolved[sys_type] = found
+        return resolved
+
+    @staticmethod
+    def _normalize_binary_key(type1: str | int, type2: str | int) -> str:
+        """Return a canonical key for a two-type interaction."""
+        return "-".join(sorted((str(type1), str(type2))))
+
+    def _update_masses_and_charges(self, db: ForceFieldDatabase) -> None:
+        """Updates masses and charges from atoms and their ff_key."""
+
+        masses_update = {}
+        charges_update = {}
+        missing_types = []
+
+        for sys_type, db_type in self.ff_keys.atom.items():
+            if db_type is None:
+                continue
+
+            atom_type = db.get_atom_type(db_type)
+
+            if atom_type:
+                if atom_type.mass is not None:
+                    masses_update[sys_type] = atom_type.mass
+                charges_update[sys_type] = atom_type.charge
+            else:
+                missing_types.append((sys_type, db_type))
+
+        if missing_types:
+            warnings.warn(
+                f"Types introuvables pour les masses/charges : {missing_types}",
+                category=UserWarning,
+                stacklevel=2,
+            )
+
+        if masses_update:
+            self.set_masses(masses_update)
+        if charges_update:
+            self.set_charges(charges_update)
+
+    def _get_ff_key_for_type(self, sys_type: str) -> str | None:
+        if hasattr(self._forcefield_keys, "atom") and self._forcefield_keys.atom:
+            return self._forcefield_keys.atom.get(sys_type)
+        return None
+
+    def _remap_ff_keys(self, type_mapping: dict[str, str]) -> None:
+        """Remap force-field keys after atom types have been renamed."""
+
+        # Atom FF keys
+        old_atom_keys = dict(self._forcefield_keys.atom)
+        new_atom_keys = {}
+        for old_type, ff_key in old_atom_keys.items():
+            new_type = type_mapping.get(old_type, old_type)
+            new_atom_keys[new_type] = ff_key
+        self._forcefield_keys.atom = new_atom_keys
+
+        # Interaction FF keys
+        for kind in ["bond", "angle", "dihedral", "improper"]:
+            old_keys = dict(getattr(self._forcefield_keys, kind))
+            new_keys = {}
+
+            for interaction_type, ff_key in old_keys.items():
+                old_types = interaction_type.split("-")
+                new_types = tuple(
+                    type_mapping.get(atom_type, atom_type) for atom_type in old_types
+                )
+
+                # === IMPORTANT CHANGE ===
+                # For the dihedrons, we keep the original order
+                if kind == "dihedral":
+                    new_interaction_type = "-".join(new_types)
+                else:
+                    new_interaction_type = canonical_ff_type(new_types, kind)
+
+                new_keys[new_interaction_type] = ff_key
+
+            setattr(self._forcefield_keys, kind, new_keys)
 
         self._cache = {}
 
@@ -435,370 +924,3 @@ class ForceFieldMixin:
             raise ValueError(
                 f"Invalid coefficient values for {name}: expected numbers, got {coeffs}"
             ) from e
-
-    def set_pair_params(
-        self,
-        atom_type1: str | int,
-        atom_type2: str | int = None,
-        params: Any = None,  # Idéalement : LJParams | BuckinghamParams
-    ) -> None:
-        """
-        Assign non-bond parameter objects for a pair of atom types (self or cross).
-
-        Parameters
-        ----------
-        atom_type1 : str or int
-            The identifier of the first atom type.
-        atom_type2 : str or int, optional
-            The identifier of the second atom type. If None, assumes self-interaction.
-        params : Interaction object
-            The potential parameter object (e.g., LJParams or BuckinghamParams instance).
-        """
-        if atom_type2 is None:
-            atom_type2 = atom_type1
-
-        if atom_type1 not in self.atom_types:
-            raise ValueError(f"Atom type '{atom_type1}' does not exist in the system.")
-        if atom_type2 not in self.atom_types:
-            raise ValueError(f"Atom type '{atom_type2}' does not exist in the system.")
-
-        # Tri sécurisé pour un stockage unique
-        sorted_key = tuple(sorted([atom_type1, atom_type2], key=str))
-        self.pair_params[sorted_key] = params
-
-    def set_bond_params(self, bond_type: str, params: Any) -> None:
-        """
-        Assign a structural parameter object for a specific bond type.
-
-        Parameters
-        ----------
-        bond_type : str
-            The identifier of the bond type (e.g., 'H-O').
-        params : Bond object
-            The bond parameter object (e.g., HarmonicBondParams instance).
-        """
-        if not hasattr(self, "bond_types") or self.bond_types is None:
-            raise ValueError("The system does not have any bond types initialized.")
-
-        # Normalisation de la liaison (H-O devient identique à O-H)
-        elements = bond_type.split("-")
-        if len(elements) == 2:
-            normalized_bond = "-".join(
-                sorted([elements[0].strip(), elements[1].strip()], key=str)
-            )
-        else:
-            normalized_bond = bond_type
-
-        if bond_type not in self.bond_types and normalized_bond not in self.bond_types:
-            raise ValueError(
-                f"Bond type '{bond_type}' (or '{normalized_bond}') does not exist in the system."
-            )
-
-        self.bond_params[normalized_bond] = params
-
-    def set_angle_params(self, angle_type: str, params: Any) -> None:
-        """
-        Assign a structural parameter object for a specific angle type.
-
-        Parameters
-        ----------
-        angle_type : str
-            The identifier of the angle type (e.g., 'H-O-H').
-        params : Angle object
-            The angle parameter object (e.g., HarmonicAngleParams instance).
-        """
-        if not hasattr(self, "angle_types") or self.angle_types is None:
-            raise ValueError("The system does not have any angle types initialized.")
-
-        if angle_type not in self.angle_types:
-            raise ValueError(f"Angle type '{angle_type}' does not exist in the system.")
-
-        self.angle_params[angle_type] = params
-
-    def set_dihedral_params(self, dihedral_type: str, params: Any) -> None:
-        """
-        Assign a structural parameter object for a specific dihedral type.
-
-        Parameters
-        ----------
-        dihedral_type : str
-            The identifier of the dihedral type (e.g., 'C-C-C-C').
-        params : Dihedral object
-            The dihedral parameter object (depends on the style).
-        """
-        if not hasattr(self, "dihedral_types") or self.dihedral_types is None:
-            raise ValueError("The system does not have any dihedral types initialized.")
-
-        if dihedral_type not in self.dihedral_types:
-            raise ValueError(
-                f"Dihedral type '{dihedral_type}' does not exist in the system."
-            )
-
-        self.dihedral_params[dihedral_type] = params
-
-    def set_improper_params(self, improper_type: str, params: Any) -> None:
-        """
-        Assign a structural parameter object for a specific improper type.
-
-        Parameters
-        ----------
-        improper_type : str
-            The identifier of the improper type.
-        params : Improper object
-            The improper parameter object (e.g., HarmonicAngleParams instance).
-        """
-        if not hasattr(self, "improper_types") or self.improper_types is None:
-            raise ValueError("The system does not have any improper types initialized.")
-
-        if improper_type not in self.improper_types:
-            raise ValueError(
-                f"Improper type '{improper_type}' does not exist in the system."
-            )
-
-        self.improper_params[improper_type] = params
-
-    def apply_pair_mixing_rules(self, rule="arithmetic", overwrite=False) -> None:
-        """
-        Calculate and update cross-interaction parameters (i != j).
-
-        This method estimates parameters for pair interactions that are not
-        explicitly defined in `self.pair_params`. It uses self-interaction
-        parameters (i, i) to compute cross-interaction parameters based on
-        the LAMMPS mixing rules.
-
-        Parameters
-        ----------
-        rule : str, optional
-            The mixing rule to apply. Supported rules:
-
-            - 'arithmetic':
-                .. math:: \\epsilon_{ij} = \\sqrt{\\epsilon_i \\epsilon_j}
-                .. math:: \\sigma_{ij} = \\frac{1}{2}(\\sigma_i + \\sigma_j)
-
-            - 'geometric':
-                .. math:: \\epsilon_{ij} = \\sqrt{\\epsilon_i \\epsilon_j}
-                .. math:: \\sigma_{ij} = \\sqrt{\\sigma_i \\sigma_j}
-
-        overwrite : bool, optional
-            If True, existing cross-interaction parameters are recalculated.
-            If False, only missing interactions are computed. Default is False.
-
-        Raises
-        ------
-        ValueError
-            If self-interaction parameters are missing for some atom types.
-            If the pair parameters are not LJ parameters.
-
-        References
-        ----------
-        .. [1] LAMMPS Pair Modify Documentation. https://docs.lammps.org/pair_modify.html
-        """
-
-        missing_self_params = []
-        for t in self.atom_types:
-            if (t, t) not in self.pair_params:
-                missing_self_params.append(t)
-
-        if missing_self_params:
-            raise ValueError(
-                f"Missing parameters for self-interaction of the following types: {missing_self_params}. "
-                "You must set these parameters with 'set_pair_params' before blending."
-            )
-
-        for t in self.atom_types:
-            if (t, t) not in self.pair_params:
-                self.pair_params[(t, t)] = LJParams(
-                    epsilon=0.0, sigma=0.0, ref="zero", model="default"
-                )
-
-        for t in self.atom_types:
-            params = self.pair_params[(t, t)]
-            if not isinstance(params, LJParams):
-                raise ValueError(
-                    f"Self-interaction for type '{t}' is not LJ parameters (got {type(params).__name__}). "
-                    "Mixing rules only apply to LJ parameters."
-                )
-
-        for t1, t2 in combinations(self.atom_types, 2):
-            key_cross = tuple(sorted((t1, t2)))
-
-            if key_cross not in self.pair_params or overwrite:
-                params1 = self.pair_params[(t1, t1)]
-                params2 = self.pair_params[(t2, t2)]
-
-                # Extract LJ settings
-                eps1, sig1 = params1.epsilon, params1.sigma
-                eps2, sig2 = params2.epsilon, params2.sigma
-
-                # Apply the chosen rule
-                if rule == "arithmetic":
-                    eps_mixed = (eps1 * eps2) ** 0.5
-                    sig_mixed = (sig1 + sig2) / 2.0
-                elif rule == "geometric":
-                    eps_mixed = (eps1 * eps2) ** 0.5
-                    sig_mixed = (sig1 * sig2) ** 0.5
-                else:
-                    raise ValueError(
-                        f"Unknown mixing rule: '{rule}'. "
-                        "Supported rules: 'arithmetic', 'geometric'."
-                    )
-
-                # Store result as LJParams
-                self.pair_params[key_cross] = LJParams(
-                    epsilon=eps_mixed,
-                    sigma=sig_mixed,
-                    ref="mixed",
-                    model="mixed",
-                )
-
-    def _set_pair_params_from_db(
-        self,
-        atom_type_assignments: dict[str | int, str],
-        db: ForceFieldDatabase,
-    ) -> None:
-        """
-        Search the database for pair parameters and apply them.
-        """
-        missing_pairs = []
-
-        for label1, label2 in combinations_with_replacement(
-            atom_type_assignments.keys(), 2
-        ):
-            ff_t1 = atom_type_assignments[label1]
-            ff_t2 = atom_type_assignments[label2]
-
-            # Try LJ, then Buckingham
-            params = db.get_lj(ff_t1, ff_t2) or db.get_buckingham(ff_t1, ff_t2)
-
-            if params is not None:
-                # Secure sorting that supports str/int mixing
-                pair_key = tuple(sorted([label1, label2], key=str))
-                self.pair_params[pair_key] = params
-            elif label1 == label2:
-                # Report if a self-interaction is missing
-                missing_pairs.append((label1, ff_t1))
-
-        if missing_pairs:
-            warnings.warn(
-                f"Missing self-interaction pair parameters for: {missing_pairs}",
-                category=UserWarning,
-                stacklevel=2,
-            )
-
-    def _set_bond_params_from_db(
-        self,
-        atom_type_assignments: dict[str | int, str],
-        db: ForceFieldDatabase,
-    ) -> None:
-        """Search the database for bond parameters and apply them."""
-        if not hasattr(self, "bond_types") or self.bond_types is None:
-            return
-
-        missing_bonds = []
-
-        for bond_str in self.bond_types:
-            elements = bond_str.split("-")
-            if len(elements) != 2:
-                continue
-
-            sys_t1, sys_t2 = elements[0].strip(), elements[1].strip()
-
-            ff_t1 = atom_type_assignments.get(sys_t1)
-            ff_t2 = atom_type_assignments.get(sys_t2)
-
-            if not ff_t1 or not ff_t2:
-                missing_bonds.append(bond_str)
-                continue
-
-            bond_params = db.get_bond(ff_t1, ff_t2)
-            if bond_params is not None:
-                self.bond_params[bond_str] = bond_params
-            else:
-                missing_bonds.append(f"{bond_str} ({ff_t1}-{ff_t2})")
-
-        if missing_bonds:
-            warnings.warn(
-                f"Missing bond parameters in database for: {missing_bonds}",
-                category=UserWarning,
-                stacklevel=2,
-            )
-
-    def _set_angle_params_from_db(
-        self,
-        atom_type_assignments: dict[str | int, str],
-        db: ForceFieldDatabase,
-    ) -> None:
-        """Search the database for angle parameters and apply them."""
-        if not hasattr(self, "angle_types") or self.angle_types is None:
-            return
-
-        missing_angles = []
-
-        for angle_str in self.angle_types:
-            elements = angle_str.split("-")
-            if len(elements) != 3:
-                continue
-
-            sys_t1, sys_t2, sys_t3 = (
-                elements[0].strip(),
-                elements[1].strip(),
-                elements[2].strip(),
-            )
-
-            ff_t1 = atom_type_assignments.get(sys_t1)
-            ff_t2 = atom_type_assignments.get(sys_t2)
-            ff_t3 = atom_type_assignments.get(sys_t3)
-
-            if not ff_t1 or not ff_t2 or not ff_t3:
-                missing_angles.append(angle_str)
-                continue
-
-            angle_params = db.get_angle(ff_t1, ff_t2, ff_t3)
-            if angle_params is not None:
-                self.angle_params[angle_str] = angle_params
-            else:
-                missing_angles.append(f"{angle_str} ({ff_t1}-{ff_t2}-{ff_t3})")
-
-            bb_params = db.get_bondbond(ff_t1, ff_t2, ff_t3)
-            if bb_params is not None:
-                self.bondbond_params[angle_str] = bb_params
-
-            ba_params = db.get_bondangle(ff_t1, ff_t2, ff_t3)
-            if ba_params is not None:
-                self.bondangle_params[angle_str] = ba_params
-
-        if missing_angles:
-            warnings.warn(
-                f"Missing angle parameters in database for: {missing_angles}",
-                category=UserWarning,
-                stacklevel=2,
-            )
-
-    def _update_masses_and_charges(
-        self, assignments: dict, db: ForceFieldDatabase
-    ) -> None:
-        """Update masses and charges from the database."""
-        masses_update = {}
-        charges_update = {}
-        missing_types = []
-
-        for sys_type, db_type in assignments.items():
-            atom_type = db.get_atom_type(db_type)
-            if atom_type:
-                if atom_type.mass is not None:
-                    masses_update[sys_type] = atom_type.mass
-                charges_update[sys_type] = atom_type.charge
-            else:
-                missing_types.append((sys_type, db_type))
-
-        if missing_types:
-            warnings.warn(
-                f"Atom types not found in database for mass/charge update: {missing_types}",
-                category=UserWarning,
-                stacklevel=2,
-            )
-
-        if masses_update:
-            self.set_masses(masses_update)
-        if charges_update:
-            self.set_charges(charges_update)

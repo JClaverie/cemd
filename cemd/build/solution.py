@@ -362,7 +362,7 @@ class SolutionBuilder:
         with tempfile.TemporaryDirectory(dir=".") as tmp:
             h2o_path = get_structure_path("H2O", tmp)
             h2o = AtomicSystem.from_file(h2o_path)
-            h2o.guess_angles()
+            h2o.set_types({"H1": "Hw", "H2": "Hw", "O1": "Ow"})
 
             structures = [
                 PackmolStructure(

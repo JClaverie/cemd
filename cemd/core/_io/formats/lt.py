@@ -55,7 +55,7 @@ class LTReader(BaseReader):
             content, "Impropers", atom_name_to_id
         )
 
-        df_atoms = cls._create_atoms_df(atoms_data)  # ← Sans ff_name
+        df_atoms = cls._create_atoms_df(atoms_data)
         coords = df_atoms[["x", "y", "z"]].values
         mins = coords.min(axis=0) - 10
         maxs = coords.max(axis=0) + 10
@@ -66,7 +66,7 @@ class LTReader(BaseReader):
             (0.0, 0.0, 0.0),
         )
 
-        # Create topology dictionary
+        # Create topology dictionary with the new dictionary mappings
         topology = {
             "atoms": df_atoms,
             "bonds": cls._create_connectivity_df(bonds_data, 2),
@@ -78,7 +78,12 @@ class LTReader(BaseReader):
             "masses": cls._create_masses_dict(atoms_data),
             "charges": cls._create_charges_dict(atoms_data),
             "atom_style": "full",
-            "ff_name": ff_name,  # Nom du force field (pour référence)
+            "ff_name": ff_name,
+            "atom_ff_keys": {k: f"gromos.{v}" for k, v in atom_ff_map.items()},
+            "bond_ff_keys": {k: f"gromos.{v}" for k, v in bond_ff_map.items()},
+            "angle_ff_keys": {k: f"gromos.{v}" for k, v in angle_ff_map.items()},
+            "dihedral_ff_keys": {k: f"gromos.{v}" for k, v in dihedral_ff_map.items()},
+            "improper_ff_keys": {k: f"gromos.{v}" for k, v in improper_ff_map.items()},
             "pair_params": {},
             "bond_params": {},
             "angle_params": {},
@@ -86,13 +91,6 @@ class LTReader(BaseReader):
             "improper_params": {},
             "atom_name_to_id": atom_name_to_id,
         }
-
-        # Extraire les types et charges des atomes
-        charges = {}
-        for atom in atoms_data:
-            charges[atom["local_name"]] = atom["charge"]
-
-        topology["charges"] = charges
 
         return topology
 
@@ -240,13 +238,12 @@ class LTReader(BaseReader):
     def _create_atoms_df(cls, atoms_data: list[dict]) -> pd.DataFrame:
         """Create atoms DataFrame from parsed atom data."""
         if not atoms_data:
-            return pd.DataFrame(
-                columns=["id", "type", "ff_key", "charge", "x", "y", "z"]
-            )
+            df_empty = pd.DataFrame(columns=["id", "type", "charge", "x", "y", "z"])
+            df_empty.set_index("id", inplace=True)
+            return df_empty
 
         df = pd.DataFrame(atoms_data)
-        df["ff_key"] = "gromos" + df["global_type"]
-        df = df[["id", "type", "ff_key", "charge", "x", "y", "z"]]
+        df = df[["id", "type", "charge", "x", "y", "z"]]
         df.set_index("id", inplace=True)
         return df
 
@@ -276,14 +273,10 @@ class LTReader(BaseReader):
 
         data = []
         for item in items:
-            # Créer ff_key avec le préfixe du force field en minuscule
-            ff_key = f"gromos.{item['global_type']}"
-            row = [item["id"], item["type"], ff_key] + item["atoms"]
+            row = [item["id"], item["type"]] + item["atoms"]
             data.append(row)
 
-        columns = ["id", "type", "ff_key"] + [
-            f"atom_{i}" for i in range(1, n_atoms + 1)
-        ]
+        columns = ["id", "type"] + [f"atom_{i}" for i in range(1, n_atoms + 1)]
         df = pd.DataFrame(data, columns=columns)
         df.set_index("id", inplace=True)
         return df

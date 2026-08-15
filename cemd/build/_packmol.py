@@ -22,9 +22,12 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Literal
 
+import numpy as np
+
 from .. import AtomicSystem
 from .._constants import MASSES_DICT
 from .._paths import STRUCTURES_DIR
+from ..core._format import canonical_ff_type, get_ff_key
 
 
 @dataclass
@@ -333,13 +336,8 @@ def _rebuild_topology_from_templates(
     structures: list[PackmolStructure],
     structure_paths: list[str],
 ) -> AtomicSystem:
-    """
-    Rebuild the topology lost when Packmol writes the output PDB.
+    """Rebuild topology and restore force-field assignments."""
 
-    Packmol writes all copies of the first structure, followed by all
-    copies of the second structure, etc. Therefore, the topology of
-    each copy can be reconstructed from its original template.
-    """
     u = solution.to_mda()
 
     topology_attrs = {
@@ -349,56 +347,177 @@ def _rebuild_topology_from_templates(
         "impropers": 4,
     }
 
-    new_topology = {attr: [] for attr in topology_attrs}
+    dict_names = {
+        "bonds": "bond",
+        "angles": "angle",
+        "dihedrals": "dihedral",
+        "impropers": "improper",
+    }
 
+    new_topology = {attr: [] for attr in topology_attrs}
+    atom_ff_keys = {}
+    interaction_ff_keys = {kind: {} for kind in dict_names.values()}
+    atom_type_mapping = {}
+    used_global_atom_types = set()
+    packmol_type_mapping = {}
     atom_offset = 0
 
-    for structure, structure_path in zip(structures, structure_paths):
-        template = structure.structure
-        n_copies = structure.number
-
-        if isinstance(template, AtomicSystem):
-            template_system = template
+    for struct_idx, (structure, structure_path) in enumerate(
+        zip(structures, structure_paths, strict=True)
+    ):
+        if isinstance(structure.structure, AtomicSystem):
+            template = structure.structure
         else:
-            template_system = AtomicSystem.from_file(structure_path)
+            template = AtomicSystem.from_file(structure_path)
 
-        n_atoms = template_system.num_atoms
+        n_copies = structure.number
+        n_atoms = template.num_atoms
+        template_atom_types = template.atoms["type"]
 
-        for attr, n_atoms_per_interaction in topology_attrs.items():
-            interactions = getattr(template_system, attr, None)
+        # ==============================================================
+        # 1. Build local atom type -> global atom type mapping
+        # ==============================================================
+
+        local_to_global = {}
+
+        for local_type, ff_key in template.ff_keys.atom.items():
+            local_type = str(local_type)
+            identity = (local_type, ff_key)
+
+            if identity in atom_type_mapping:
+                global_type = atom_type_mapping[identity]
+            elif local_type not in used_global_atom_types:
+                global_type = local_type
+                atom_type_mapping[identity] = global_type
+                used_global_atom_types.add(global_type)
+                atom_ff_keys[global_type] = ff_key
+            else:
+                index = 2
+                while f"{local_type}_{index}" in used_global_atom_types:
+                    index += 1
+                global_type = f"{local_type}_{index}"
+                atom_type_mapping[identity] = global_type
+                used_global_atom_types.add(global_type)
+                atom_ff_keys[global_type] = ff_key
+
+            local_to_global[local_type] = global_type
+
+        # ==============================================================
+        # 2. Build Packmol type -> global type mapping
+        # ==============================================================
+
+        new_types = np.array(u.atoms.types, dtype=object)
+        for copy_idx in range(n_copies):
+            offset = atom_offset + copy_idx * n_atoms
+            for local_index, local_type in enumerate(template_atom_types):
+                global_type = local_to_global[str(local_type)]
+                tmp = f"__packmol_{offset + local_index}"
+                new_types[offset + local_index] = tmp
+                packmol_type_mapping[tmp] = global_type
+        u.atoms.types = new_types
+
+        # ==============================================================
+        # 3. Rebuild topology
+        # ==============================================================
+
+        for attr, n_per_interaction in topology_attrs.items():
+            interactions = getattr(template, attr, None)
 
             if interactions is None or interactions.empty:
                 continue
 
-            columns = [f"atom_{i}" for i in range(1, n_atoms_per_interaction + 1)]
+            kind = dict_names[attr]
+            columns = [f"atom_{i}" for i in range(1, n_per_interaction + 1)]
+            template_ff_keys = getattr(template.ff_keys, kind)
 
-            indices = interactions[columns].to_numpy(dtype=int) - 1
+            for atom_indices in interactions[columns].to_numpy(dtype=int) - 1:
+                local_atom_types = tuple(
+                    str(template_atom_types.iloc[i]) for i in atom_indices
+                )
 
-            for copy_idx in range(n_copies):
-                offset = atom_offset + copy_idx * n_atoms
+                # Resolve FF key
+                ff_key = get_ff_key(template_ff_keys, local_atom_types, kind)
 
-                new_topology[attr].extend(map(tuple, indices + offset))
+                if ff_key is None:
+                    print(f"Warning: no ff_key for {kind} {local_atom_types}")
+                    continue
+
+                # Convert local types -> global types
+                global_atom_types = tuple(
+                    local_to_global[atom_type] for atom_type in local_atom_types
+                )
+
+                # Pour les dihèdres, on garde l'ordre original
+                if kind == "dihedral":
+                    global_interaction_type = "-".join(global_atom_types)
+                else:
+                    global_interaction_type = canonical_ff_type(global_atom_types, kind)
+
+                # Store FF key
+                existing_ff_key = interaction_ff_keys[kind].get(global_interaction_type)
+                if existing_ff_key is not None and existing_ff_key != ff_key:
+                    raise ValueError(
+                        f"{kind.capitalize()} type {global_interaction_type!r} "
+                        f"has multiple force-field keys: {existing_ff_key!r} and {ff_key!r}"
+                    )
+
+                interaction_ff_keys[kind][global_interaction_type] = ff_key
+
+                # Add interaction for every copy
+                for copy_idx in range(n_copies):
+                    offset = atom_offset + copy_idx * n_atoms
+                    new_indices = tuple(index + offset for index in atom_indices)
+                    new_topology[attr].append(new_indices)
 
         atom_offset += n_copies * n_atoms
+
+    # ==================================================================
+    # Apply topology to MDAnalysis
+    # ==================================================================
 
     for attr, interactions in new_topology.items():
         if interactions:
             u.add_TopologyAttr(attr, interactions)
 
+    # ==================================================================
+    # Convert back to AtomicSystem
+    # ==================================================================
+
     result = AtomicSystem.from_mda(u)
 
-    # Copy force-field parameters from AtomicSystem templates.
+    # ==================================================================
+    # Restore atom FF keys
+    # ==================================================================
+
+    result._forcefield_keys.atom.update(atom_ff_keys)
+
+    # ==================================================================
+    # Restore interaction FF keys
+    # ==================================================================
+
+    for kind, keys in interaction_ff_keys.items():
+        target = getattr(result._forcefield_keys, kind)
+        target.update(keys)
+
+    # ==================================================================
+    # Set atom types (APRÈS la restauration des FF keys)
+    # ==================================================================
+
+    result.set_types(packmol_type_mapping)
+
+    # ==================================================================
+    # Restore force-field parameters
+    # ==================================================================
+
     for structure in structures:
-        template = structure.structure
-
-        if not isinstance(template, AtomicSystem):
+        if not isinstance(structure.structure, AtomicSystem):
             continue
-
-        result.bond_params.update(template.bond_params)
-        result.angle_params.update(template.angle_params)
-        result.dihedral_params.update(template.dihedral_params)
-        result.improper_params.update(template.improper_params)
-        result.pair_params.update(template.pair_params)
+        template = structure.structure
+        result._forcefield_params.bond.update(template._forcefield_params.bond)
+        result._forcefield_params.angle.update(template._forcefield_params.angle)
+        result._forcefield_params.dihedral.update(template._forcefield_params.dihedral)
+        result._forcefield_params.improper.update(template._forcefield_params.improper)
+        result._forcefield_params.pair.update(template._forcefield_params.pair)
 
     return result
 

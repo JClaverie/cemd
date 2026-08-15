@@ -19,12 +19,75 @@
 
 from __future__ import annotations
 
+import itertools
 from collections.abc import Sequence
 from enum import Enum
 from typing import Any, TypeAlias
 
 import numpy as np
 import pandas as pd
+
+
+def canonical_ff_type(
+    atom_types: tuple[str, ...],
+    kind: str,
+) -> str:
+    """Return a canonical force-field interaction type."""
+
+    if kind == "bond":
+        a, b = atom_types
+        return min(f"{a}-{b}", f"{b}-{a}")
+
+    if kind == "angle":
+        a, b, c = atom_types
+        return min(
+            f"{a}-{b}-{c}",
+            f"{c}-{b}-{a}",
+        )
+
+    if kind == "dihedral":
+        a, b, c, d = atom_types
+        forward = f"{a}-{b}-{c}-{d}"
+        reverse = f"{d}-{c}-{b}-{a}"
+
+        if b < c:
+            return forward
+        else:
+            return reverse
+
+    if kind == "improper":
+        center, *neighbors = atom_types
+        return "-".join([center, *sorted(neighbors)])
+
+    raise ValueError(f"Unknown interaction kind: {kind}")
+
+
+def get_ff_key(ff_keys, atom_types, kind) -> str | None:
+    raw = "-".join(atom_types)
+    if raw in ff_keys:
+        return ff_keys[raw]
+
+    if kind == "bond":
+        a, b = atom_types
+        return ff_keys.get(f"{b}-{a}")
+
+    if kind == "angle":
+        a, b, c = atom_types
+        return ff_keys.get(f"{c}-{b}-{a}")
+
+    if kind == "dihedral":
+        a, b, c, d = atom_types
+        return ff_keys.get(f"{d}-{c}-{b}-{a}")
+
+    if kind == "improper":
+        center, *neighbors = atom_types
+        for perm in itertools.permutations(neighbors):
+            candidate = "-".join([center, *perm])
+            if candidate in ff_keys:
+                return ff_keys[candidate]
+        return None
+
+    raise ValueError(f"Unknown interaction kind: {kind}")  # ← maintenant atteignable
 
 
 def normalize_dataframe(
@@ -43,11 +106,6 @@ def normalize_dataframe(
     col_names = list(columns.keys()) if isinstance(columns, dict) else list(columns)
 
     missing = [col for col in col_names if col not in df.columns]
-
-    # Si la colonne 'ff_key' est absente, on l'ajoute automatiquement avec du vide
-    if "ff_key" in missing:
-        df["ff_key"] = ""
-        missing.remove("ff_key")
 
     if missing:
         raise ValueError(
@@ -110,7 +168,6 @@ def normalize_property_to_dict(
 
 ATOMS_COLUMNS = {
     "type": str | int,
-    "ff_key": str,
     "charge": float,
     "x": float,
     "y": float,
@@ -119,14 +176,12 @@ ATOMS_COLUMNS = {
 
 BONDS_COLUMNS = {
     "type": str | int,
-    "ff_key": str,
     "atom_1": int,
     "atom_2": int,
 }
 
 ANGLES_COLUMNS = {
     "type": str | int,
-    "ff_key": str,
     "atom_1": int,
     "atom_2": int,
     "atom_3": int,
@@ -134,7 +189,6 @@ ANGLES_COLUMNS = {
 
 DIHEDRALS_COLUMNS = {
     "type": str | int,
-    "ff_key": str,
     "atom_1": int,
     "atom_2": int,
     "atom_3": int,
@@ -630,11 +684,25 @@ SYSTEM_DICT_FORMAT: dict[str, dict] = {
         },
         "charges": {"type": dict},
         "atom_style": {"type": str},
+        # Force field keys
+        "atom_ff_keys": {"type": dict},
+        "bond_ff_keys": {"type": dict},
+        "angle_ff_keys": {"type": dict},
+        "dihedral_ff_keys": {"type": dict},
+        "improper_ff_keys": {"type": dict},
+        # Force field parameters
         "pair_params": {"type": dict},
         "bond_params": {"type": dict},
         "angle_params": {"type": dict},
         "dihedral_params": {"type": dict},
         "improper_params": {"type": dict},
+        "bondbond_params": {"type": dict},
+        "bondangle_params": {"type": dict},
+        "middlebondtorsion_params": {"type": dict},
+        "endbondtorsion_params": {"type": dict},
+        "angletorsion_params": {"type": dict},
+        "angleangletorsion_params": {"type": dict},
+        "angleangle_params": {"type": dict},
     },
 }
 

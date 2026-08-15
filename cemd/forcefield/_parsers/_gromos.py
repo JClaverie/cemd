@@ -17,27 +17,18 @@
 
 
 import re
-from dataclasses import dataclass
 
 from ..forcefield_database import ForceFieldDatabase
 from ..models import (
     AtomType,
+    FourierDihedralParams,
+    FourierTerm,
     HarmonicAngleParams,
     HarmonicBondParams,
     HarmonicImproperParams,
     LJParams,
 )
 from ._base import BaseForceFieldParser, ParseResult
-
-
-@dataclass
-class GromosDihedralParams:
-    """GROMOS dihedral parameters."""
-
-    m: int
-    k: float
-    n: int
-    d: float
 
 
 class GromosLTParser(BaseForceFieldParser):
@@ -188,17 +179,56 @@ class GromosLTParser(BaseForceFieldParser):
                     k=float(k), theta0=float(theta0), model=result.model_name
                 )
 
-    def _parse_dihedral_coeff(self, lines: list[str], result: ParseResult) -> None:
-        """Parse the dihedral parameters."""
-        pattern = r"dihedral_coeff\s+@dihedral:(\w+)\s+([\d.]+)\s+([\d.E+-]+)\s+([\d.]+)\s+([\d.]+)"
+    @staticmethod
+    def _parse_dihedral_coeff(lines: list[str], result: ParseResult) -> None:
+        """Parse dihedral parameters supporting multiple Fourier terms."""
+
+        # On capture l'identifiant et tout le reste de la ligne
+        pattern = r"dihedral_coeff\s+@dihedral:(\w+)\s+(.+)"
 
         for line in lines:
+            line = line.strip()
+
+            if not line or line.startswith("#"):
+                continue
+
             match = re.search(pattern, line)
-            if match:
-                dihedral_id, m, k, n, d = match.groups()
-                result.dihedrals[dihedral_id] = GromosDihedralParams(
-                    m=int(float(m)), k=float(k), n=int(float(n)), d=float(d)
-                )
+            if not match:
+                continue
+
+            dihedral_id, rest = match.groups()
+
+            # On découpe la suite de la ligne par espaces
+            coeffs = rest.split()
+            if not coeffs:
+                continue
+
+            try:
+                # Le premier élément est le nombre de termes 'm'
+                m_terms = int(coeffs[0])
+                expected_len = 1 + 3 * m_terms
+
+                if len(coeffs) < expected_len:
+                    continue
+
+                # On extrait chaque terme (k, n, delta) par groupes de 3
+                terms_list = []
+                idx = 1
+                for _ in range(m_terms):
+                    k_val = float(coeffs[idx])
+                    n_val = int(
+                        float(coeffs[idx + 1])
+                    )  # int(float(...)) gère les "1.0"
+                    delta_val = float(coeffs[idx + 2])
+
+                    terms_list.append(FourierTerm(k=k_val, n=n_val, delta=delta_val))
+                    idx += 3
+
+                # On enregistre l'objet global avec sa liste de termes
+                result.dihedrals[dihedral_id] = FourierDihedralParams(terms=terms_list)
+
+            except (ValueError, TypeError):
+                continue
 
     def _parse_improper_coeff(self, lines: list[str], result: ParseResult) -> None:
         """Parse the parameters as improper."""

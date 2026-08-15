@@ -18,6 +18,7 @@
 from __future__ import annotations
 
 import itertools
+import warnings
 from collections.abc import Sequence
 from typing import TYPE_CHECKING
 
@@ -68,20 +69,15 @@ class TopologyMixin:
         setattr(self, connection_type + "s", df)
 
     def set_types(
-        self, new_types: Sequence[str | int] | dict[str | int, str | int]
+        self,
+        new_types: Sequence[str | int] | dict[str | int, str | int],
     ) -> AtomicSystem:
-        """Assign types to atoms, supporting both full lists and partial dictionaries.
-
-        Parameters
-        ----------
-        new_types
-            If a list: New types to assign (must match the length of current atom_types).
-            If a dict: Partial mapping of {old_type: new_type} to update specific types.
-        """
+        """Assign types to atoms, supporting full lists and partial mappings."""
 
         self._cache = {}
 
         old_types_snapshot = list(map(str, self.atom_types))
+
         if isinstance(self.masses, dict):
             old_masses_dict = {str(k): v for k, v in self.masses.items()}
         else:
@@ -90,36 +86,71 @@ class TopologyMixin:
         if isinstance(new_types, Sequence):
             if len(new_types) != len(old_types_snapshot):
                 raise ValueError(
-                    "The new list of atom types must match the current number of atom types."
+                    "The new list of atom types must match "
+                    "the length of the current atom types."
                 )
-            mapping = dict(zip(old_types_snapshot, map(str, new_types)))
+
+            mapping = dict(
+                zip(
+                    old_types_snapshot,
+                    map(str, new_types),
+                )
+            )
 
         elif isinstance(new_types, dict):
-            for k in new_types.keys():
+            for k in new_types:
                 if str(k) not in old_types_snapshot:
-                    print(
-                        f"WARNING: Type '{k}' targeted in set_types is not currently in the system."
+                    warnings.warn(
+                        f"Type '{k}' targeted in set_types "
+                        "is not currently in the system.",
+                        UserWarning,
                     )
 
             mapping = {t: t for t in old_types_snapshot}
+
             for k, v in new_types.items():
                 mapping[str(k)] = str(v)
 
         else:
             raise TypeError("new_types must be either a list or a dict.")
 
+        # --------------------------------------------------------------
+        # Atom types
+        # --------------------------------------------------------------
+
         self.atoms["type"] = self.atoms["type"].astype(str).replace(mapping)
 
-        for connection in ["bond", "angle", "dihedral", "improper"]:
+        # --------------------------------------------------------------
+        # Bond / angle / dihedral / improper types
+        # --------------------------------------------------------------
+
+        for connection in [
+            "bond",
+            "angle",
+            "dihedral",
+            "improper",
+        ]:
             self._remap_connection_types(connection)
 
-        new_masses_dic = {}
-        for old_name, m in old_masses_dict.items():
-            new_name = mapping[old_name]
-            if new_name not in new_masses_dic or m > 0:
-                new_masses_dic[new_name] = m
+        # --------------------------------------------------------------
+        # Force-field keys
+        # --------------------------------------------------------------
 
-        self.set_masses(new_masses_dic)
+        self._remap_ff_keys(mapping)
+
+        # --------------------------------------------------------------
+        # Masses
+        # --------------------------------------------------------------
+
+        new_masses_dict = {}
+
+        for old_name, mass in old_masses_dict.items():
+            new_name = mapping[old_name]
+
+            if new_name not in new_masses_dict or mass > 0:
+                new_masses_dict[new_name] = mass
+
+        self.set_masses(new_masses_dict)
 
         return self
 

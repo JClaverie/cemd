@@ -163,16 +163,14 @@ def _merge_data(
         output_topology["velocities"] = None
 
     # Merge masses
-    masses_dict_a = system_a.masses
+    masses_dict_a = system_a.masses.copy()
     masses_dict_b = system_b.masses
-
     masses_dict_a.update(masses_dict_b)
     output_topology["masses"] = dict(sorted(masses_dict_a.items()))
 
     # Merge charges
-    charges_dict_a = system_a.charges
+    charges_dict_a = system_a.charges.copy()
     charges_dict_b = system_b.charges
-
     charges_dict_a.update(charges_dict_b)
     output_topology["charges"] = dict(sorted(charges_dict_a.items()))
 
@@ -203,22 +201,7 @@ def _merge_data(
         if a_connectivity[key] is None:
             a_connectivity[key] = pd.DataFrame()
 
-    param_attrs = [
-        "pair_params",
-        "bond_params",
-        "angle_params",
-        "dihedral_params",
-        "improper_params",
-        "bondbond_params",
-        "bondangle_params",
-    ]
-
-    for attr in param_attrs:
-        dict_a = getattr(system_a, attr, {}) or {}
-        dict_b = getattr(system_b, attr, {}) or {}
-        output_topology[attr] = merge_param_dicts(dict_a, dict_b, param_name=attr)
-
-    # Set new topology
+    # Set new topology connectivity
     for key in connectivity_keys:
         df_merged = pd.concat(
             [a_connectivity[key], b_connectivity[key]], ignore_index=True
@@ -230,9 +213,33 @@ def _merge_data(
         else:
             output_topology[key] = None
 
+    if hasattr(system_a, "_atom_style"):
+        output_topology["atom_style"] = system_a._atom_style
+
+    # --- FUSION DES CLÉS DE CHAMP DE FORCE (ForceFieldKeys) ---
+    ff_keys_a = system_a._forcefield_keys.to_topology()
+    ff_keys_b = system_b._forcefield_keys.to_topology()
+    for key in ff_keys_a:
+        merged_keys = ff_keys_a[key].copy()
+        merged_keys.update(ff_keys_b.get(key, {}))
+        output_topology[key] = merged_keys
+
+    # --- FUSION DES PARAMÈTRES DE CHAMP DE FORCE (ForceFieldParams) ---
+    ff_params_a = system_a._forcefield_params.to_topology()
+    ff_params_b = system_b._forcefield_params.to_topology()
+    for key in ff_params_a:
+        dict_a = ff_params_a[key]
+        dict_b = ff_params_b.get(key, {})
+        if dict_a or dict_b:
+            output_topology[key] = merge_param_dicts(dict_a, dict_b, param_name=key)
+        else:
+            output_topology[key] = {}
+
     # Create the merged system
     merged_system = AtomicSystem(output_topology)
-    merged_system.wrap()
+
+    if hasattr(merged_system, "wrap"):
+        merged_system.wrap()
 
     # Preserve metadata
     if hasattr(system_a, "_pmg_struct"):

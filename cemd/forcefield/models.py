@@ -174,6 +174,47 @@ class HarmonicDihedralParams:
 
 
 @dataclass
+class FourierTerm:
+    """Represents an individual term (K, n, delta) in the Fourier sum."""
+
+    k: float  # kcal/mol (can be negative)
+    n: int  # int >= 0
+    delta: float  # Degrees
+
+    def __post_init__(self):
+        """Validates the parameters of an individual term."""
+        if self.n < 0:
+            raise ValueError(f"n doit être >= 0, reçu : {self.n}")
+        if not -360.0 <= self.delta <= 360.0:
+            raise ValueError(f"delta doit être entre -360 et 360°, reçu : {self.delta}")
+
+
+@dataclass
+class FourierDihedralParams:
+    """Parameters for Fourier-style dihedral (LAMMPS).
+
+    The potential is defined as a sum of 'm' terms:
+        E(phi) = Sum_{i=1}^{m} K_i *[1.0 + cos(n_i *phi -d_i)]
+    """
+
+    terms: list[FourierTerm]
+    ref: str = "https://docs.lammps.org/dihedral_fourier.html"
+    model: str = "Fourier"
+
+    def __post_init__(self):
+        """Validates that the dihedral contains at least one term (m >= 1)."""
+        if not self.terms:
+            raise ValueError(
+                "Un dièdre Fourier doit contenir au moins un terme (m >= 1)."
+            )
+
+    @property
+    def m(self) -> int:
+        """Returns the total number of terms (the 'm' parameter of LAMMPS)."""
+        return len(self.terms)
+
+
+@dataclass
 class Class2DihedralParams:
     """Class2 dihedral parameters."""
 
@@ -189,7 +230,7 @@ class Class2DihedralParams:
 
 @dataclass
 class CHARMMDihedralParams:
-    """CHARMM dihedral parameters."""
+    """Charm Dihydral Parameters."""
 
     k: float  # Kcal/(mol·rad²)
     d: int

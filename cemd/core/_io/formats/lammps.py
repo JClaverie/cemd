@@ -21,7 +21,7 @@ from typing import Any, TextIO
 import numpy as np
 import pandas as pd
 
-from ...forcefield._models import (
+from ....forcefield.models import (
     BuckinghamParams,
     CHARMMDihedralParams,
     Class2AngleAngleParams,
@@ -34,6 +34,8 @@ from ...forcefield._models import (
     Class2ImproperParams,
     CVFFImproperParams,
     DistanceImproperParams,
+    FourierDihedralParams,
+    FourierTerm,
     HarmonicAngleParams,
     HarmonicBondParams,
     HarmonicDihedralParams,
@@ -512,6 +514,16 @@ class LAMMPSReader(BaseReader):
         params = {}
 
         for row in array:
+            style = None
+
+            if key == "dihedral_params":
+                row_text = " ".join(map(str, row))
+
+                if "# fourier" in row_text:
+                    style = "fourier"
+                elif "# harmonic" in row_text:
+                    style = "harmonic"
+
             type_id = int(row[0])
             label = (
                 target_types[type_id - 1]
@@ -566,9 +578,31 @@ class LAMMPSReader(BaseReader):
                 )
 
             elif key == "dihedral_params":
-                if len(coeffs) == 3:
+                if style == "fourier":
+                    # 1. Le premier coefficient correspond au nombre de termes 'm'
+                    m_terms = int(coeffs[0])
+                    terms_list = []
+
+                    # 2. On parcourt les coefficients par groupes de 3 (k, n, delta)
+                    idx = 1
+                    for _ in range(m_terms):
+                        k_val = float(coeffs[idx])
+                        n_val = int(coeffs[idx + 1])
+                        delta_val = float(coeffs[idx + 2])
+
+                        terms_list.append(
+                            FourierTerm(k=k_val, n=n_val, delta=delta_val)
+                        )
+                        idx += 3
+
+                    # 3. On instancie notre objet global avec la liste complète
+                    params[label] = FourierDihedralParams(terms=terms_list)
+
+                elif style == "harmonic":
                     params[label] = HarmonicDihedralParams(
-                        k=coeffs[0], d=int(coeffs[1]), n=int(coeffs[2])
+                        k=coeffs[0],
+                        d=int(coeffs[1]),
+                        n=int(coeffs[2]),
                     )
                 elif len(coeffs) == 4:
                     params[label] = CHARMMDihedralParams(
@@ -664,6 +698,14 @@ class LAMMPSWriter(BaseWriter):
             return f"{params.D:>12.4f} {params.alpha:>10.4f} {params.r0:>10.4f}"
         elif isinstance(params, Class2BondParams):
             return f"{params.r0:>10.4f} {params.k2:>12.4f} {params.k3:>12.4f} {params.k4:>12.4f}"
+        elif isinstance(params, FourierDihedralParams):
+            terms_str = " ".join(
+                f"{term.k:>12.4f} {term.n:>5d} {term.delta:>10.4f}"
+                for term in params.terms
+            )
+            return f"{params.m:>3d} {terms_str}"
+        elif isinstance(params, HarmonicDihedralParams):
+            return f"{params.k:>12.4f} {params.d:>3} {params.n:>3}"
         elif isinstance(params, HarmonicAngleParams):
             return f"{params.k:>12.4f} {params.theta0:>10.4f}"
         elif isinstance(params, Class2AngleParams):
@@ -728,100 +770,96 @@ class LAMMPSWriter(BaseWriter):
     def _write_coeffs(cls, f: TextIO, system: Any, oldstyle: bool) -> None:
         """Writes all the potential coefficients (pairs and associated connections)."""
 
-        # ---------------------------------------------------------------------
-        # Pair Coeffs /PairIJ Coeffs
-        # ---------------------------------------------------------------------
-        if system.pair_params:
+        # Récupération sécurisée de l'objet ForceFieldParams
+        ff_params = getattr(system, "_forcefield_params", None)
+        if ff_params is None:
+            return
+
+        if ff_params.pair:
             n = len(system.atom_types)
-            actual_entries = len(system.pair_params)
+            actual_entries = len(ff_params.pair)
 
-            if oldstyle:
-                f.write("\n# Pair Coeffs\n#\n")
-                for i, t in enumerate(system.atom_types, 1):
-                    f.write(f"# {i} {t}\n")
-                f.write("\n")
-            else:
-                all_self = all(k[0] == k[1] for k in system.pair_params.keys())
-                is_pair_coeffs = all_self and actual_entries == n
+            # Déterminer si c'est Pair Coeffs ou PairIJ Coeffs
+            all_self = all(k[0] == k[1] for k in ff_params.pair.keys())
+            is_pair_coeffs = all_self and actual_entries == n
 
-                section_name = "Pair Coeffs" if is_pair_coeffs else "PairIJ Coeffs"
-                f.write(f"\n {section_name}\n\n")
+            section_name = "Pair Coeffs" if is_pair_coeffs else "PairIJ Coeffs"
+            f.write(f"\n {section_name}\n\n")
 
-                for i in range(1, n + 1):
-                    label_i = system.atom_types[i - 1]
-                    end_j = i if is_pair_coeffs else n
+            for i in range(1, n + 1):
+                label_i = system.atom_types[i - 1]
+                end_j = i if is_pair_coeffs else n
 
-                    for j in range(i, end_j + 1):
-                        label_j = system.atom_types[j - 1]
-                        params = system.pair_params.get(
-                            (label_i, label_j)
-                        ) or system.pair_params.get((label_j, label_i))
+                for j in range(i, end_j + 1):
+                    label_j = system.atom_types[j - 1]
 
-                        if params is not None:
-                            val_str = cls._format_coeff_values(params)
-                            prefix = f"{i:<3}" if is_pair_coeffs else f"{i:<3} {j:<3}"
-                            f.write(f"{prefix} {val_str}   # {label_i}-{label_j}\n")
-                f.write("\n")
+                    # === CORRECTION : Utiliser des strings ===
+                    key1 = f"{label_i}-{label_j}"
+                    key2 = f"{label_j}-{label_i}"
+                    params = ff_params.pair.get(key1) or ff_params.pair.get(key2)
 
-        # ---------------------------------------------------------------------
-        # Standard & Class 2 Sections (Connections, Angles, Dihedrals, Improper)
-        # ---------------------------------------------------------------------
+                    if params is not None:
+                        val_str = cls._format_coeff_values(params)
+                        prefix = f"{i:<3}" if is_pair_coeffs else f"{i:<3} {j:<3}"
+                        f.write(f"{prefix} {val_str}   # {label_i}-{label_j}\n")
+            f.write("\n")
+
         sections_to_write = [
             (
                 "Bond Coeffs",
                 getattr(system, "bond_types", []),
-                getattr(system, "bond_params", {}),
+                ff_params.bond,
             ),
             (
                 "Angle Coeffs",
                 getattr(system, "angle_types", []),
-                getattr(system, "angle_params", {}),
+                ff_params.angle,
             ),
             (
                 "Dihedral Coeffs",
                 getattr(system, "dihedral_types", []),
-                getattr(system, "dihedral_params", {}),
+                ff_params.dihedral,
             ),
             (
                 "Improper Coeffs",
                 getattr(system, "improper_types", []),
-                getattr(system, "improper_params", {}),
+                ff_params.improper,
             ),
             # Class 2 sections
             (
                 "BondBond Coeffs",
                 getattr(system, "angle_types", []),
-                getattr(system, "bondbond_params", {}),
+                ff_params.bondbond,
             ),
             (
                 "BondAngle Coeffs",
                 getattr(system, "angle_types", []),
-                getattr(system, "bondangle_params", {}),
+                ff_params.bondangle,
             ),
             (
                 "MiddleBondTorsion Coeffs",
                 getattr(system, "dihedral_types", []),
-                getattr(system, "middlebondtorsion_params", {}),
+                ff_params.middlebondtorsion,
             ),
             (
                 "EndBondTorsion Coeffs",
                 getattr(system, "dihedral_types", []),
-                getattr(system, "endbondtorsion_params", {}),
+                ff_params.endbondtorsion,
             ),
             (
                 "AngleTorsion Coeffs",
                 getattr(system, "dihedral_types", []),
-                getattr(system, "angletorsion_params", {}),
+                ff_params.angletorsion,
             ),
             (
                 "AngleAngleTorsion Coeffs",
                 getattr(system, "dihedral_types", []),
-                getattr(system, "angleangletorsion_params", {}),
+                ff_params.angleangletorsion,
             ),
             (
                 "AngleAngle Coeffs",
                 getattr(system, "improper_types", []),
-                getattr(system, "angleangle_params", {}),
+                ff_params.angleangle,
             ),
         ]
 
@@ -914,6 +952,7 @@ class LAMMPSWriter(BaseWriter):
         """Write atoms."""
         f.write(f"\n Atoms # {atom_style}\n\n")
         df = system.atoms.copy()
+
         if atom_style == "full":
             df.insert(0, "molecule", np.ones(len(df), dtype=int))
         f.write(df.to_string(header=False, index_names=False))
@@ -936,6 +975,7 @@ class LAMMPSWriter(BaseWriter):
         if df is None or df.empty:
             return
         df_sorted = df.sort_index().copy()
+
         f.write(f"\n {name.capitalize()}\n\n")
         f.write(df_sorted.to_string(header=False, index_names=False))
         f.write("\n")
