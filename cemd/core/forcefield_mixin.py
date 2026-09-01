@@ -24,7 +24,6 @@ from typing import Any
 
 import numpy as np
 
-from ..forcefield._config import get_ff_db_path
 from ..forcefield.forcefield_database import ForceFieldDatabase
 from ..forcefield.models import LJParams
 from ._format import canonical_ff_type
@@ -42,7 +41,7 @@ class ForceFieldMixin:
         improper: dict[str, str] | None = None,
         overwrite: bool = True,
     ) -> None:
-        """Set or update force-field keys for atom and interaction types.
+        """Set or update force-field keys for atom and connectivity types.
 
         Parameters
         ----------
@@ -64,7 +63,7 @@ class ForceFieldMixin:
             if not values:
                 continue
 
-            target = getattr(self._forcefield_keys, kind)
+            target = getattr(self._ff_keys, kind)
 
             if overwrite:
                 target.update(values)
@@ -80,7 +79,6 @@ class ForceFieldMixin:
         angle_assignments: dict[str, str] = None,
         dihedral_assignments: dict[str, str] = None,
         improper_assignments: dict[str, str] = None,
-        ff_database_dir: str = None,
         overwrite: bool = True,
     ) -> None:
 
@@ -108,17 +106,45 @@ class ForceFieldMixin:
 
         self._update_masses_and_charges(db)
         self._set_pair_params_from_db(resolved_atom_assignments, db, overwrite)
-        self._set_bond_params_from_db(
-            bond_assignments, resolved_atom_assignments, db, overwrite
+        self._set_bond_params_from_db(bond_assignments, db, overwrite)
+        self._set_angle_params_from_db(angle_assignments, db, overwrite)
+        self._set_dihedral_params_from_db(dihedral_assignments, db, overwrite)
+        self._set_improper_params_from_db(improper_assignments, db, overwrite)
+
+        # Class2 cross terms: they apply to an existing angle/dihedral/
+        # improper, so they piggyback on that category's ff-key assignments
+        # rather than taking their own.
+        self._set_topology_params_from_db(
+            "bondbond",
+            {},
+            db,
+            overwrite,
+            types_attr="angle_types",
+            ff_keys_attr="angle",
         )
-        self._set_angle_params_from_db(
-            angle_assignments, resolved_atom_assignments, db, overwrite
+        self._set_topology_params_from_db(
+            "bondangle",
+            {},
+            db,
+            overwrite,
+            types_attr="angle_types",
+            ff_keys_attr="angle",
         )
-        self._set_dihedral_params_from_db(
-            dihedral_assignments, resolved_atom_assignments, db, overwrite
+        self._set_topology_params_from_db(
+            "angleangletorsion",
+            {},
+            db,
+            overwrite,
+            types_attr="dihedral_types",
+            ff_keys_attr="dihedral",
         )
-        self._set_improper_params_from_db(
-            improper_assignments, resolved_atom_assignments, db, overwrite
+        self._set_topology_params_from_db(
+            "angleangle",
+            {},
+            db,
+            overwrite,
+            types_attr="improper_types",
+            ff_keys_attr="improper",
         )
 
     def set_atom_ff_keys(self, value: Sequence[str] | dict[str | int, str]) -> None:
@@ -134,7 +160,7 @@ class ForceFieldMixin:
                     UserWarning,
                 )
 
-            self._forcefield_keys.atom.update(value)
+            self._ff_keys.atom.update(value)
 
         elif isinstance(value, (list, np.ndarray, tuple)):
             current_types = list(self.atom_types)
@@ -146,7 +172,7 @@ class ForceFieldMixin:
                 )
 
             new_map = dict(zip(current_types, value))
-            self._forcefield_keys.atom.update(new_map)
+            self._ff_keys.atom.update(new_map)
         else:
             raise TypeError(
                 f"Unsupported argument type: {type(value).__name__}. "
@@ -165,9 +191,7 @@ class ForceFieldMixin:
     def set_improper_ff_keys(self, value: Sequence[str] | dict[str, str]) -> None:
         self._apply_topology_ff_keys("improper", value)
 
-    def explore_ff_database(
-        self, ff_database_dir: str = None, visible_rows: int = 20
-    ) -> None:
+    def explore_ff_database(self, visible_rows: int = 20) -> None:
         """
         Interactive Forcefield Explorer using the prompt_toolkit UI pattern.
 
@@ -233,11 +257,11 @@ class ForceFieldMixin:
         db = ForceFieldDatabase()
         dfs = db.to_dataframes()
 
-        if "list" not in dfs or dfs["list"].empty:
+        if "atoms" not in dfs or dfs["atoms"].empty:
             print("No atom types found in database.")
             return
 
-        df_list = dfs["list"]
+        df_list = dfs["atoms"]
 
         assignments = {}
         system_elements = self.elements
@@ -362,13 +386,10 @@ class ForceFieldMixin:
                 assignments[t] = selected["full_type"]
                 print(f"Assigned: {t} -> {selected['full_type']} ({selected['model']})")
 
-                # Utilisation des arguments nommés pour éviter l'erreur de position
-                self.set_ff_from_database(
-                    atom_assignments=assignments, ff_database_dir=ff_database_dir
-                )
+                self.set_ff_from_database(atom_assignments=assignments)
             else:
-                print("Selection cancelled.")
-                break
+                print(f"Selection cancelled for type {t}. Skipping.")
+                continue
 
     def set_masses(self, value: Sequence[float] | dict[str | int, float]) -> None:
         """Set or update the atomic masses for the system and the atoms DataFrame."""
@@ -396,7 +417,7 @@ class ForceFieldMixin:
             raise ValueError(f"Atom type '{atom_type2}' does not exist in the system.")
 
         pair_key = self._normalize_binary_key(atom_type1, atom_type2)
-        self._forcefield_params.pair[pair_key] = params
+        self._ff_params.pair[pair_key] = params
 
     def set_bond_params(self, bond_type: str, params: Any) -> None:
         self._apply_topology_param("bond", bond_type, params)
@@ -422,7 +443,7 @@ class ForceFieldMixin:
         for atom_type in self.atom_types:
             key = self._normalize_binary_key(atom_type, atom_type)
 
-            if key not in self._forcefield_params.pair:
+            if key not in self._ff_params.pair:
                 missing_self_params.append(atom_type)
 
         if missing_self_params:
@@ -435,7 +456,7 @@ class ForceFieldMixin:
 
         for atom_type in self.atom_types:
             key = self._normalize_binary_key(atom_type, atom_type)
-            params = self._forcefield_params.pair[key]
+            params = self._ff_params.pair[key]
 
             if not isinstance(params, LJParams):
                 raise ValueError(
@@ -447,13 +468,13 @@ class ForceFieldMixin:
         for atom_type1, atom_type2 in combinations(self.atom_types, 2):
             pair_key = self._normalize_binary_key(atom_type1, atom_type2)
 
-            if pair_key in self._forcefield_params.pair and not overwrite:
+            if pair_key in self._ff_params.pair and not overwrite:
                 continue
 
-            params1 = self._forcefield_params.pair[
+            params1 = self._ff_params.pair[
                 self._normalize_binary_key(atom_type1, atom_type1)
             ]
-            params2 = self._forcefield_params.pair[
+            params2 = self._ff_params.pair[
                 self._normalize_binary_key(atom_type2, atom_type2)
             ]
 
@@ -474,7 +495,7 @@ class ForceFieldMixin:
                     "Supported rules: 'arithmetic', 'geometric'."
                 )
 
-            self._forcefield_params.pair[pair_key] = LJParams(
+            self._ff_params.pair[pair_key] = LJParams(
                 epsilon=eps_mixed,
                 sigma=sig_mixed,
                 ref="mixed",
@@ -536,7 +557,7 @@ class ForceFieldMixin:
         """Helper method to set or update force field keys for a given topology kind."""
         current_types_list = getattr(self, f"{kind}_types", [])
         current_types = set(current_types_list)
-        target_dict = getattr(self._forcefield_keys, kind)
+        target_dict = getattr(self._ff_keys, kind)
 
         if isinstance(value, dict):
             missing_types = []
@@ -590,20 +611,20 @@ class ForceFieldMixin:
         if params is not None:
             return params
 
-        # 3. If not found, we try to calculate from individual atoms (mixing)
-        atom1 = db.get_atom_type(ff_t1)
-        atom2 = db.get_atom_type(ff_t2)
+        # 3. If not found, try to derive it from each atom's own
+        # self-interaction LJ parameters (Lorentz-Berthelot mixing).
+        self1 = db.get_lj(ff_t1, ff_t1) or db.get_lj(orig_t1, orig_t1)
+        self2 = db.get_lj(ff_t2, ff_t2) or db.get_lj(orig_t2, orig_t2)
 
-        if atom1 is not None and atom2 is not None:
-            if hasattr(atom1, "epsilon") and hasattr(atom2, "epsilon"):
-                eps_mixed = (atom1.epsilon * atom2.epsilon) ** 0.5
-                sig_mixed = (atom1.sigma + atom2.sigma) / 2.0
-                return LJParams(
-                    epsilon=eps_mixed,
-                    sigma=sig_mixed,
-                    ref="mixed from atom",
-                    model="gromos",
-                )
+        if self1 is not None and self2 is not None:
+            eps_mixed = (self1.epsilon * self2.epsilon) ** 0.5
+            sig_mixed = (self1.sigma + self2.sigma) / 2.0
+            return LJParams(
+                epsilon=eps_mixed,
+                sigma=sig_mixed,
+                ref="mixed from self-interaction",
+                model="mixed",
+            )
 
         # 4. FALLback: if still not found and it is the same atom, we put 0
         if is_self_interaction:
@@ -620,26 +641,24 @@ class ForceFieldMixin:
         self, atom_assignments: dict, db: ForceFieldDatabase, overwrite: bool
     ) -> None:
         """Set pair parameters by searching the database or applying mixing rules."""
-        if not self._forcefield_keys.atom:
+        if not self._ff_keys.atom:
             return
 
         missing_pairs = []
 
         # Using a "dictionary comprehension" to do this in 1 line
-        original_types = {
-            atype: atype.split("_")[0] for atype in self._forcefield_keys.atom
-        }
+        original_types = {atype: atype.split("_")[0] for atype in self._ff_keys.atom}
 
         for atom_type1, atom_type2 in combinations_with_replacement(
-            self._forcefield_keys.atom, 2
+            self._ff_keys.atom, 2
         ):
             pair_key = self._normalize_binary_key(atom_type1, atom_type2)
 
-            if pair_key in self._forcefield_params.pair and not overwrite:
+            if pair_key in self._ff_params.pair and not overwrite:
                 continue
 
-            ff_t1 = self._forcefield_keys.atom[atom_type1]
-            ff_t2 = self._forcefield_keys.atom[atom_type2]
+            ff_t1 = self._ff_keys.atom[atom_type1]
+            ff_t2 = self._ff_keys.atom[atom_type2]
 
             orig_t1 = original_types[atom_type1]
             orig_t2 = original_types[atom_type2]
@@ -652,7 +671,7 @@ class ForceFieldMixin:
             )
 
             if params is not None:
-                self._forcefield_params.pair[pair_key] = params
+                self._ff_params.pair[pair_key] = params
             elif is_self_interaction:
                 missing_pairs.append((atom_type1, ff_t1))
 
@@ -669,15 +688,28 @@ class ForceFieldMixin:
         assignments: dict,
         db: ForceFieldDatabase,
         overwrite: bool,
+        types_attr: str | None = None,
+        ff_keys_attr: str | None = None,
     ) -> None:
-        """Generic method to retrieve topology parameters (bonds, angles, etc.) from the DB."""
+        """Generic method to retrieve topology parameters (bonds, angles, etc.) from the DB.
+
+        Parameters
+        ----------
+        types_attr, ff_keys_attr
+            By default, both are derived from ``topo_type`` (e.g. "bond" ->
+            ``self.bond_types`` / ``self._ff_keys.bond``). Class2 cross
+            terms (bondbond, bondangle, angleangletorsion, angleangle) have
+            no connectivity or ff-key category of their own: they apply to
+            an existing angle/dihedral/improper, so they reuse that
+            category's type list and ff-key assignments instead.
+        """
         missing_items = []
 
-        types_list = getattr(self, f"{topo_type}_types", [])
-        ff_keys_dict = getattr(self._forcefield_keys, topo_type)
+        types_list = getattr(self, types_attr or f"{topo_type}_types", [])
+        ff_keys_dict = getattr(self._ff_keys, ff_keys_attr or topo_type)
         db_attr = getattr(db, topo_type, None)
         db_get_method = getattr(db, f"get_{topo_type}", None)
-        params_storage = getattr(self._forcefield_params, topo_type)
+        params_storage = getattr(self._ff_params, topo_type)
 
         for topo_str in types_list:
             params = None
@@ -720,7 +752,6 @@ class ForceFieldMixin:
     def _set_bond_params_from_db(
         self,
         bond_assignments: dict,
-        atom_assignments: dict,
         db: ForceFieldDatabase,
         overwrite: bool,
     ) -> None:
@@ -729,7 +760,6 @@ class ForceFieldMixin:
     def _set_angle_params_from_db(
         self,
         angle_assignments: dict,
-        atom_assignments: dict,
         db: ForceFieldDatabase,
         overwrite: bool,
     ) -> None:
@@ -738,7 +768,6 @@ class ForceFieldMixin:
     def _set_dihedral_params_from_db(
         self,
         dihedral_assignments: dict,
-        atom_assignments: dict,
         db: ForceFieldDatabase,
         overwrite: bool,
     ) -> None:
@@ -749,7 +778,6 @@ class ForceFieldMixin:
     def _set_improper_params_from_db(
         self,
         improper_assignments: dict,
-        atom_assignments: dict,
         db: ForceFieldDatabase,
         overwrite: bool,
     ) -> None:
@@ -824,24 +852,24 @@ class ForceFieldMixin:
             self.set_charges(charges_update)
 
     def _get_ff_key_for_type(self, sys_type: str) -> str | None:
-        if hasattr(self._forcefield_keys, "atom") and self._forcefield_keys.atom:
-            return self._forcefield_keys.atom.get(sys_type)
+        if hasattr(self._ff_keys, "atom") and self._ff_keys.atom:
+            return self._ff_keys.atom.get(sys_type)
         return None
 
     def _remap_ff_keys(self, type_mapping: dict[str, str]) -> None:
         """Remap force-field keys after atom types have been renamed."""
 
         # Atom FF keys
-        old_atom_keys = dict(self._forcefield_keys.atom)
+        old_atom_keys = dict(self._ff_keys.atom)
         new_atom_keys = {}
         for old_type, ff_key in old_atom_keys.items():
             new_type = type_mapping.get(old_type, old_type)
             new_atom_keys[new_type] = ff_key
-        self._forcefield_keys.atom = new_atom_keys
+        self._ff_keys.atom = new_atom_keys
 
         # Interaction FF keys
         for kind in ["bond", "angle", "dihedral", "improper"]:
-            old_keys = dict(getattr(self._forcefield_keys, kind))
+            old_keys = dict(getattr(self._ff_keys, kind))
             new_keys = {}
 
             for interaction_type, ff_key in old_keys.items():
@@ -850,8 +878,7 @@ class ForceFieldMixin:
                     type_mapping.get(atom_type, atom_type) for atom_type in old_types
                 )
 
-                # === IMPORTANT CHANGE ===
-                # For the dihedrons, we keep the original order
+                # For the dihedrons, keep the original order
                 if kind == "dihedral":
                     new_interaction_type = "-".join(new_types)
                 else:
@@ -859,7 +886,7 @@ class ForceFieldMixin:
 
                 new_keys[new_interaction_type] = ff_key
 
-            setattr(self._forcefield_keys, kind, new_keys)
+            setattr(self._ff_keys, kind, new_keys)
 
     def _validate_and_convert_coeffs(self, coeffs, expected_len, name):
         """Validates and converts a list of coefficients."""

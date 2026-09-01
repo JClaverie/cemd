@@ -118,11 +118,8 @@ class AtomTable(QtWidgets.QTableView):  # On change QTableWidget en QTableView
         self.verticalHeader().setVisible(True)  # Optionnel : pour voir les IDs à gauche
 
     def update_data(self, system_obj) -> None:
-        # On vérifie si l'objet est différent
-        # OU si le nombre d'atomes a changé (preuve de modification in-place)
         current_model = self.model()
         if current_model is not None:
-            # On compare l'objet ET la longueur du DataFrame
             same_obj = getattr(current_model, "system_obj", None) is system_obj
             last_len = getattr(current_model, "_last_known_len", 0)
             current_len = len(system_obj.atoms)

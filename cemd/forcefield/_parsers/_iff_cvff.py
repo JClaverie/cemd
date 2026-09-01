@@ -19,12 +19,16 @@ import re
 from ..forcefield_database import ForceFieldDatabase
 from ..models import (
     AtomType,
+    Class2AngleAngleParams,
+    Class2AngleAngleTorsionParams,
     Class2BondAngleParams,
     Class2BondBondParams,
+    CVFFImproperParams,
     HarmonicAngleParams,
     HarmonicBondParams,
-    HarmonicImproperParams,
+    HarmonicDihedralParams,
     LJParams,
+    MorseBondParams,
 )
 from ._base import BaseForceFieldParser, ParseResult
 
@@ -53,9 +57,13 @@ class CVFFInterfaceParser(BaseForceFieldParser):
         self._current_section = None
         self._line_number = 0
 
-        # Patterns section for detection
+        # Patterns section for detection.
+        # NOTE: order matters - "#out_of_plane-out_of_plane" also contains
+        # "#out_of_plane" as a substring, so the more specific "oop-oop"
+        # pattern must be checked first (see _detect_section).
         self._section_patterns = {
             "atom_types": ["#atom_types"],
+            "oop-oop": ["#out_of_plane-out_of_plane"],
             "quadratic_bond": ["#quadratic_bond"],
             "quadratic_angle": ["#quadratic_angle"],
             "torsion_1": ["#torsion_1"],
@@ -67,7 +75,6 @@ class CVFFInterfaceParser(BaseForceFieldParser):
             "angle-angle": ["#angle-angle_1"],
             "morse_bond": ["#morse_bond"],
             "improper": ["#improper"],
-            "oop-oop": ["#out_of_plane-out_of_plane"],
         }
 
     def parse(self, content: str) -> ParseResult:
@@ -99,6 +106,15 @@ class CVFFInterfaceParser(BaseForceFieldParser):
     def _detect_section(self, line: str) -> str | None:
         """Detect the section name from the line."""
         line_lower = line.lower()
+
+        # Skip "_auto" tables: these hold wildcard/equivalence-based
+        # parameters generated automatically by msi2lmp, as opposed to the
+        # explicit "cvff" tables. Resolving equivalences is out of scope,
+        # so these duplicate sections (e.g. "#quadratic_bond cvff_auto")
+        # are intentionally ignored to avoid polluting the explicit ones.
+        if "auto" in line_lower:
+            return None
+
         for section_name, patterns in self._section_patterns.items():
             for pattern in patterns:
                 if pattern.lower() in line_lower:
@@ -148,7 +164,12 @@ class CVFFInterfaceParser(BaseForceFieldParser):
             "nonbond": self._parse_nonbond,
             "bond-bond": self._parse_bondbond,
             "bond-angle": self._parse_bondangle,
+            "angle-angle-torsion": self._parse_angleangletorsion,
+            "angle-angle": self._parse_angleangle,
             "morse_bond": self._parse_morse_bond,
+            # "oop-oop" (out_of_plane-out_of_plane) has no handler: this
+            # class2 cross term has no corresponding dataclass in models.py,
+            # so its section is recognized (to avoid misparsing) but skipped.
         }
 
         handler = handlers.get(section)
@@ -227,10 +248,27 @@ class CVFFInterfaceParser(BaseForceFieldParser):
             except ValueError:
                 pass
 
+    @staticmethod
+    def _phase_to_d(phase: float) -> int:
+        """
+        Convert a CVFF phase angle (Phi0/Chi0, in degrees) to the +1/-1
+        'd' parameter expected by LAMMPS periodic potentials.
+
+        Raises
+        ------
+        ValueError
+            If phase is neither 0 nor 180 degrees (unsupported by LAMMPS).
+        """
+        if abs(phase) < 1e-5:
+            return 1
+        if abs(phase - 180.0) < 1e-5:
+            return -1
+        raise ValueError(f"Valeur de phase non supportée par LAMMPS: {phase}")
+
     def _parse_torsion(self, line: str, result: ParseResult) -> None:
         """
-        Parse a twist line.
-        Format: Ver Ref I J K L Kphi n Phi0
+        Parse a twist line from CVFF and convert to LAMMPS harmonic.
+        Format CVFF: Ver Ref I J K L Kphi n Phi0
         """
         parts = line.split()
         if len(parts) >= 9:
@@ -238,19 +276,27 @@ class CVFFInterfaceParser(BaseForceFieldParser):
             j = parts[3]
             k = parts[4]
             l_ = parts[5]
+
             try:
                 kphi = float(parts[6])
                 n = int(float(parts[7]))
                 phi0 = float(parts[8])
+                d_val = self._phase_to_d(phi0)
+
                 key = f"{i}-{j}-{k}-{l_}"
-                result.dihedrals[key] = {"k": kphi, "n": n, "d": phi0}
+
+                result.dihedrals[key] = HarmonicDihedralParams(
+                    k=kphi, n=n, d=d_val, ref=parts[1], model=result.model_name
+                )
             except ValueError:
                 pass
 
     def _parse_improper(self, line: str, result: ParseResult) -> None:
         """
-        Parse an improper line.
+        Parse an out-of-plane (improper) line.
         Format: Ver Ref I J K L Kchi n Chi0
+        CVFF out-of-plane potential: E = Kchi * [1 + cos(n*Chi - Chi0)],
+        i.e. the periodic form (LAMMPS improper_style cvff), not harmonic.
         """
         parts = line.split()
         if len(parts) >= 9:
@@ -260,10 +306,13 @@ class CVFFInterfaceParser(BaseForceFieldParser):
             l_ = parts[5]
             try:
                 kchi = float(parts[6])
-                chi0 = float(parts[8]) if len(parts) > 8 else 0.0
+                n = int(float(parts[7]))
+                chi0 = float(parts[8])
+                d_val = self._phase_to_d(chi0)
+
                 key = f"{i}-{j}-{k}-{l_}"
-                result.impropers[key] = HarmonicImproperParams(
-                    k=kchi, chi0=chi0, model=result.model_name
+                result.impropers[key] = CVFFImproperParams(
+                    k=kchi, d=d_val, n=n, model=result.model_name
                 )
             except ValueError:
                 pass
@@ -311,16 +360,18 @@ class CVFFInterfaceParser(BaseForceFieldParser):
     def _parse_bondangle(self, line: str, result: ParseResult) -> None:
         """
         Parse a bond-angle line (class2).
-        Format: Ver Ref I J K N1 N2
+        Format: Ver Ref I J K N1 [N2]
+        N2 is only given when the angle is asymmetric (I != K); for a
+        symmetric angle (I == K) a single constant applies to both bonds.
         """
         parts = line.split()
-        if len(parts) >= 7:
+        if len(parts) >= 6:
             i = parts[2]
             j = parts[3]
             k = parts[4]
             try:
                 n1 = float(parts[5])
-                n2 = float(parts[6]) if len(parts) > 6 else 0.0
+                n2 = float(parts[6]) if len(parts) > 6 else n1
                 key = f"{i}-{j}-{k}"
                 result.bondangle[key] = Class2BondAngleParams(
                     n1=n1, n2=n2, r1=0.0, r2=0.0, model=result.model_name
@@ -332,6 +383,8 @@ class CVFFInterfaceParser(BaseForceFieldParser):
         """
         Parse a line of Morse bond.
         Format: Ver Ref I J R0 D ALPHA
+        Only used as a fallback for pairs not already covered by the
+        quadratic_bond (harmonic) table, which is the default bond style.
         """
         parts = line.split()
         if len(parts) >= 7:
@@ -343,10 +396,62 @@ class CVFFInterfaceParser(BaseForceFieldParser):
                 alpha = float(parts[6])
                 key = f"{i}-{j}"
                 if key not in result.bonds:
-                    k = 2 * d * alpha * alpha
-                    result.bonds[key] = HarmonicBondParams(
-                        k=k, r0=r0, model=result.model_name
+                    result.bonds[key] = MorseBondParams(
+                        r0=r0, D=d, alpha=alpha, model=result.model_name
                     )
+            except ValueError:
+                pass
+
+    def _parse_angleangletorsion(self, line: str, result: ParseResult) -> None:
+        """
+        Parse an angle-angle-torsion cross term line (class2).
+        Format: Ver Ref I J K L K(Ang,Ang,Tor)
+        The reference angles theta1/theta2 are not given in this table (they
+        come from the corresponding quadratic_angle entries) and are left
+        at 0.0.
+        """
+        parts = line.split()
+        if len(parts) >= 7:
+            i = parts[2]
+            j = parts[3]
+            k = parts[4]
+            l_ = parts[5]
+            try:
+                m = float(parts[6])
+                key = f"{i}-{j}-{k}-{l_}"
+                result.angleangletorsion[key] = Class2AngleAngleTorsionParams(
+                    m=m, theta1=0.0, theta2=0.0, model=result.model_name
+                )
+            except ValueError:
+                pass
+
+    def _parse_angleangle(self, line: str, result: ParseResult) -> None:
+        """
+        Parse an angle-angle (improper) cross term line (class2).
+        Format: Ver Ref I J K L K(Ang,Ang)
+        A single constant is given; msi2lmp uses it for M1=M2=M3. The
+        reference angles theta1/theta2/theta3 are not given in this table
+        (they come from the corresponding quadratic_angle entries) and are
+        left at 0.0.
+        """
+        parts = line.split()
+        if len(parts) >= 7:
+            i = parts[2]
+            j = parts[3]
+            k = parts[4]
+            l_ = parts[5]
+            try:
+                m = float(parts[6])
+                key = f"{i}-{j}-{k}-{l_}"
+                result.angleangle[key] = Class2AngleAngleParams(
+                    m1=m,
+                    m2=m,
+                    m3=m,
+                    theta1=0.0,
+                    theta2=0.0,
+                    theta3=0.0,
+                    model=result.model_name,
+                )
             except ValueError:
                 pass
 

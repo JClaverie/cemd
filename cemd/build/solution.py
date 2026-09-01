@@ -40,7 +40,7 @@ if TYPE_CHECKING:
 WATER_MOLAR_MASS: float = 2 * MASSES_DICT["H"] + MASSES_DICT["O"]
 
 
-def concentration2count(molarity: float | int, volume: float) -> tuple[int, float]:
+def _concentration2count(molarity: float | int, volume: float) -> tuple[int, float]:
     """Calculates the integer particle count and relative error for a single molarity.
 
     Parameters
@@ -238,7 +238,7 @@ class SolutionBuilder:
                     "`counts` and `molarities`."
                 )
 
-            count, error = concentration2count(molarity, volume)
+            count, error = _concentration2count(molarity, volume)
             counts[species] = count
 
             if error > 0.1:

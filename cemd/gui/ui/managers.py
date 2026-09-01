@@ -22,7 +22,7 @@ import pandas as pd
 from PySide6 import QtCore, QtGui, QtWidgets
 from PySide6Qlementine import ActionButton
 
-from ..._paths import FF_DATABASE_FILE
+from ...forcefield import ForceFieldDatabase
 from .base_dialog import BaseBuilderDialog
 from .gui_utils import get_icon
 
@@ -121,11 +121,11 @@ class TypeManagerDialog(BaseBuilderDialog):
     def load_ff_database(self) -> None:
         """Loads the Excel file and its different tabs"""
         try:
-            self.all_sheets = pd.read_excel(FF_DATABASE_FILE, sheet_name=None)
-            self.ff_db = self.all_sheets["list"]
+            self.all_sheets = ForceFieldDatabase.to_dataframes()
+            self.ff_db = self.all_sheets["atoms"]
             self.ff_db.columns = self.ff_db.columns.str.strip()
         except Exception as e:
-            print(f"Error reading Excel: {e}")
+            print(f"Error while reading the forcefield database : {e}")
             self.ff_db = pd.DataFrame()
 
     def setup_ui(self) -> None:
@@ -297,14 +297,12 @@ class TypeManagerDialog(BaseBuilderDialog):
             return
 
         try:
-            self.system_obj.set_ff_from_database(
-                assignments=assignments, ff_database=FF_DATABASE_FILE
-            )
+            self.system_obj.set_ff_from_database(assignments=assignments)
         except Exception as e:
             QtWidgets.QMessageBox.critical(
                 self,
-                "Erreur ForceField",
-                f"Impossible d'assigner automatiquement les paramètres :\n{str(e)}",
+                "Error ForceField",
+                f"Impossible to assign parameters automatically :\n{str(e)}",
             )
 
     def on_cell_clicked(self, row: int, col: int) -> None:
@@ -543,11 +541,11 @@ class ConnectivityDialog(BaseBuilderDialog):
     def load_ff_database(self) -> None:
         """Loads the Excel file and its different tabs"""
         try:
-            self.all_sheets = pd.read_excel(FF_DATABASE_FILE, sheet_name=None)
-            self.ff_db = self.all_sheets["list"]
+            self.all_sheets = ForceFieldDatabase.to_dataframes()
+            self.ff_db = self.all_sheets["atoms"]
             self.ff_db.columns = self.ff_db.columns.str.strip()
         except Exception as e:
-            print(f"Erreur lors de la lecture de l'Excel : {e}")
+            print(f"Error while reading the forcefield database : {e}")
             self.ff_db = pd.DataFrame()
 
     def setup_ui(self) -> None:

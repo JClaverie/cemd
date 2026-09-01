@@ -26,8 +26,6 @@ import pandas as pd
 
 from .._constants import MASSES_DICT
 from ..topology._apply import (
-    apply_clayff_rules,
-    apply_cshff_rules,
     apply_single_dihedral_rule_to_universe,
     apply_single_rule_to_universe,
 )
@@ -36,10 +34,10 @@ if TYPE_CHECKING:
     from ..topology.rules import DihedralRule, TopologyRule
     from .atomic_system import AtomicSystem
 
-RULE_SETS: dict[str, callable] = {
-    "clayff": apply_clayff_rules,
-    "cshff": apply_cshff_rules,
-}
+# RULE_SETS: dict[str, callable] = {
+#     "clayff": apply_clayff_rules,
+#     "cshff": apply_cshff_rules,
+# }
 
 
 class TopologyMixin:
@@ -170,74 +168,76 @@ class TopologyMixin:
 
         return self
 
-    def add_bond(
-        self, atom_list: Sequence[int], bond_type: str | int | None = None
-    ) -> None:
-        """Set a bond between two atoms.
+    def add_bond(self, atom_list: Sequence[int]) -> AtomicSystem:
+        """Add a bond between two atoms.
+
+        The bond type is derived from the atom types (sorted alphabetically);
+        it is not provided directly, since a connection type is always built
+        from the types of the atoms it connects.
 
         Parameters
         ----------
             atom_list
                 list of the indices of the two atoms in the bond.
-            bond_type
-                Type of the bond (numerical or alphabetical)
         """
 
-        self._set_connection("bond", atom_list, bond_type=None)
+        return self._set_connection("bond", atom_list)
 
-    def add_angle(
-        self, atom_list: Sequence[int], angle_type: str | int | None = None
-    ) -> None:
-        """Set a angle between two atoms.
+    def add_angle(self, atom_list: Sequence[int]) -> AtomicSystem:
+        """Add an angle between three atoms.
+
+        The angle type is derived from the atom types: the middle atom
+        (atom_list[1]) stays in the center, and the two outer atom types are
+        sorted alphabetically for a canonical, order-independent label.
 
         Parameters
         ----------
             atom_list
-                list of the indices of the three atoms in the angle, in the right order.
-            angle_type
-                Type of the angle (numerical or alphabetical)
+                list of the indices of the three atoms in the angle, in the
+                right order (middle atom in the center position).
         """
 
-        self._set_connection("angle", atom_list, angle_type=None)
+        return self._set_connection("angle", atom_list)
 
-    def add_dihedral(
-        self, atom_list: Sequence[int], dihedral_type: str | int | None = None
-    ) -> None:
-        """Set a dihedral between two atoms.
+    def add_dihedral(self, atom_list: Sequence[int]) -> AtomicSystem:
+        """Add a dihedral between four atoms.
+
+        The dihedral type is derived from the atom types, kept in the exact
+        order given (a dihedral is a directional chain, not a symmetric
+        connection, so its atom types are not reordered/sorted).
 
         Parameters
         ----------
             atom_list
-                list of the indices of the three atoms in the dihedral, in the right order.
-            dihedral_type
-                Type of the dihedral (numerical or alphabetical)
+                list of the indices of the four atoms in the dihedral, in the
+                right (chain) order.
         """
 
-        self._set_connection("dihedral", atom_list, dihedral_type=None)
+        return self._set_connection("dihedral", atom_list)
 
-    def add_improper(
-        self, atom_list: Sequence[int], improper_type: str | int | None = None
-    ) -> None:
-        """Set a improper between two atoms.
+    def add_improper(self, atom_list: Sequence[int]) -> AtomicSystem:
+        """Add an improper between four atoms.
+
+        The improper type is derived from the atom types, kept in the exact
+        order given (the first atom is conventionally the central atom).
 
         Parameters
         ----------
             atom_list
-                list of the indices of the three atoms in the improper, in the right order.
-            improper_type
-                Type of the improper (numerical or alphabetical)
+                list of the indices of the four atoms in the improper, in the
+                right order (central atom first).
         """
 
-        self._set_connection("improper", atom_list, improper_type=None)
+        return self._set_connection("improper", atom_list)
 
     def _set_connection(
         self,
         connection_class: str,
         atom_list: list[int],
-        connection_type: str | int | None,
     ) -> AtomicSystem:
         """
         Factorized version to manage connections dynamically.
+        The connection type is always derived from the atom types.
         """
 
         import pandas as pd
@@ -256,16 +256,27 @@ class TopologyMixin:
         cfg = conn_config[connection_class]
         df_connections = getattr(self, cfg["target"], pd.DataFrame())
 
-        # 2. Automatic type logic
-        if connection_type is None:
-            if isinstance(self.atom_types[0], int):
-                raise ValueError(
-                    f"Please provide a {connection_class} type in integer format."
-                )
+        # 2. Type reconstruction based on atom types
+        if isinstance(self.atom_types[0], int):
+            raise ValueError(
+                f"Cannot derive a {connection_class} type from numeric atom "
+                "types; connection types can only be built from named atom "
+                "types."
+            )
 
-            # Type reconstruction based on atom names
-            atom_types = [self.atoms.loc[i, "type"] for i in atom_list]
+        atom_types = [self.atoms.loc[i, "type"] for i in atom_list]
+
+        if connection_class == "bond":
+            # Symmetric: no meaningful order between the two atoms.
             connection_type = "-".join(sorted(atom_types))
+        elif connection_class == "angle":
+            # Keep the middle atom in place, sort only the two outer atoms.
+            i, j, k = atom_types
+            i, k = sorted((i, k))
+            connection_type = f"{i}-{j}-{k}"
+        else:
+            # Dihedral/improper: directional, keep the given order as-is.
+            connection_type = "-".join(atom_types)
 
         # 3. Preparing the new line
         new_row = {"type": connection_type}
@@ -329,38 +340,22 @@ class TopologyMixin:
             improper_types = []
 
         if len(bond_types) != 0:
-            # list of remaining bond types
-            remaining_bonds_list = list(set(self.bond_types) - set(bond_types))
-
-            # remove bonds
+            # remove bonds; surviving rows keep their original type label
             self.bonds = self.bonds[~self.bonds.type.isin(bond_types)]
 
             # update bonds indices
             self.bonds.index = list(range(1, len(self.bonds) + 1))
-
-            # update bonds types range
-            self.bonds.type.replace(
-                self.bonds.type.unique(), remaining_bonds_list, inplace=True
-            )
 
             # update system info
             if len(self.bonds) == 0:
                 self.bonds = None
 
         if len(angle_types) != 0:
-            # list of remaining angle types
-            remaining_angles_list = list(set(self.angle_types) - set(angle_types))
-
-            # remove angles
+            # remove angles; surviving rows keep their original type label
             self.angles = self.angles[~self.angles.type.isin(angle_types)]
 
             # update angles indices
             self.angles.index = list(range(1, len(self.angles) + 1))
-
-            # update angles types range
-            self.angles.type.replace(
-                self.angles.type.unique(), remaining_angles_list, inplace=True
-            )
 
             # update system info
             if len(self.angles) == 0:
@@ -368,21 +363,11 @@ class TopologyMixin:
 
         # remove dihedrals
         if len(dihedral_types) != 0:
-            # list of remaining dihedrals types
-            remaining_dihedrals_list = list(
-                set(self.dihedral_types) - set(dihedral_types)
-            )
-
-            # remove dihedrals
-            self.dihedrals = self.dihedrals[self.dihedrals.type.isin(dihedral_types)]
+            # remove dihedrals; surviving rows keep their original type label
+            self.dihedrals = self.dihedrals[~self.dihedrals.type.isin(dihedral_types)]
 
             # update dihedrals indices
             self.dihedrals.index = list(range(1, len(self.dihedrals) + 1))
-
-            # update dihedrals types range
-            self.dihedrals.type.replace(
-                self.dihedrals.type.unique(), remaining_dihedrals_list, inplace=True
-            )
 
             # update system info
             if len(self.dihedrals) == 0:
@@ -390,21 +375,11 @@ class TopologyMixin:
 
         # remove impropers
         if len(improper_types) != 0:
-            # list of remaining improper types
-            remaining_impropers_list = list(
-                set(self.improper_types) - set(improper_types)
-            )
-
-            # remove impropers
-            self.impropers = self.impropers[self.impropers.type.isin(improper_types)]
+            # remove impropers; surviving rows keep their original type label
+            self.impropers = self.impropers[~self.impropers.type.isin(improper_types)]
 
             # update impropers indices
             self.impropers.index = list(range(1, len(self.impropers) + 1))
-
-            # update impropers types range
-            self.impropers.type.replace(
-                self.impropers.type.unique(), remaining_impropers_list, inplace=True
-            )
 
             # update system info
             if len(self.impropers) == 0:
@@ -494,26 +469,22 @@ class TopologyMixin:
             improper_types=impropertypes2remove,
         )
 
-    def remove_all_connections(self) -> None:
+    def remove_all_connections(self) -> AtomicSystem:
         """
-        Apply a predefined topology style or a custom connectivity rule.
-
-        Parameters
-        ----------
-        r : dict | str
-            If a string, the name of a predefined rule set (e.g., 'clayff', 'cshff').
-            If a dict, a single custom rule dictionary.
+        Remove all bonds, angles, dihedrals and impropers from the system.
 
         Returns
         -------
         AtomicSystem
-            The updated system with new topology.
+            The updated system, with an empty topology.
         """
 
         self.bonds = None
         self.angles = None
         self.dihedrals = None
         self.impropers = None
+
+        return self
 
     def set_topology(
         self,
@@ -530,21 +501,13 @@ class TopologyMixin:
             -DihedralRule: Single dihedral rule
             - list[TopologyRule | DihedralRule]: Mixed list of rules
         """
+        from ..topology.rules import DihedralRule, TopologyRule
         from .atomic_system import AtomicSystem
 
         universe = self.to_mda()
         actions = {}
 
-        if isinstance(r, str):
-            style = r.lower()
-            if style not in RULE_SETS:
-                supported = ", ".join(RULE_SETS.keys())
-                raise ValueError(
-                    f"Topology style '{r}' not recognized. Available styles: {supported}"
-                )
-
-            universe, actions = RULE_SETS[style](universe)
-        elif isinstance(r, TopologyRule):
+        if isinstance(r, TopologyRule):
             universe = apply_single_rule_to_universe(universe, r)
         elif isinstance(r, DihedralRule):
             universe = apply_single_dihedral_rule_to_universe(universe, r)
@@ -602,30 +565,25 @@ class TopologyMixin:
             )
             return self
 
-        # 1. Dictionnaire d'accès rapide pour les types d'atomes (Supporte l'indexation par ID ou position)
         atom_type_map = dict(zip(self.atoms.index, self.atoms["type"].astype(str)))
 
-        # 2. Construction du graphe d'adjacence
         graph = {}
         for _, row in self.bonds.iterrows():
             a1, a2 = int(row["atom_1"]), int(row["atom_2"])
             graph.setdefault(a1, set()).add(a2)
             graph.setdefault(a2, set()).add(a1)
 
-        # 3. Traitement des Angles et Impropers
         if guess_angles or guess_impropers:
             angles_list = []
             impropers_list = []
 
             for center, neighbors in graph.items():
-                # Angles (A - B - C)
                 if guess_angles and len(neighbors) >= 2:
                     for a1, a3 in itertools.combinations(sorted(neighbors), 2):
                         t1 = atom_type_map.get(a1, "X")
                         t2 = atom_type_map.get(center, "X")
                         t3 = atom_type_map.get(a3, "X")
 
-                        # Standardisation de l'ordre canonique des types
                         if t1 > t3:
                             conn_type = f"{t3}-{t2}-{t1}"
                         else:
@@ -640,7 +598,6 @@ class TopologyMixin:
                             }
                         )
 
-                # Impropers (B central lié à A, C, D)
                 if guess_impropers and len(neighbors) == 3:
                     a, c, d = sorted(neighbors)
                     t_center = atom_type_map.get(center, "X")
@@ -669,7 +626,6 @@ class TopologyMixin:
                 df_imp.index = range(1, len(df_imp) + 1)
                 self.impropers = df_imp
 
-        # 4. Traitement des Dièdres (A - B - C - D)
         if guess_dihedrals:
             dihedrals_list = []
             for _, row in self.bonds.iterrows():

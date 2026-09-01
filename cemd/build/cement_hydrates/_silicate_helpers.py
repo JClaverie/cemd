@@ -185,7 +185,6 @@ def _find_symmetric_bridging_pairs(
     bridging_pairs_per_pore = []
     used = set()
 
-    # Boucle sur les plans de pontage
     for idx_b in range(n_bridging_planes):
         i = bridging_plane_indices[idx_b]
         j = bridging_plane_indices[(idx_b + 1) % n_bridging_planes]
@@ -223,7 +222,6 @@ def _find_symmetric_bridging_pairs(
                 used.add(idx1)
                 used.add(idx2)
 
-        # On ajoute les paires trouvées pour ce pore à la liste globale
         if current_pore_pairs:
             bridging_pairs_per_pore.append(current_pore_pairs)
 
@@ -266,18 +264,15 @@ def remove_bridging_silicates(
 
         seconds_to_process = [[] for _ in range(n_pores)]
 
-        # On continue tant qu'il reste des suppressions à effectuer
         while count < nsi_to_remove:
             if not any(pores):
                 break
 
-            # Sélectionner le pore courant de manière cyclique
             current_pore = pores[pore_idx % n_pores]
 
             if current_pore:
                 item = current_pore.pop(0)
 
-                # Gestion paire vs index unique
                 if isinstance(item, (list, tuple)) and len(item) == 2:
                     idx1, idx2 = item
                     options = [idx1, idx2] if idx2 is not None else [idx1]
@@ -336,32 +331,25 @@ def substitute_si_by_al(
     to_sub = []
 
     if symmetry:
-        # Récupération des paires par pore
         pores = _find_symmetric_bridging_pairs(univ, planar_distance_cutoff=None)
-        # Mélanger l'ordre des pores pour ne pas toujours commencer par le même
         random.shuffle(pores)
 
         n_pores = len(pores)
         count = 0
         pore_idx = 0
 
-        # Tant qu'on n'a pas atteint nal et qu'il reste des paires
         while count < nal:
             if not any(pores):
                 break
 
-            # Sélectionner le pore courant cycliquement
             current_pore = pores[pore_idx % n_pores]
 
             if current_pore:
-                # On prend une paire du pore courant
                 idx1, idx2 = current_pore.pop(0)
 
-                # Ajout du premier atome
                 to_sub.append(idx1)
                 count += 1
 
-                # Ajout du second si on a encore besoin d'atomes
                 if idx2 is not None and count < nal:
                     to_sub.append(idx2)
                     count += 1
@@ -371,7 +359,6 @@ def substitute_si_by_al(
         bridging_indices = _get_bridging_silicates_indices(univ)
         to_sub = list(np.random.choice(bridging_indices, nal, replace=False))
 
-    # Changing atom types
     for idx in to_sub:
         atom = univ.atoms[idx]
         atom.type = "Al"
@@ -406,44 +393,44 @@ def neutralize_csh_charge(pdb_path: str) -> float:
     return total_charge / 2
 
 
-def get_interlayer_ca_indices(universe: mda.Universe) -> np.ndarray:
-    """Get IDs of interlayer calcium in a C-S-H structure."""
-    box = universe.dimensions
+# def get_interlayer_ca_indices(universe: mda.Universe) -> np.ndarray:
+#     """Get IDs of interlayer calcium in a C-S-H structure."""
+#     box = universe.dimensions
 
-    si_plane_positions, _, si_count_per_plane = _get_silicate_planes(universe)
-    max_num = max(si_count_per_plane)
-    n_planes = len(si_plane_positions)
+#     si_plane_positions, _, si_count_per_plane = _get_silicate_planes(universe)
+#     max_num = max(si_count_per_plane)
+#     n_planes = len(si_plane_positions)
 
-    si_pairing_plane_indices = [
-        i for i in range(n_planes) if si_count_per_plane[i] == max_num
-    ]
-    si_pairing_plane_positions = si_plane_positions[si_pairing_plane_indices]
+#     si_pairing_plane_indices = [
+#         i for i in range(n_planes) if si_count_per_plane[i] == max_num
+#     ]
+#     si_pairing_plane_positions = si_plane_positions[si_pairing_plane_indices]
 
-    interlayer_ca_indices = []
+#     interlayer_ca_indices = []
 
-    # Internal layers
-    for i in range(len(si_pairing_plane_positions) - 1):
-        gap = si_pairing_plane_positions[i + 1] - si_pairing_plane_positions[i]
-        if gap > 5:
-            sel = universe.select_atoms(
-                f"(type Ca) and "
-                f"(prop z > {si_pairing_plane_positions[i]}) and "
-                f"(prop z < {si_pairing_plane_positions[i + 1]})"
-            )
-            interlayer_ca_indices.append(sel.ids)
+#     # Internal layers
+#     for i in range(len(si_pairing_plane_positions) - 1):
+#         gap = si_pairing_plane_positions[i + 1] - si_pairing_plane_positions[i]
+#         if gap > 5:
+#             sel = universe.select_atoms(
+#                 f"(type Ca) and "
+#                 f"(prop z > {si_pairing_plane_positions[i]}) and "
+#                 f"(prop z < {si_pairing_plane_positions[i + 1]})"
+#             )
+#             interlayer_ca_indices.append(sel.ids)
 
-    # Periodic layer (box edge)
-    gap_pbc = abs(
-        si_pairing_plane_positions[-1] - si_pairing_plane_positions[0] - box[2]
-    )
-    if gap_pbc > 5:
-        sel = universe.select_atoms(
-            f"(type Ca) and "
-            f"((prop z > {si_pairing_plane_positions[-1]}) or "
-            f"(prop z < {si_pairing_plane_positions[0]}))"
-        )
-        interlayer_ca_indices.append(sel.ids)
+#     # Periodic layer (box edge)
+#     gap_pbc = abs(
+#         si_pairing_plane_positions[-1] - si_pairing_plane_positions[0] - box[2]
+#     )
+#     if gap_pbc > 5:
+#         sel = universe.select_atoms(
+#             f"(type Ca) and "
+#             f"((prop z > {si_pairing_plane_positions[-1]}) or "
+#             f"(prop z < {si_pairing_plane_positions[0]}))"
+#         )
+#         interlayer_ca_indices.append(sel.ids)
 
-    return (
-        np.concatenate(interlayer_ca_indices) if interlayer_ca_indices else np.array([])
-    )
+#     return (
+#         np.concatenate(interlayer_ca_indices) if interlayer_ca_indices else np.array([])
+#     )

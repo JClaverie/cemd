@@ -54,10 +54,10 @@ class PMGReader(BaseReader):
 
         from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 
-        # 1. Store initial structure parameters
+        # Store initial structure parameters
         original_abc = list(structure.lattice.abc)
 
-        # 2. Refine if requested
+        # Refine if requested
         if refine:
             try:
                 analyzer = SpacegroupAnalyzer(structure)
@@ -68,12 +68,12 @@ class PMGReader(BaseReader):
         else:
             refined_structure = structure
 
-        # 3. Extract parameters from the refined structure
+        # Extract parameters from the refined structure
         abc = list(refined_structure.lattice.abc)
         angles = list(refined_structure.lattice.angles)
         positions = refined_structure.cart_coords.copy()
 
-        # 4. Reindex the axes of the refined structure
+        # Reindex the axes of the refined structure
         # to match the order of the initial structure
         best_mapping = [0, 1, 2]
         min_diff = float("inf")
@@ -122,11 +122,11 @@ class PMGReader(BaseReader):
         ].astype(float)
         df_atoms.set_index("id", inplace=True)
 
-        # 7. Masses et charges par type
+        # Masses et charges par type
         masses_dict = {t: MASSES_DICT.get(t, 1.0) for t in unique_types}
         charges_dict = {t: CHARGES_DICT.get(t, 0.0) for t in unique_types}
 
-        # 8. Assemble the topology
+        # Assemble the topology
         topology = {
             "box": abc + angles,
             "masses": masses_dict,

@@ -503,10 +503,6 @@ class GlassBuilder:
         """
         return cls.from_stoichiometry(density, elements, structures)
 
-    # =========================================================================
-    # MÉTHODES UTILITAIRES
-    # =========================================================================
-
     def is_pure(self) -> bool:
         """Check if the blueprint contains only one component."""
         return len(self.composition) == 1

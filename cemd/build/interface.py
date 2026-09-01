@@ -98,7 +98,6 @@ def _build_droplet_from_blueprint(
         tmp_path = Path(tmp)
         structures = []
 
-        # Eau
         h2o_path = get_structure_path("H2O", tmp_path)
         structures.append(
             add_packmol_structure(
@@ -106,15 +105,12 @@ def _build_droplet_from_blueprint(
             )
         )
 
-        # Solutes
         for species, count in solute_counts.items():
             if count <= 0:
                 continue
 
             if species in blueprint.structures:
-                # Remplacement de os.path.join par l'opérateur /
                 struct_path = tmp_path / f"custom_{species}.pdb"
-                # On convertit en str si la méthode write attend une chaîne de caractères
                 blueprint.structures[species].write(str(struct_path))
             else:
                 struct_path = get_structure_path(species, tmp_path)
@@ -127,125 +123,59 @@ def _build_droplet_from_blueprint(
 
         data = run_packmol(structures)
 
-    # Box
     box_size = radius * 2.5
     data.set_box([box_size, box_size, radius * 1.5, 90, 90, 90])
 
     return data
 
 
-def _merge_data(
-    system_a: AtomicSystem, system_b: AtomicSystem, box: np.ndarray
-) -> AtomicSystem:
-    """
-    Merge two AtomicSystem objects.
-    """
+def _merge_data(system_a, system_b, box) -> AtomicSystem:
 
-    output_topology = {}
+    dict_a = system_a._to_system_dict()
+    dict_b = system_b._to_system_dict()
 
-    # Box
-    output_topology["box"] = box
+    output = {"box": box}
 
-    # Merge atoms
-    indices_a = system_a.atoms.index.to_numpy()
-    indices_b = system_b.atoms.index.to_numpy() + system_a.num_atoms
-    merged_indices = np.concatenate([indices_a, indices_b])
-    merged_atoms = pd.concat([system_a.atoms, system_b.atoms], ignore_index=True)
-    merged_atoms.index = merged_indices
-    output_topology["atoms"] = merged_atoms
+    # Atoms
+    merged_atoms = pd.concat([dict_a["atoms"], dict_b["atoms"]], ignore_index=True)
+    merged_atoms.index = range(1, len(merged_atoms) + 1)
+    output["atoms"] = merged_atoms
 
-    # Merge velocities
-    if system_a.velocities is not None and system_b.velocities is not None:
-        output_topology["velocities"] = np.concatenate(
-            [system_a.velocities, system_b.velocities]
+    # Masses + charges
+    output["masses"] = {**dict_a["masses"], **dict_b["masses"]}
+    output["charges"] = {**dict_a["charges"], **dict_b["charges"]}
+    output["atom_style"] = dict_a["atom_style"]
+
+    # Connectivity
+    for key in ("bonds", "angles", "dihedrals", "impropers"):
+        df_a = dict_a[key] if dict_a[key] is not None else pd.DataFrame()
+        df_b = dict_b[key] if dict_b[key] is not None else pd.DataFrame()
+
+        if not df_b.empty:
+            df_b = df_b.copy()
+            atom_cols = [c for c in df_b.columns if c.startswith("atom_")]
+            df_b[atom_cols] = df_b[atom_cols].astype(int) + system_a.num_atoms
+
+        merged = pd.concat([df_a, df_b], ignore_index=True)
+        output[key] = (
+            merged.assign(**{c: merged.index + 1 for c in []})
+            if not merged.empty
+            else None
         )
-    else:
-        output_topology["velocities"] = None
 
-    # Merge masses
-    masses_dict_a = system_a.masses.copy()
-    masses_dict_b = system_b.masses
-    masses_dict_a.update(masses_dict_b)
-    output_topology["masses"] = dict(sorted(masses_dict_a.items()))
+        if output[key] is not None:
+            output[key].index = range(1, len(output[key]) + 1)
 
-    # Merge charges
-    charges_dict_a = system_a.charges.copy()
-    charges_dict_b = system_b.charges
-    charges_dict_a.update(charges_dict_b)
-    output_topology["charges"] = dict(sorted(charges_dict_a.items()))
-
-    # Get topology info
-    connectivity_keys = ["bonds", "angles", "dihedrals", "impropers"]
-    a_connectivity = {
-        "bonds": system_a.bonds,
-        "angles": system_a.angles,
-        "dihedrals": system_a.dihedrals,
-        "impropers": system_a.impropers,
-    }
-    b_connectivity = {
-        "bonds": system_b.bonds,
-        "angles": system_b.angles,
-        "dihedrals": system_b.dihedrals,
-        "impropers": system_b.impropers,
-    }
-
-    for key in connectivity_keys:
-        if b_connectivity[key] is not None:
-            b_connectivity[key] = b_connectivity[key].copy()
-            b_connectivity[key].iloc[:, 1:] = (
-                b_connectivity[key].iloc[:, 1:].astype(int) + system_a.num_atoms
+    for key in dict_a:
+        if key.endswith("_ff_keys"):
+            merged = {**dict_a[key], **dict_b.get(key, {})}
+            output[key] = merged
+        elif key.endswith("_params"):
+            output[key] = _merge_param_dicts(
+                dict_a[key], dict_b.get(key, {}), param_name=key
             )
-        else:
-            b_connectivity[key] = pd.DataFrame()
 
-        if a_connectivity[key] is None:
-            a_connectivity[key] = pd.DataFrame()
-
-    # Set new topology connectivity
-    for key in connectivity_keys:
-        df_merged = pd.concat(
-            [a_connectivity[key], b_connectivity[key]], ignore_index=True
-        )
-
-        if len(df_merged) > 0:
-            df_merged.index = range(1, len(df_merged) + 1)
-            output_topology[key] = df_merged
-        else:
-            output_topology[key] = None
-
-    if hasattr(system_a, "_atom_style"):
-        output_topology["atom_style"] = system_a._atom_style
-
-    # --- FUSION DES CLÉS DE CHAMP DE FORCE (ForceFieldKeys) ---
-    ff_keys_a = system_a._forcefield_keys.to_topology()
-    ff_keys_b = system_b._forcefield_keys.to_topology()
-    for key in ff_keys_a:
-        merged_keys = ff_keys_a[key].copy()
-        merged_keys.update(ff_keys_b.get(key, {}))
-        output_topology[key] = merged_keys
-
-    # --- FUSION DES PARAMÈTRES DE CHAMP DE FORCE (ForceFieldParams) ---
-    ff_params_a = system_a._forcefield_params.to_topology()
-    ff_params_b = system_b._forcefield_params.to_topology()
-    for key in ff_params_a:
-        dict_a = ff_params_a[key]
-        dict_b = ff_params_b.get(key, {})
-        if dict_a or dict_b:
-            output_topology[key] = merge_param_dicts(dict_a, dict_b, param_name=key)
-        else:
-            output_topology[key] = {}
-
-    # Create the merged system
-    merged_system = AtomicSystem(output_topology)
-
-    if hasattr(merged_system, "wrap"):
-        merged_system.wrap()
-
-    # Preserve metadata
-    if hasattr(system_a, "_pmg_struct"):
-        merged_system._pmg_struct = system_a._pmg_struct
-
-    return merged_system
+    return AtomicSystem(output)
 
 
 def _merge_structure(
@@ -255,76 +185,40 @@ def _merge_structure(
     axis: str = "z",
     vacuum: float = 0.0,
 ) -> AtomicSystem:
-    """
-    Merge a structure onto the base system.
 
-    This is the core merge function that handles:
-    - Axis mapping
-    - Center of mass alignment
-    - Box update
-    - Topology merging
-
-    Parameters
-    ----------
-    base_system : AtomicSystem
-        The base system (e.g., surface).
-    structure_to_add : AtomicSystem
-        The structure to add (e.g., droplet, liquid).
-    distance : float
-        Distance between the surface and the new structure.
-    axis : str, default='z'
-        Axis along which the addition is performed ('x', 'y', 'z').
-    vacuum : float, default=0.0
-        Empty space added after the new structure.
-
-    Returns
-    -------
-    AtomicSystem
-        The final combined system.
-
-    Examples
-    --------
-    >>> result = merge_structure(surface, droplet, distance=2.0)
-    """
-    # Copy to avoid modifying the original
     structure_to_add = structure_to_add.copy()
 
-    # Axis mapping
     axis_map = {"x": 0, "y": 1, "z": 2}
     axis_names = ["x", "y", "z"]
     idx = axis_map[axis.lower()]
-    trans_indices = [i for i in [0, 1, 2] if i != idx]
+    trans_indices = [i for i in range(3) if i != idx]
 
-    # Align centers of mass in transverse directions
     com_base = base_system.get_center_of_mass()
     com_struct = structure_to_add.get_center_of_mass()
 
+    atoms = structure_to_add.atoms.copy()
     for i in trans_indices:
-        t_name = axis_names[i]
-        shift_trans = com_base[i] - com_struct[i]
-        structure_to_add.atoms[t_name] += shift_trans
+        atoms[axis_names[i]] += com_base[i] - com_struct[i]
 
-    # Offset along the principal axis
     base_surface = base_system.atoms[axis.lower()].max()
-    struct_base = structure_to_add.atoms[axis.lower()].min()
+    struct_base = atoms[axis.lower()].min()
+    atoms[axis.lower()] += (base_surface - struct_base) + distance
 
-    shift_main = (base_surface - struct_base) + distance
-    structure_to_add.atoms[axis.lower()] += shift_main
+    structure_to_add.atoms = atoms
 
-    # Update box
-    new_box = base_system.box.copy()
     base_min = base_system.atoms[axis.lower()].min()
     struct_top = structure_to_add.atoms[axis.lower()].max()
 
-    box_vecs = lattice2vectors(new_box)
-    box_vecs[idx][idx] = (struct_top - base_min) + vacuum + distance
-    new_box = vectors2lattice(box_vecs)
+    vecs = list(lattice2vectors(base_system.box))
+    vec_idx = vecs[idx].copy()
+    vec_idx[idx] = (struct_top - base_min) + vacuum
+    vecs[idx] = vec_idx
+    new_box = vectors2lattice(vecs)
 
-    # Merge the two systems
     return _merge_data(base_system, structure_to_add, new_box)
 
 
-def add_liquid_layer(
+def _add_liquid_layer(
     system: AtomicSystem,
     blueprint: SolutionBuilder,
     thickness: float,
@@ -365,7 +259,7 @@ def add_liquid_layer(
     return _merge_structure(system, liquid, distance, axis, vacuum)
 
 
-def add_droplet(
+def _add_droplet(
     system: AtomicSystem,
     blueprint: SolutionBuilder,
     radius: float,
@@ -405,7 +299,9 @@ def add_droplet(
     return _merge_structure(system, droplet, distance, axis, vacuum)
 
 
-def add_vacuum(system: AtomicSystem, thickness: float, axis: str = "z") -> AtomicSystem:
+def _add_vacuum(
+    system: AtomicSystem, thickness: float, axis: str = "z"
+) -> AtomicSystem:
     """
     Add vacuum to a system.
 
@@ -438,7 +334,7 @@ def add_vacuum(system: AtomicSystem, thickness: float, axis: str = "z") -> Atomi
     return system
 
 
-def add_structure(
+def _add_structure(
     solid_system: AtomicSystem,
     structure_to_add: AtomicSystem,
     distance: float = 2.0,
@@ -513,7 +409,7 @@ def add_structure(
     return result
 
 
-def merge_param_dicts(
+def _merge_param_dicts(
     dict_a: dict[Any, Any], dict_b: dict[Any, Any], param_name: str
 ) -> dict[Any, Any]:
     """
@@ -523,7 +419,6 @@ def merge_param_dicts(
     for key, val_b in dict_b.items():
         if key in merged:
             val_a = merged[key]
-            # Si les paramètres sont différents pour la même clé -> Warning
             if val_a != val_b:
                 warnings.warn(
                     f"Conflict detected in '{param_name}' for key '{key}':\n"

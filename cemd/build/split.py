@@ -124,10 +124,6 @@ class Splitter(BaseBuilder):
         self._coordinate = coordinate
         return self
 
-    # ------------------------------------------------------------------
-    # Core operations
-    # ------------------------------------------------------------------
-
     def _move_fragments(self, universe) -> None:
         """Move the second fragment to create the gap."""
         pos = universe.atoms.positions
@@ -199,18 +195,14 @@ class Splitter(BaseBuilder):
         AtomicSystem
             The split system, optionally with solution.
         """
-        # 1. Move fragments to create gap
         universe = self._system.to_mda()
         self._move_fragments(universe)
 
-        # 2. Update the box
         self._update_box()
 
-        # 3. Insert solution if requested
         if self._has_solution:
             self._insert_solution()
 
-        # 4. Store metadata
         if hasattr(self._system, "metadata"):
             self._system.metadata["split_info"] = {
                 "axis": self._axis,

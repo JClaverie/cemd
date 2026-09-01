@@ -23,6 +23,8 @@ from ..forcefield_database import ForceFieldDatabase
 from ..models import (
     AtomType,
     BuckinghamParams,
+    Class2AngleAngleParams,
+    Class2AngleAngleTorsionParams,
     Class2AngleParams,
     Class2BondAngleParams,
     Class2BondBondParams,
@@ -56,6 +58,10 @@ class ParseResult:
     dihedrals: dict[str, Any] = field(default_factory=dict)  # Specific format
     bondbond: dict[str, Class2BondBondParams] = field(default_factory=dict)
     bondangle: dict[str, Class2BondAngleParams] = field(default_factory=dict)
+    angleangletorsion: dict[str, Class2AngleAngleTorsionParams] = field(
+        default_factory=dict
+    )
+    angleangle: dict[str, Class2AngleAngleParams] = field(default_factory=dict)
     metadata: dict[str, Any] = field(default_factory=dict)
 
     def to_database(self, db: "ForceFieldDatabase") -> None:
@@ -101,6 +107,16 @@ class ParseResult:
         for key, value in self.bondangle.items():
             full_key = f"{self.model_name}.{key}"
             db.bondangle[full_key] = value
+
+        if hasattr(db, "angleangletorsion"):
+            for key, value in self.angleangletorsion.items():
+                full_key = f"{self.model_name}.{key}"
+                db.angleangletorsion[full_key] = value
+
+        if hasattr(db, "angleangle"):
+            for key, value in self.angleangle.items():
+                full_key = f"{self.model_name}.{key}"
+                db.angleangle[full_key] = value
 
         # Specific dihedral
         if hasattr(db, "dihedral"):

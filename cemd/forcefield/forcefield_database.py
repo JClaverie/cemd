@@ -24,6 +24,8 @@ import pandas as pd
 from .models import (
     AtomType,
     BuckinghamParams,
+    Class2AngleAngleParams,
+    Class2AngleAngleTorsionParams,
     Class2AngleParams,
     Class2BondAngleParams,
     Class2BondBondParams,
@@ -63,6 +65,10 @@ class ForceFieldDatabase:
         Dictionary of bond-bond parameters
     bondangle : dict[str, Class2BondAngleParams]
         Dictionary of bond-angle parameters
+    angleangletorsion : dict[str, Class2AngleAngleTorsionParams]
+        Dictionary of angle-angle-torsion (class2) cross-term parameters
+    angleangle : dict[str, Class2AngleAngleParams]
+        Dictionary of angle-angle (class2) improper cross-term parameters
     models : dict[str, ForceFieldModel]
         Dictionary of model metadata {name: ForceFieldModel}
     dihedral : dict[str, Any]
@@ -90,6 +96,8 @@ class ForceFieldDatabase:
         self.improper: dict[str, HarmonicImproperParams | DistanceImproperParams] = {}
         self.bondbond: dict[str, Class2BondBondParams] = {}
         self.bondangle: dict[str, Class2BondAngleParams] = {}
+        self.angleangletorsion: dict[str, Class2AngleAngleTorsionParams] = {}
+        self.angleangle: dict[str, Class2AngleAngleParams] = {}
         self.models: dict[str, ForceFieldModel] = {}
         self.dihedral: dict[str, Any] = {}
 
@@ -194,6 +202,14 @@ class ForceFieldDatabase:
         # Bondangle
         for short_name, params in parse_result.bondangle.items():
             self.bondangle[f"{actual_model_name}.{short_name}"] = params
+
+        # Angle-angle-torsion (class2)
+        for short_name, params in parse_result.angleangletorsion.items():
+            self.angleangletorsion[f"{actual_model_name}.{short_name}"] = params
+
+        # Angle-angle (class2)
+        for short_name, params in parse_result.angleangle.items():
+            self.angleangle[f"{actual_model_name}.{short_name}"] = params
 
         # Dihedrals
         for short_name, params in parse_result.dihedrals.items():
@@ -365,6 +381,22 @@ class ForceFieldDatabase:
         """Get bondangle parameters for a triple of atom types."""
         return self._get_triple_params(self.bondangle, type1, type2, type3, model)
 
+    def get_angleangletorsion(
+        self, type1: str, type2: str, type3: str, type4: str, model: str = None
+    ) -> Class2AngleAngleTorsionParams | None:
+        """Get angle-angle-torsion parameters for a quadruple of atom types."""
+        return self._get_quadruple_params(
+            self.angleangletorsion, type1, type2, type3, type4, model
+        )
+
+    def get_angleangle(
+        self, type1: str, type2: str, type3: str, type4: str, model: str = None
+    ) -> Class2AngleAngleParams | None:
+        """Get angle-angle parameters for a quadruple of atom types."""
+        return self._get_quadruple_params(
+            self.angleangle, type1, type2, type3, type4, model
+        )
+
     def get_dihedral(
         self, type1: str, type2: str, type3: str, type4: str, model: str = None
     ) -> Any | None:
@@ -404,6 +436,8 @@ class ForceFieldDatabase:
         self.improper.clear()
         self.bondbond.clear()
         self.bondangle.clear()
+        self.angleangletorsion.clear()
+        self.angleangle.clear()
         self.models.clear()
         self.dihedral.clear()
 
@@ -496,6 +530,19 @@ class ForceFieldDatabase:
                         "ref": params.ref,
                     }
                 )
+            elif hasattr(params, "D") and hasattr(params, "alpha"):
+                records.append(
+                    {
+                        "bond": bond_id,
+                        "full_key": key,
+                        "type": "morse",
+                        "r0": params.r0,
+                        "D": params.D,
+                        "alpha": params.alpha,
+                        "model": params.model,
+                        "ref": params.ref,
+                    }
+                )
         dfs["bonds"] = pd.DataFrame(records)
 
         # Buckingham
@@ -556,7 +603,11 @@ class ForceFieldDatabase:
                 "full_key": key,
                 "model": getattr(params, "model", ""),
             }
-            if hasattr(params, "k"):
+            if hasattr(params, "k") and hasattr(params, "d") and hasattr(params, "n"):
+                rec.update(
+                    {"k": params.k, "d": params.d, "n": params.n, "type": "periodic"}
+                )
+            elif hasattr(params, "k"):
                 rec.update(
                     {"k": getattr(params, "k"), "chi0": getattr(params, "chi0", 0.0)}
                 )

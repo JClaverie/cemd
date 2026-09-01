@@ -489,14 +489,14 @@ def _rebuild_topology_from_templates(
     # Restore atom FF keys
     # ==================================================================
 
-    result._forcefield_keys.atom.update(atom_ff_keys)
+    result._ff_keys.atom.update(atom_ff_keys)
 
     # ==================================================================
     # Restore interaction FF keys
     # ==================================================================
 
     for kind, keys in interaction_ff_keys.items():
-        target = getattr(result._forcefield_keys, kind)
+        target = getattr(result._ff_keys, kind)
         target.update(keys)
 
     # ==================================================================
@@ -513,11 +513,11 @@ def _rebuild_topology_from_templates(
         if not isinstance(structure.structure, AtomicSystem):
             continue
         template = structure.structure
-        result._forcefield_params.bond.update(template._forcefield_params.bond)
-        result._forcefield_params.angle.update(template._forcefield_params.angle)
-        result._forcefield_params.dihedral.update(template._forcefield_params.dihedral)
-        result._forcefield_params.improper.update(template._forcefield_params.improper)
-        result._forcefield_params.pair.update(template._forcefield_params.pair)
+        result._ff_params.bond.update(template._ff_params.bond)
+        result._ff_params.angle.update(template._ff_params.angle)
+        result._ff_params.dihedral.update(template._ff_params.dihedral)
+        result._ff_params.improper.update(template._ff_params.improper)
+        result._ff_params.pair.update(template._ff_params.pair)
 
     return result
 

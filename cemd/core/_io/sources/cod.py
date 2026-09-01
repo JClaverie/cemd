@@ -118,7 +118,7 @@ def cod_search_by_name(mineral_name: str) -> list[dict[str, Any]]:
 
             cleaned_results = []
             for r in results:
-                # We extract the values with a secure conversion to float
+                # extract the values with a secure conversion to float
                 # If the value does not exist or is not a number, we set 0.0
                 def to_float(val):
                     try:
@@ -252,10 +252,10 @@ def explore_cod(visibles_rows: int = 20) -> AtomicSystem | None:
 
     kb = KeyBindings()
 
-    ROW_FORMAT = "{cursor} {id:>8} | {name:<20.20} | {formula:<18.18} | {lattice:<37.37} | {doi:^3}"
+    row_format = "{cursor} {id:>8} | {name:<20.20} | {formula:<18.18} | {lattice:<37.37} | {doi:^3}"
 
     def render():
-        header = ROW_FORMAT.format(
+        header = row_format.format(
             cursor=" ",
             id="ID",
             name="NAME",
@@ -284,7 +284,7 @@ def explore_cod(visibles_rows: int = 20) -> AtomicSystem | None:
             ang = f"{r.get('alpha', 0):>3.0f}° {r.get('beta', 0):>3.0f}° {r.get('gamma', 0):>3.0f}°"
 
             lines.append(
-                ROW_FORMAT.format(
+                row_format.format(
                     cursor=cursor,
                     id=str(r.get("id", "N/A")),
                     name=str(r.get("common_name") or "N/A"),

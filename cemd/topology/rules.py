@@ -46,6 +46,7 @@ class NeighborCriterion:
     cutoff: float
     count: int
     new_type: str | None = None
+    exact_match: bool = True
 
     def __post_init__(self):
         """Validate the criterion."""
@@ -63,6 +64,7 @@ class NeighborCriterion:
             "cutoff": self.cutoff,
             "n": self.count,
             "new_type": self.new_type,
+            "exact_match": self.exact_match,
         }
 
     def __repr__(self):

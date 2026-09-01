@@ -142,12 +142,10 @@ class RDFDialog(BaseBuilderDialog):
             return
         self.ax.clear()
 
-        # 1. Récupération des données pures calculées par le backend
         res, rho_target, rho0 = self.rdf_results
         r = res.index
         dr = self.spin_dr.value()
 
-        # 2. Gestion du lissage (Smoothing graphique temporaire)
         sigma_val = self.slider_sigma.value() / 100.0
         self.lbl_sigma.setText(f"{sigma_val:.2f} Å")
 
@@ -158,32 +156,26 @@ class RDFDialog(BaseBuilderDialog):
 
         tab_idx = self.tabs_view.currentIndex()
 
-        # --- Onglet 0 : g(r) - Radial ---
         if tab_idx == 0:
             self.ax.plot(r, res["g_r"], color="gray", alpha=0.2, label="Raw")
             self.ax.plot(r, gr_smooth, color="#d32f2f", lw=1.5, label="g(r)")
             self.ax.set_ylabel("g(r)")
 
-        # --- Onglet 1 : G(r) - Reduced ---
         elif tab_idx == 1:
-            # On recalcule la version lissée à partir du g(r) lissé et de rho0 du backend
-            Gr_smooth = 4 * np.pi * r * rho0 * (gr_smooth - 1)
+            gr_smooth = 4 * np.pi * r * rho0 * (gr_smooth - 1)
 
             self.ax.plot(r, res["G_r"], color="gray", alpha=0.2, label="Raw")
-            self.ax.plot(r, Gr_smooth, color="#1976D2", lw=1.5, label="G(r)")
+            self.ax.plot(r, gr_smooth, color="#1976D2", lw=1.5, label="G(r)")
             self.ax.axhline(0, color="black", lw=0.5, ls="--")
             self.ax.set_ylabel("G(r) (Å⁻²)")
 
-        # --- Onglet 2 : n(r) - Coordination ---
         elif tab_idx == 2:
-            # On recalcule l'intégration cumulative à partir du g(r) lissé et de rho_target
             nr_smooth = np.cumsum(4 * np.pi * r**2 * rho_target * gr_smooth * dr)
 
             self.ax.plot(r, res["n_r"], color="gray", alpha=0.2, label="Raw")
             self.ax.plot(r, nr_smooth, color="#388E3C", lw=1.5, label="n(r)")
             self.ax.set_ylabel("Coordination Number N")
 
-        # Configuration finale des axes Matplotlib
         self.ax.set_xlabel("r (Å)")
         self.ax.legend()
         self.ax.grid(True, alpha=0.3)
@@ -193,7 +185,7 @@ class RDFDialog(BaseBuilderDialog):
 class SilicateDialog(BaseBuilderDialog):
     def __init__(self, parent, system):
         super().__init__(parent, "C-(A)-S-H Analysis", 650)
-        self.setMinimumHeight(450)  # Slightly larger to accommodate both tables
+        self.setMinimumHeight(450)
 
         self.data = system
         self.u = system.to_mda()
@@ -205,7 +197,6 @@ class SilicateDialog(BaseBuilderDialog):
     def setup_ui(self):
         layout = self.main_layout
 
-        # --- SECTION 1: CONFIGURATION ---
         type_group = QtWidgets.QGroupBox("Atom types selection")
         type_grid = QtWidgets.QGridLayout(type_group)
 
@@ -234,16 +225,13 @@ class SilicateDialog(BaseBuilderDialog):
 
         layout.addWidget(type_group)
 
-        # ---RUN BUTTON (Placed between sections) ---
         self.btn_run = self.create_icon_button("Run analysis", "play", primary=True)
         self.btn_run.clicked.connect(self.run_analysis)
         layout.addWidget(self.btn_run)
 
-        # --- SECTION 2: COMPOSITION RATIOS (TABLEAU) ---
         ratio_group = QtWidgets.QGroupBox("Chemical and structural properties")
         ratio_layout = QtWidgets.QVBoxLayout(ratio_group)
 
-        # Remove margins around table in group
         ratio_layout.setContentsMargins(2, 2, 2, 2)  # Minimum margins
 
         self.table_ratios = QtWidgets.QTableWidget(1, 4)
@@ -252,23 +240,19 @@ class SilicateDialog(BaseBuilderDialog):
         )
         self.table_ratios.verticalHeader().setVisible(False)
 
-        # ADJUSTMENT HERE: 50px or 52px to remove the bottom white bar
         self.table_ratios.setFixedHeight(52)
 
         self.table_ratios.horizontalHeader().setSectionResizeMode(
             QtWidgets.QHeaderView.Stretch
         )
-        # Removes the border from the table itself to fit it in better
         self.table_ratios.setFrameShape(QtWidgets.QFrame.NoFrame)
 
         ratio_layout.addWidget(self.table_ratios)
         layout.addWidget(ratio_group)
 
-        # --- SECTION 3: Qn DISTRIBUTION (TABLEAU) ---
         qn_group = QtWidgets.QGroupBox("Polymerisation (Qⁿ units distribution)")
         qn_layout = QtWidgets.QVBoxLayout(qn_group)
 
-        # Remove margins
         qn_layout.setContentsMargins(2, 2, 2, 2)
 
         self.table_qn = QtWidgets.QTableWidget(1, 5)
@@ -277,7 +261,6 @@ class SilicateDialog(BaseBuilderDialog):
         )
         self.table_qn.verticalHeader().setVisible(False)
 
-        # AJUSTEMENT ICI : 52px
         self.table_qn.setFixedHeight(52)
 
         self.table_qn.horizontalHeader().setSectionResizeMode(
@@ -288,10 +271,8 @@ class SilicateDialog(BaseBuilderDialog):
         qn_layout.addWidget(self.table_qn)
         layout.addWidget(qn_group)
 
-        # Optional: Add a spring at the end to push everything up
         layout.addStretch()
 
-        # Status log
         self.status_bar = QtWidgets.QStatusBar()
         self.status_bar.setSizeGripEnabled(False)
         self.status_bar.showMessage("Ready to analyze.")
@@ -326,7 +307,6 @@ class SilicateDialog(BaseBuilderDialog):
         try:
             self.status_bar.showMessage("⏱ Analyzing connectivity...", 0)
 
-            # Récupération des paramètres de l'UI
             si = self.edit_si.text().strip()
             o = self.edit_o.text().strip()
             al = self.edit_al.text().strip()
@@ -339,7 +319,6 @@ class SilicateDialog(BaseBuilderDialog):
                 )
                 return
 
-            # APPEL UNIQUE AU BACKEND (On passe directement self.data qui est l'AtomicSystem)
             res = analyze_silicates(
                 self.data,
                 si_types=si,
@@ -349,7 +328,6 @@ class SilicateDialog(BaseBuilderDialog):
                 cutoff=cutoff,
             )
 
-            # --- MISE EN FORME DES RAPPORTS CHIMIQUES ---
             ratios = [
                 f"{res['Ca/(Si+Al)']:.3f}",
                 f"{res['Al/Si']:.3f}" if res["Al/Si"] > 0 else "-",
@@ -357,13 +335,11 @@ class SilicateDialog(BaseBuilderDialog):
                 f"{res['MCL']:.2f}" if not np.isnan(res["MCL"]) else "N/A",
             ]
 
-            # Remplissage du tableau des rapports
             for i, val in enumerate(ratios):
                 item = QtWidgets.QTableWidgetItem(val)
                 item.setTextAlignment(QtCore.Qt.AlignCenter)
                 self.table_ratios.setItem(0, i, item)
 
-            # --- REMPLISSAGE DU TABLEAU Qn ---
             pqsi = res["Qn_distribution"]
             for i in range(5):
                 item = QtWidgets.QTableWidgetItem(f"{pqsi[i]:.1f}%")

@@ -168,24 +168,58 @@ class LAMMPSReader(BaseReader):
     ) -> None:
         """Redirects each section to the appropriate processing method."""
 
+        type_labels = {
+            "atom": {},
+            "bond": {},
+            "angle": {},
+            "dihedral": {},
+            "improper": {},
+        }
         for key, values in sections.items():
-            if key == "Atom Type Labels":
-                atom_types = [v.split()[1] for v in values if len(v.split()) >= 2]
+            label_key = {
+                "Atom Type Labels": "atom",
+                "Bond Type Labels": "bond",
+                "Angle Type Labels": "angle",
+                "Dihedral Type Labels": "dihedral",
+                "Improper Type Labels": "improper",
+            }.get(key)
+            if label_key is not None:
+                type_labels[label_key] = {
+                    int(parts[0]): parts[1]
+                    for value in values
+                    if len(parts := value.split()) >= 2
+                }
+
+                if label_key == "atom":
+                    topology["atom_types"] = [
+                        type_labels[label_key][type_id]
+                        for type_id in sorted(type_labels[label_key])
+                    ]
+                else:
+                    topology[f"{label_key}_types"] = [
+                        type_labels[label_key][type_id]
+                        for type_id in sorted(type_labels[label_key])
+                    ]
+
             if key == "Bond Type Labels":
                 topology["bond_types"] = [
-                    v.split()[1] for v in values if len(v.split()) >= 2
+                    type_labels["bond"][type_id]
+                    for type_id in sorted(type_labels["bond"])
                 ]
             elif key == "Angle Type Labels":
                 topology["angle_types"] = [
-                    v.split()[1] for v in values if len(v.split()) >= 2
+                    type_labels["angle"][type_id]
+                    for type_id in sorted(type_labels["angle"])
                 ]
             elif key == "Dihedral Type Labels":
                 topology["dihedral_types"] = [
-                    v.split()[1] for v in values if len(v.split()) >= 2
+                    type_labels["dihedral"][type_id]
+                    for type_id in sorted(type_labels["dihedral"])
                 ]
             elif key == "Improper Type Labels":
                 topology["improper_types"] = [
-                    v.split()[1] for v in values if len(v.split()) >= 2
+                    type_labels["improper"][type_id]
+                    for type_id in sorted(type_labels["improper"])
                 ]
 
         for key, values in sections.items():
@@ -194,22 +228,33 @@ class LAMMPSReader(BaseReader):
             array = np.array([line.split() for line in values])
 
             if key == "Atoms":
-                cls._parse_atoms(array, topology)
+                cls._parse_atoms(array, topology, type_labels["atom"])
             elif key == "Velocities":
                 cls._parse_velocities(array, topology)
             elif key == "Bonds":
-                cls._parse_connectivity(array, topology, "bonds", 2)
+                cls._parse_connectivity(
+                    array, topology, "bonds", 2, type_labels["bond"]
+                )
             elif key == "Angles":
-                cls._parse_connectivity(array, topology, "angles", 3)
+                cls._parse_connectivity(
+                    array, topology, "angles", 3, type_labels["angle"]
+                )
             elif key == "Dihedrals":
-                cls._parse_connectivity(array, topology, "dihedrals", 4)
+                cls._parse_connectivity(
+                    array, topology, "dihedrals", 4, type_labels["dihedral"]
+                )
             elif key == "Impropers":
-                cls._parse_connectivity(array, topology, "impropers", 4)
+                cls._parse_connectivity(
+                    array, topology, "impropers", 4, type_labels["improper"]
+                )
             elif key == "Masses":
-                cls._parse_masses(array, topology)
+                cls._parse_masses(array, topology, type_labels["atom"])
             elif key in ("Pair Coeffs", "PairIJ Coeffs"):
                 cls._parse_coeffs(
-                    array, topology, "pair_params", target_types=atom_types
+                    array,
+                    topology,
+                    "pair_params",
+                    target_types=topology.get("atom_types"),
                 )
             elif key == "Bond Coeffs":
                 cls._parse_coeffs(
@@ -266,7 +311,9 @@ class LAMMPSReader(BaseReader):
                 )
 
     @staticmethod
-    def _parse_atoms(array: np.ndarray, topology: dict) -> None:
+    def _parse_atoms(
+        array: np.ndarray, topology: dict, type_labels: dict[int, str] | None = None
+    ) -> None:
         """
         Parse the LAMMPS ``Atoms`` section.
 
@@ -416,6 +463,11 @@ class LAMMPSReader(BaseReader):
         except (ValueError, TypeError):
             df["type"] = df["type"].astype(str)
 
+        if type_labels:
+            df["type"] = df["type"].map(
+                lambda atom_type: type_labels.get(atom_type, atom_type)
+            )
+
         # Coordinates
         df[["x", "y", "z"]] = df[["x", "y", "z"]].astype(float)
 
@@ -482,7 +534,11 @@ class LAMMPSReader(BaseReader):
 
     @staticmethod
     def _parse_connectivity(
-        array: np.ndarray, topology: dict, name: str, n_atoms: int
+        array: np.ndarray,
+        topology: dict,
+        name: str,
+        n_atoms: int,
+        type_labels: dict[int, str] | None = None,
     ) -> None:
         """Parse Bonds, Angles, etc."""
         if array.size == 0:
@@ -492,16 +548,29 @@ class LAMMPSReader(BaseReader):
         columns = ["id", "type"] + [f"atom_{i}" for i in range(1, n_atoms + 1)]
         df = pd.DataFrame(array, columns=columns)
         df["id"] = pd.to_numeric(df["id"], errors="coerce")
+        df["type"] = pd.to_numeric(df["type"], errors="coerce").astype(int)
+        if type_labels:
+            df["type"] = df["type"].map(
+                lambda connection_type: type_labels.get(
+                    connection_type, connection_type
+                )
+            )
         for col in columns[2:]:
             df[col] = df[col].astype(int)
         df.set_index("id", inplace=True)
         topology[name] = df
 
     @staticmethod
-    def _parse_masses(array: np.ndarray, topology: dict) -> None:
+    def _parse_masses(
+        array: np.ndarray,
+        topology: dict,
+        type_labels: dict[int, str] | None = None,
+    ) -> None:
         """Parse Masses section."""
-        masses = list(map(float, array[:, 1]))
-        topology["masses"] = {str(i + 1): m for i, m in enumerate(masses)}
+        topology["masses"] = {
+            (type_labels or {}).get(int(row[0]), str(row[0])): float(row[1])
+            for row in array
+        }
 
     @staticmethod
     def _parse_coeffs(
@@ -579,11 +648,9 @@ class LAMMPSReader(BaseReader):
 
             elif key == "dihedral_params":
                 if style == "fourier":
-                    # 1. Le premier coefficient correspond au nombre de termes 'm'
                     m_terms = int(coeffs[0])
                     terms_list = []
 
-                    # 2. On parcourt les coefficients par groupes de 3 (k, n, delta)
                     idx = 1
                     for _ in range(m_terms):
                         k_val = float(coeffs[idx])
@@ -595,7 +662,6 @@ class LAMMPSReader(BaseReader):
                         )
                         idx += 3
 
-                    # 3. On instancie notre objet global avec la liste complète
                     params[label] = FourierDihedralParams(terms=terms_list)
 
                 elif style == "harmonic":
@@ -770,8 +836,7 @@ class LAMMPSWriter(BaseWriter):
     def _write_coeffs(cls, f: TextIO, system: Any, oldstyle: bool) -> None:
         """Writes all the potential coefficients (pairs and associated connections)."""
 
-        # Récupération sécurisée de l'objet ForceFieldParams
-        ff_params = getattr(system, "_forcefield_params", None)
+        ff_params = getattr(system, "_ff_params", None)
         if ff_params is None:
             return
 
@@ -779,7 +844,6 @@ class LAMMPSWriter(BaseWriter):
             n = len(system.atom_types)
             actual_entries = len(ff_params.pair)
 
-            # Déterminer si c'est Pair Coeffs ou PairIJ Coeffs
             all_self = all(k[0] == k[1] for k in ff_params.pair.keys())
             is_pair_coeffs = all_self and actual_entries == n
 
@@ -793,7 +857,6 @@ class LAMMPSWriter(BaseWriter):
                 for j in range(i, end_j + 1):
                     label_j = system.atom_types[j - 1]
 
-                    # === CORRECTION : Utiliser des strings ===
                     key1 = f"{label_i}-{label_j}"
                     key2 = f"{label_j}-{label_i}"
                     params = ff_params.pair.get(key1) or ff_params.pair.get(key2)

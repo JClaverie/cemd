@@ -289,7 +289,6 @@ class AtomViewerGUI(QtWidgets.QMainWindow):
             action.triggered.connect(slot)
             self.tools_toolbar.addAction(action)
 
-            # On crée l'attribut sur la classe
             setattr(self, attr_name, action)
 
             if sensitive:

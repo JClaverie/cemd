@@ -84,9 +84,6 @@ class CSHBuilder(BaseBuilder):
     cs_ratio: float = field(default=None)
     ws_ratio: float = field(default=None)
 
-    # Optional parameter (commun)
-    progress_callback: Callable[[int, str], None] | None = None
-
     # Internal state
     _system: AtomicSystem | None = field(default=None, init=False, repr=False)
     _analysis: dict | None = field(default=None, init=False, repr=False)

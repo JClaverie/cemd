@@ -15,6 +15,13 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
+from .predefined import CLAYFF_RULES, CSHFF_RULES
 from .rules import DihedralRule, NeighborCriterion, TopologyRule
 
-__all__ = ["TopologyRule", "NeighborCriterion", "DihedralRule"]
+__all__ = [
+    "TopologyRule",
+    "NeighborCriterion",
+    "DihedralRule",
+    "CLAYFF_RULES",
+    "CSHFF_RULES",
+]

@@ -20,6 +20,7 @@ from typing import Any
 from ..forcefield_database import ForceFieldDatabase
 from ..models import (
     AtomType,
+    CHARMMDihedralParams,
     HarmonicAngleParams,
     HarmonicBondParams,
     HarmonicImproperParams,
@@ -196,7 +197,7 @@ class CHARMMInterfaceParser(BaseForceFieldParser):
         if not parts or parts[0].startswith("!"):
             return
 
-        if len(parts) >= 6:
+        if len(parts) >= 5:
             i = parts[0]
             j = parts[1]
             k = parts[2]
@@ -211,8 +212,9 @@ class CHARMMInterfaceParser(BaseForceFieldParser):
                 self._atom_types.add(i)
                 self._atom_types.add(j)
                 self._atom_types.add(k)
-                # Note: Urey-Bradley parameters (Kub, S0) are not stored
-                # as they are not supported in the current model
+                # Note: Urey-Bradley parameters (Kub, S0), present on some
+                # lines as trailing columns, are not stored as they are not
+                # supported by the current angle model.
             except ValueError:
                 pass
 
@@ -235,8 +237,22 @@ class CHARMMInterfaceParser(BaseForceFieldParser):
                 kchi = float(parts[4])
                 n = int(float(parts[5]))
                 delta = float(parts[6])
+
+                if abs(delta) < 1e-5:
+                    d_val = 1
+                elif abs(delta - 180.0) < 1e-5:
+                    d_val = -1
+                else:
+                    raise ValueError(
+                        f"Valeur delta non supportée par LAMMPS dihedral charmm: {delta}"
+                    )
+
                 key = f"{i}-{j}-{k}-{l_}"
-                result.dihedrals[key] = {"k": kchi, "n": n, "d": delta}
+                # w=1.0: the Interface FF NONBONDED section defines dedicated
+                # 1-4 LJ parameters (e14fac=1.0), so 1-4 interactions are kept.
+                result.dihedrals[key] = CHARMMDihedralParams(
+                    k=kchi, d=d_val, n=n, w=1.0, model=result.model_name
+                )
                 # Collect atom types
                 self._atom_types.add(i)
                 self._atom_types.add(j)
@@ -248,21 +264,22 @@ class CHARMMInterfaceParser(BaseForceFieldParser):
     def _parse_improper(self, line: str, result: ParseResult) -> None:
         """
         Parse an improper line.
-        Format: i j k l Kpsi psi0
-        Example: CPB CPA NPH CPA 20.8000 0.0000
+        Format: i j k l Kpsi ignored psi0
+        Example: CPB CPA NPH CPA 20.8000 0 0.0000
+        The second-to-last column is unused (kept for CHARMM compatibility).
         """
         parts = line.split()
         if not parts or parts[0].startswith("!"):
             return
 
-        if len(parts) >= 6:
+        if len(parts) >= 7:
             i = parts[0]
             j = parts[1]
             k = parts[2]
             l_ = parts[3]
             try:
                 kpsi = float(parts[4])
-                psi0 = float(parts[5])
+                psi0 = float(parts[6])
                 key = f"{i}-{j}-{k}-{l_}"
                 result.impropers[key] = HarmonicImproperParams(
                     k=kpsi, chi0=psi0, model=result.model_name

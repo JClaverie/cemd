@@ -38,7 +38,7 @@ class IOMixin:
         **kwargs
             Additional arguments passed to the specific reader.
             For CIF files:
-                primitive : bool, default=True
+                primitive : bool, default=False
                     If True, use the primitive cell.
                 refine : bool, default=True
                     If True, refine the structure using SpacegroupAnalyzer.
@@ -65,7 +65,7 @@ class IOMixin:
         if ext not in readers:
             raise ValueError(f"Unsupported file format: {ext}")
 
-        topology = readers[ext](path)
+        topology = readers[ext](path, **kwargs)
         return cls(topology)
 
     @classmethod
@@ -241,11 +241,11 @@ class IOMixin:
         return LAMMPSReader.read(path)
 
     @staticmethod
-    def _from_cif(path: str, primitive=False, refine=False) -> dict:
+    def _from_cif(path: str, primitive: bool = False, refine: bool = True) -> dict:
         """Read CIF file."""
         from .formats.cif import CIFReader
 
-        return CIFReader.read(path)
+        return CIFReader.read(path, primitive, refine)
 
     @staticmethod
     def _from_pdb(path: str) -> dict:
@@ -276,7 +276,7 @@ class IOMixin:
         return MDAReader.read(obj)
 
     @staticmethod
-    def _from_pmg(struct, refine) -> dict:
+    def _from_pmg(struct, refine: bool = True) -> dict:
         """Read from Pymatgen."""
         from .formats.pmg import PMGReader
 

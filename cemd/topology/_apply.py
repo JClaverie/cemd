@@ -21,7 +21,6 @@ from collections.abc import Sequence
 from itertools import combinations
 from typing import TYPE_CHECKING
 
-from .clayff import CLAYFF_RULES
 from .rules import DihedralRule, TopologyRule
 
 if TYPE_CHECKING:
@@ -75,10 +74,14 @@ def apply_single_rule_to_universe(
                 f"not index {c.index}"
             )
 
-            # Exact count only (as requested)
-            if len(found) != n_criterion.count:
-                is_valid = False
-                break
+            if n_criterion.exact_match:
+                if len(found) != n_criterion.count:
+                    is_valid = False
+                    break
+            else:
+                if len(found) < n_criterion.count:
+                    is_valid = False
+                    break
 
             matched_neighbors.extend(list(found))
 
@@ -143,26 +146,21 @@ def apply_single_dihedral_rule_to_universe(
     from MDAnalysis.lib.distances import capped_distance
 
     dihedrals = []
-    seen_dihedrals = set()  # Pour éviter les doublons
+    seen_dihedrals = set()
 
     for rule in dihedral_rules:
-        # Sélectionner les atomes
         sel_i = universe.select_atoms(rule.i)
         sel_j = universe.select_atoms(rule.j)
         sel_k = universe.select_atoms(rule.k)
         sel_l = universe.select_atoms(rule.l_)
 
-        # Récupérer les cutoffs
         cutoffs = rule.cutoffs
         if len(cutoffs) < 3:
-            # Compléter avec la valeur par défaut si nécessaire
             cutoffs = list(cutoffs) + [default_cutoff] * (3 - len(cutoffs))
 
-        # Si les sélections sont vides, passer
         if len(sel_i) == 0 or len(sel_j) == 0 or len(sel_k) == 0 or len(sel_l) == 0:
             continue
 
-        # Trouver les paires i-j
         pairs_ij, _ = capped_distance(
             sel_i.positions,
             sel_j.positions,
@@ -170,7 +168,6 @@ def apply_single_dihedral_rule_to_universe(
             box=universe.dimensions,
         )
 
-        # Trouver les paires j-k
         pairs_jk, _ = capped_distance(
             sel_j.positions,
             sel_k.positions,
@@ -178,7 +175,6 @@ def apply_single_dihedral_rule_to_universe(
             box=universe.dimensions,
         )
 
-        # Trouver les paires k-l
         pairs_kl, _ = capped_distance(
             sel_k.positions,
             sel_l.positions,
@@ -186,12 +182,10 @@ def apply_single_dihedral_rule_to_universe(
             box=universe.dimensions,
         )
 
-        # Convertir en indices globaux
         idx_ij = {(sel_i.indices[i], sel_j.indices[j]) for i, j in pairs_ij}
         idx_jk = {(sel_j.indices[j], sel_k.indices[k]) for j, k in pairs_jk}
         idx_kl = {(sel_k.indices[k], sel_l.indices[l_]) for k, l_ in pairs_kl}
 
-        # Construire les dihedrals i-j-k-l
         for i, j in idx_ij:
             for j2, k in idx_jk:
                 if j != j2:
@@ -199,12 +193,11 @@ def apply_single_dihedral_rule_to_universe(
                 for k2, l_ in idx_kl:
                     if k != k2:
                         continue
-                    if i == l_:  # Éviter les dihedrals où i et l sont le même atome
+                    if i == l_:
                         continue
 
                     dih = (i, j, k, l_)
 
-                    # Vérifier les doublons (i-j-k-l et l-k-j-i sont équivalents)
                     dih_rev = (l_, k, j, i)
                     if dih not in seen_dihedrals and dih_rev not in seen_dihedrals:
                         seen_dihedrals.add(dih)
@@ -224,7 +217,6 @@ def _generate_dihedrals_from_bonds(universe: mda.Universe) -> list[tuple]:
     if not hasattr(universe, "bonds") or len(universe.bonds) == 0:
         return []
 
-    # Build neighbor dict from bonds
     neighbors = {i: set() for i in range(len(universe.atoms))}
     for bond in universe.bonds.indices:
         i, j = bond
@@ -246,18 +238,18 @@ def _generate_dihedrals_from_bonds(universe: mda.Universe) -> list[tuple]:
     return list(dihedrals)
 
 
-def apply_clayff_rules(universe: mda.Universe) -> tuple[mda.Universe, dict]:
-    """Applies ClayFF to the universe."""
-    for rule in CLAYFF_RULES:  # ← Directement les objets !
-        universe = apply_single_rule_to_universe(universe, rule)
-    return universe, {}
+# def apply_clayff_rules(universe: mda.Universe) -> tuple[mda.Universe, dict]:
+#     """Applies ClayFF to the universe."""
+#     for rule in CLAYFF_RULES:
+#         universe = apply_single_rule_to_universe(universe, rule)
+#     return universe, {}
 
 
-def apply_cshff_rules(universe: mda.Universe) -> tuple[mda.Universe, dict]:
-    """Applies CSHFF to the universe and returns the calcium indices to modify."""
-    from ..build.cement_hydrates._silicate_helpers import get_interlayer_ca_indices
+# def apply_cshff_rules(universe: mda.Universe) -> tuple[mda.Universe, dict]:
+#     """Applies CSHFF to the universe and returns the calcium indices to modify."""
+#     from ..build.cement_hydrates._silicate_helpers import get_interlayer_ca_indices
 
-    universe, _ = apply_clayff_rules(universe)
-    list_ids_cw = get_interlayer_ca_indices(universe)
-    actions = {"rename_atoms": (list_ids_cw, "Cw")}
-    return universe, actions
+#     universe, _ = apply_clayff_rules(universe)
+#     list_ids_cw = get_interlayer_ca_indices(universe)
+#     actions = {"rename_atoms": (list_ids_cw, "Cw")}
+#     return universe, actions

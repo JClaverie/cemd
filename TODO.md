@@ -1,17 +1,4 @@
-- améliorer/rendre plus clean les builders
-- Implémentation de TO_CASH
-- Il faut améliorer l'update du USER_FF_DB avec l'implémentation d'un nouveau
-- Améliorer l'implémentation automatique des dihedrals par les liaisons
-
-
-cd /home/jerome/Documents/Recherche/Codes/cemd
-python -c "
-import sys
-import traceback
-try:
-    import cemd.analysis.density
-except Exception as e:
-    traceback.print_exc()
-"
-
-python -c "from cemd.build import build_csh, build_solution, split" 2>&1
+- Gérer les set_ff_keys et leur réinitialisation quand nécessaire
+- Tester le merge (prise en compte de la topologie et des params)
+- Créer + tester split et gérer la reconstruction des liaisons
+- Tester toutes les méthodes de AtomicSystem

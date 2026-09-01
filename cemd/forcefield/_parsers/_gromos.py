@@ -183,7 +183,6 @@ class GromosLTParser(BaseForceFieldParser):
     def _parse_dihedral_coeff(lines: list[str], result: ParseResult) -> None:
         """Parse dihedral parameters supporting multiple Fourier terms."""
 
-        # On capture l'identifiant et tout le reste de la ligne
         pattern = r"dihedral_coeff\s+@dihedral:(\w+)\s+(.+)"
 
         for line in lines:
@@ -198,20 +197,17 @@ class GromosLTParser(BaseForceFieldParser):
 
             dihedral_id, rest = match.groups()
 
-            # On découpe la suite de la ligne par espaces
             coeffs = rest.split()
             if not coeffs:
                 continue
 
             try:
-                # Le premier élément est le nombre de termes 'm'
                 m_terms = int(coeffs[0])
                 expected_len = 1 + 3 * m_terms
 
                 if len(coeffs) < expected_len:
                     continue
 
-                # On extrait chaque terme (k, n, delta) par groupes de 3
                 terms_list = []
                 idx = 1
                 for _ in range(m_terms):
@@ -224,7 +220,6 @@ class GromosLTParser(BaseForceFieldParser):
                     terms_list.append(FourierTerm(k=k_val, n=n_val, delta=delta_val))
                     idx += 3
 
-                # On enregistre l'objet global avec sa liste de termes
                 result.dihedrals[dihedral_id] = FourierDihedralParams(terms=terms_list)
 
             except (ValueError, TypeError):

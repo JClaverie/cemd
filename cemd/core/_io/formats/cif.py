@@ -26,7 +26,7 @@ class CIFReader(BaseReader):
     """Reader for CIF files using Pymatgen."""
 
     @classmethod
-    def read(cls, path: str, primitive=False, refine=False) -> dict:
+    def read(cls, path: str, primitive: bool = False, refine: bool = True) -> dict:
         """
         Read CIF file and return topology.
 
@@ -34,10 +34,10 @@ class CIFReader(BaseReader):
         ----------
         path : str
             Path to the CIF file.
-        primitive : bool, default=True
+        primitive : bool
             If True, return the primitive cell.
             If False, return the conventional cell.
-        refine : bool, default=True
+        refine : bool
             If True, refine the structure using SpacegroupAnalyzer.
         """
         from .pmg import PMGReader

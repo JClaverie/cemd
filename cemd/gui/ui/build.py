@@ -30,9 +30,8 @@ from ui.base_dialog import BaseBuilderDialog
 from ui.gui_utils import get_icon
 
 from ..._paths import PYCSH_DIR
-from ...build_old.base import build_surfaces
-from ...build_old.hydrates import build_csh, csh_to_cash, pycsh
-from ...build_old.tools import concentration2count
+from ...build import CSHBuilder, SurfaceBuilder
+from ...build.solution import _concentration2count
 from ...core.atomic_system import AtomicSystem
 
 if TYPE_CHECKING:
@@ -231,7 +230,7 @@ class IonGridWidget(QtWidgets.QGroupBox):
         if "Concentration" in mode:
             # Assuming spins_box and concentration2count are accessible
             volume = self.builder.get_volume()
-            final_count, error_pct = concentration2count(volume, raw_value)
+            final_count, error_pct = _concentration2count(volume, raw_value)
 
         # Insert new row into the table
         row = self.table.rowCount()
@@ -314,7 +313,6 @@ class IonGridWidget(QtWidgets.QGroupBox):
 
     def update_counts_display(self) -> None:
         """Updates the table display with calculated counts from box dimensions."""
-        # Accès direct aux spins de la classe parente (SolutionDialog)
         if not hasattr(self.builder, "spins_box"):
             return
 
@@ -329,9 +327,9 @@ class IonGridWidget(QtWidgets.QGroupBox):
 
             if "Concentration" in mode:
                 volume = self.builder.get_volume()
-                counts = concentration2count(volume, {}, {key: val})
+                counts = _concentration2count(volume, {}, {key: val})
                 n_mols = counts[key]
-                # We update the displayed text without touching the 'UserRole' data
+
                 item_val.setText(f"{val} M ({n_mols} units)")
             else:
                 item_val.setText(f"{int(val)} units")
@@ -432,7 +430,6 @@ class AddStructureDialog(BaseBuilderDialog):
     def setup_ui(self) -> None:
         layout = self.main_layout
 
-        # ---Section 1: Structure Selection (IonGrid Style) ---
         select_group = QtWidgets.QGroupBox("Select structure to add")
         select_lay = QtWidgets.QVBoxLayout(select_group)
 
@@ -456,7 +453,6 @@ class AddStructureDialog(BaseBuilderDialog):
         select_lay.addWidget(self.struct_combo)
         layout.addWidget(select_group)
 
-        # ---Section 2: Geometric Parameters ---
         geo_group = QtWidgets.QGroupBox("Positioning")
         geo_lay = QtWidgets.QFormLayout(geo_group)
         geo_lay.setSpacing(12)
@@ -851,26 +847,37 @@ class pyCSHGeneratorDialog(BaseBuilderDialog):
         QtCore.QTimer.singleShot(100, self.execute_calculation)
 
     def execute_calculation(self):
-
         params = {
             "cs_ratio": self.cs_ratio.value(),
             "ws_ratio": self.ws_ratio.value(),
-            "supercell": [self.na.value(), self.nb.value(), self.nc.value()],
+            "supercell": [
+                self.na.value(),
+                self.nb.value(),
+                self.nc.value(),
+            ],
             "nsamples": self.nsamples.value(),
         }
 
-        self.worker = TaskWorker(pycsh, **params)
+        builder = CSHBuilder(
+            cs_ratio=params["cs_ratio"],
+            ws_ratio=params["ws_ratio"],
+        )
+
+        self.worker = TaskWorker(
+            builder.build_pycsh,
+            supercell=params["supercell"],
+            nsamples=params["nsamples"],
+        )
 
         self.btn_run.setEnabled(False)
-        self.progress_bar.show()
-        self.progress_bar.setRange(0, self.nsamples.value())
-        self.progress_bar.setValue(0)
 
+        self.progress_bar.show()
+        self.progress_bar.setRange(0, params["nsamples"])
+        self.progress_bar.setValue(0)
         self.progress_bar.setFormat("%v/%m")
         self.progress_bar.setAlignment(QtCore.Qt.AlignCenter)
 
         self.worker.progress_changed.connect(self.progress_bar.setValue)
-
         self.worker.status_msg.connect(self.status_bar.showMessage)
 
         self.worker.finished.connect(self.on_calculation_finished)
@@ -882,18 +889,16 @@ class pyCSHGeneratorDialog(BaseBuilderDialog):
 
     def on_calculation_finished(self, results) -> None:
         try:
-            from cemd.build_old.hydrates import csh_to_cash
-
             raw_systems = results if isinstance(results, list) else [results]
             al_si = self.as_ratio.value()
 
             self.real_as_list = []
             self.generated_systems = []
 
-            # C-A-S-H logic
             if al_si > 0:
                 for s in raw_systems:
-                    new_sys, real_as = csh_to_cash(s, as_ratio=al_si)
+                    builder = CSHBuilder(s)
+                    new_sys, real_as = builder.to_cash(s, as_ratio=al_si)
                     self.generated_systems.append(new_sys)
                     self.real_as_list.append(real_as)
             else:
@@ -1099,8 +1104,11 @@ class SurfaceDialog(BaseBuilderDialog):
             QtWidgets.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
             miller = [self.h.value(), self.k.value(), self.l.value()]
 
-            self.all_slabs, shifts, dipoles, broken = build_surfaces(
-                self.data_in, miller, self.slab_size.value(), self.vac_size.value()
+            builder = SurfaceBuilder(self.data_in)
+            self.all_slabs, shifts, dipoles, broken = builder.build(
+                miller_indices=miller,
+                min_slab_size=self.slab_size.value(),
+                min_vacuum_size=self.vac_size.value(),
             )
 
             self.table.setRowCount(len(self.all_slabs))
@@ -1241,39 +1249,58 @@ class CASHBuilderDialog(BaseBuilderDialog):
 
         layout.addWidget(self.status_bar)
 
-    def on_calculate(self):
-        """Generation logic (unchanged but secure)"""
-        try:
-            QtWidgets.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
 
-            self.show_message("Generating C-(A)-S-H structure... Please wait")
+def on_calculate(self):
+    """Generate C-(A)-S-H structure in a worker thread."""
+    try:
+        QtWidgets.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
 
-            params = {
-                "cs_ratio": self.cs.value(),
-                "ws_ratio": self.ws.value(),
-                "supercell": [self.sx.value(), self.sy.value(), self.sz.value()],
-                "min_mcl": self.min_mcl.value(),
-                "model": "tob11a_hamid.cif",
-            }
+        self.show_message("Generating C-(A)-S-H structure... Please wait")
 
-            self.worker = TaskWorker(build_csh, **params)
+        params = {
+            "cs_ratio": self.cs.value(),
+            "ws_ratio": self.ws.value(),
+            "supercell": [
+                self.sx.value(),
+                self.sy.value(),
+                self.sz.value(),
+            ],
+            "min_mcl": self.min_mcl.value(),
+            "model": "tob11a_hamid.cif",
+        }
 
-            self.worker.status_msg.connect(self.set_status)
-            self.worker.finished.connect(self.on_success)
-            self.worker.error.connect(lambda e: self.show_error("Calculation Error", e))
+        builder = CSHBuilder(
+            cs_ratio=params["cs_ratio"],
+            ws_ratio=params["ws_ratio"],
+        )
 
-            self.worker.start()
+        self.worker = TaskWorker(
+            builder.build,
+            supercell=params["supercell"],
+            min_mcl=params["min_mcl"],
+            symmetry=True,
+            model=params["model"],
+        )
 
-        except Exception as e:
-            self.show_error("Error", f"Generation failed: {str(e)}")
-        finally:
-            QtWidgets.QApplication.restoreOverrideCursor()
+        self.worker.progress_changed.connect(self.set_progress)
+        self.worker.status_msg.connect(self.set_status)
+        self.worker.finished.connect(self.on_success)
+        self.worker.error.connect(lambda e: self.show_error("Calculation Error", e))
+
+        self.worker.start()
+
+    except Exception as e:
+        self.show_error("Error", f"Generation failed: {e}")
+
+    finally:
+        QtWidgets.QApplication.restoreOverrideCursor()
 
     def on_success(self, system: AtomicSystem) -> None:
         """This method is called automatically when the Worker has finished"""
         try:
             if self.as_r.value() > 0:
-                res_al = csh_to_cash(system, as_ratio=self.as_r.value())
+                builder = CSHBuilder(system)
+                res_al = builder.to_cash(as_ratio=self.as_r.value())
                 system = res_al[0] if isinstance(res_al, (tuple, list)) else res_al
 
             nsi = system.get_count("Si")
@@ -1756,7 +1783,7 @@ class TaskWorker(QtCore.QThread):
                 self.progress_changed.emit(percent)
                 self.status_msg.emit(msg)
 
-            result = self.func(**self.kwargs, progress_callback=update_ui)
+            result = self.func(**self.kwargs, _progress_callback=update_ui)
             self.finished.emit(result)
         except Exception as e:
             self.error.emit(str(e))

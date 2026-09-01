@@ -40,25 +40,25 @@ class ForceFieldParams:
     angleangle: dict[Any, Any] = field(default_factory=dict)
 
     @classmethod
-    def from_topology(cls, topology: dict[str, Any]) -> ForceFieldParams:
-        """Create force-field parameters from a topology dictionary."""
+    def from_system_dict(cls, system_dict: dict[str, Any]) -> ForceFieldParams:
+        """Create force-field parameters from a system dictionary."""
         return cls(
-            pair=topology.get("pair_params", {}),
-            bond=topology.get("bond_params", {}),
-            angle=topology.get("angle_params", {}),
-            dihedral=topology.get("dihedral_params", {}),
-            improper=topology.get("improper_params", {}),
-            bondbond=topology.get("bondbond_params", {}),
-            bondangle=topology.get("bondangle_params", {}),
-            middlebondtorsion=topology.get("middlebondtorsion_params", {}),
-            endbondtorsion=topology.get("endbondtorsion_params", {}),
-            angletorsion=topology.get("angletorsion_params", {}),
-            angleangletorsion=topology.get("angleangletorsion_params", {}),
-            angleangle=topology.get("angleangle_params", {}),
+            pair=system_dict.get("pair_params", {}),
+            bond=system_dict.get("bond_params", {}),
+            angle=system_dict.get("angle_params", {}),
+            dihedral=system_dict.get("dihedral_params", {}),
+            improper=system_dict.get("improper_params", {}),
+            bondbond=system_dict.get("bondbond_params", {}),
+            bondangle=system_dict.get("bondangle_params", {}),
+            middlebondtorsion=system_dict.get("middlebondtorsion_params", {}),
+            endbondtorsion=system_dict.get("endbondtorsion_params", {}),
+            angletorsion=system_dict.get("angletorsion_params", {}),
+            angleangletorsion=system_dict.get("angleangletorsion_params", {}),
+            angleangle=system_dict.get("angleangle_params", {}),
         )
 
-    def to_topology(self) -> dict[str, dict[Any, Any]]:
-        """Convert force-field parameters to topology dictionary."""
+    def to_system_dict(self) -> dict[str, dict[Any, Any]]:
+        """Convert force-field parameters to system dictionary."""
         return {
             "pair_params": self.pair,
             "bond_params": self.bond,
@@ -79,13 +79,13 @@ class ForceFieldParams:
         interaction: str,
         types,
     ) -> dict[Any, Any]:
-        """Return force-field parameters for active topology types."""
+        """Return force-field parameters for active types."""
         params = getattr(self, interaction)
 
         return {t: params[t] for t in types if t in params}
 
     def active_for(self, system) -> ForceFieldParams:
-        """Return force-field parameters for active topology types."""
+        """Return force-field parameters for active types."""
         return ForceFieldParams(
             pair=self.pair,
             bond=self.active(
@@ -106,11 +106,11 @@ class ForceFieldParams:
             ),
             bondbond=self.active(
                 "bondbond",
-                system.bond_types,
+                system.angle_types,
             ),
             bondangle=self.active(
                 "bondangle",
-                system.bond_types,
+                system.angle_types,
             ),
             middlebondtorsion=self.active(
                 "middlebondtorsion",
@@ -146,18 +146,18 @@ class ForceFieldKeys:
     improper: dict[Any, str] = field(default_factory=dict)
 
     @classmethod
-    def from_topology(cls, topology: dict[str, Any]) -> ForceFieldKeys:
-        """Create force-field key mappings from a topology dictionary."""
+    def from_system_dict(cls, system_dict: dict[str, Any]) -> ForceFieldKeys:
+        """Create force-field key mappings from a system dictionary."""
         return cls(
-            atom=topology.get("atom_ff_keys", {}),
-            bond=topology.get("bond_ff_keys", {}),
-            angle=topology.get("angle_ff_keys", {}),
-            dihedral=topology.get("dihedral_ff_keys", {}),
-            improper=topology.get("improper_ff_keys", {}),
+            atom=system_dict.get("atom_ff_keys", {}),
+            bond=system_dict.get("bond_ff_keys", {}),
+            angle=system_dict.get("angle_ff_keys", {}),
+            dihedral=system_dict.get("dihedral_ff_keys", {}),
+            improper=system_dict.get("improper_ff_keys", {}),
         )
 
-    def to_topology(self) -> dict[str, dict[Any, str]]:
-        """Convert force-field key mappings to topology dictionary."""
+    def to_system_dict(self) -> dict[str, dict[Any, str]]:
+        """Convert force-field key mappings to system dictionary."""
         return {
             "atom_ff_keys": self.atom,
             "bond_ff_keys": self.bond,
@@ -167,13 +167,13 @@ class ForceFieldKeys:
         }
 
     def active(self, interaction: str, types) -> dict[Any, str]:
-        """Return force-field keys for the active topology types."""
+        """Return force-field keys for the active types."""
         mapping = getattr(self, interaction)
 
         return {t: mapping[t] for t in types if t in mapping}
 
     def active_for(self, system) -> ForceFieldKeys:
-        """Return force-field keys for active topology types."""
+        """Return force-field keys for active types."""
         return ForceFieldKeys(
             atom=self.active("atom", system.atom_types),
             bond=self.active("bond", system.bond_types),

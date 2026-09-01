@@ -281,14 +281,14 @@ class SurfaceBuilder(BaseBuilder):
             return None
 
         # Format display
-        HEADER_FORMAT = "{cursor} {idx:>4} | {shift:>10} | {dipole:>12} | {natoms:>8}"
-        ROW_FORMAT = (
+        header_format = "{cursor} {idx:>4} | {shift:>10} | {dipole:>12} | {natoms:>8}"
+        row_format = (
             "{cursor} {idx:>4} | {shift:>10.4f} | {dipole:>12.4f} | {natoms:>8}"
         )
         index = 0
 
         def render():
-            header = HEADER_FORMAT.format(
+            header = header_format.format(
                 cursor=" ",
                 idx="#",
                 shift="Shift",
@@ -313,7 +313,7 @@ class SurfaceBuilder(BaseBuilder):
             for i, (slab, shift, dipole) in enumerate(zip(slabs, shifts, dipoles)):
                 cursor = "➜" if i == index else " "
                 lines.append(
-                    ROW_FORMAT.format(
+                    row_format.format(
                         cursor=cursor,
                         idx=i + 1,
                         shift=shift,

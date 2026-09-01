@@ -21,13 +21,11 @@ from typing import TYPE_CHECKING
 
 from PySide6 import QtCore, QtWidgets
 
-from cemd.build_old.base import (
-    add_droplet,
-    add_liquid,
-    add_structure,
-    build_glass,
-    build_solution,
-    split,
+from cemd.build import (
+    GlassBuilder,
+    SolutionBuilder,
+    Splitter,
+    SurfaceBuilder,
 )
 from cemd.gui.ui.build import (
     AddDropletDialog,
@@ -62,7 +60,10 @@ def open_make_solution(parent: AtomViewerGUI) -> None:
         try:
             QtWidgets.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
             box, density, solutes, structures = dialog.get_values()
-            new_data = build_solution(box, density, solutes, structures)
+            builder = SolutionBuilder(
+                density=density, counts=solutes, structures=structures
+            )
+            new_data = builder.build(box)
             parent.add_structure_tab(new_data, title="Aqueous Solution")
         except Exception as e:
             handle_error(parent, "Solution Error", e)
@@ -79,7 +80,8 @@ def open_make_glass(parent: AtomViewerGUI) -> None:
             QtWidgets.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
             parent.statusBar().showMessage("Generating glass structure with Packmol...")
 
-            new_system = build_glass(box, density, stoich)
+            builder = GlassBuilder(density=density, composition=stoich)
+            new_system = builder.build(box)
 
             if new_system:
                 parent.add_structure_tab(new_system, f"Glass_{density}gcm3")
@@ -185,12 +187,15 @@ def open_add_liquid(parent: AtomViewerGUI) -> None:
             QtWidgets.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
             parent.statusBar().showMessage("Creating interface...")
 
-            active_tab.system = add_liquid(
-                solid_system=active_tab.system,
-                thickness=p["thickness"],
+            builder = SolutionBuilder(
                 density=p["density"],
-                solutes_dict=p["solutes_dict"],
-                structures_dict=p["structures_dict"],
+                counts=p["solutes_dict"],
+                structures=p["structures_dict"],
+            )
+            active_tab.system.add_liquid_layer(
+                blueprint=builder,
+                thickness=p["thickness"],
+                distance=2.0,
                 vacuum=p["vacuum"],
                 axis=p["axis"],
             )
@@ -214,20 +219,22 @@ def open_add_droplet(parent: AtomViewerGUI) -> None:
         try:
             QtWidgets.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
             parent.statusBar().showMessage("Adding droplet...")
-
-            active_tab.system = add_droplet(
-                solid_system=active_tab.system,
-                radius=p["radius"],
+            builder = SolutionBuilder(
                 density=p["density"],
-                solutes_dict=p["solutes_dict"],
-                structures_dict=p["structures_dict"],
+                counts=p["solutes_dict"],
+                structures=p["structures_dict"],
+            )
+            active_tab.system.add_droplet(
+                blueprint=builder,
+                radius=p["radius"],
+                distance=2.0,
                 vacuum=p["vacuum"],
+                axis="z",
             )
 
             parent.sync_ui(full_rebuild=True, reset_camera=True)
             parent.statusBar().showMessage("Droplet added successfully!", 5000)
         except Exception as e:
-            # Remplace handle_error par ta méthode habituelle d'affichage d'erreurs
             QtWidgets.QMessageBox.critical(parent, "Droplet Error", str(e))
         finally:
             QtWidgets.QApplication.restoreOverrideCursor()
@@ -242,20 +249,17 @@ def open_add_structure(parent: AtomViewerGUI) -> None:
     if dialog.exec() == QtWidgets.QDialog.Accepted:
         p = dialog.get_values()
         if p is None:
-            return  # Si aucune structure n'était sélectionnée
-
+            return
         try:
             QtWidgets.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
             parent.statusBar().showMessage("Adding structure to surface...")
 
-            active_tab.system = add_structure(
-                solid_system=active_tab.system,
+            active_tab.system.add_structure(
                 structure_to_add=p["structure_to_add"],
                 distance=p["distance"],
                 axis=p["axis"],
                 vacuum=p["vacuum"],
             )
-
             parent.sync_ui(full_rebuild=True, reset_camera=True)
             parent.statusBar().showMessage("Structure added successfully!", 5000)
         except Exception as e:
@@ -276,17 +280,17 @@ def open_split(parent: AtomViewerGUI) -> None:
             QtWidgets.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
             parent.statusBar().showMessage("Creating channel...")
 
-            active_tab.system = split(
-                solid_system=active_tab.system,
-                axis=p["axis"],
-                coordinate=p["coordinate"],
-                gap_size=p["gap_size"],
-                tolerance=p["tolerance"],
-                add_solution=p["add_solution"],
-                density=p["density"],
-                solutes_dict=p["solutes_dict"],
-                structures_dict=p["structures_dict"],
-            )
+            # active_tab.system = split(
+            #     solid_system=active_tab.system,
+            #     axis=p["axis"],
+            #     coordinate=p["coordinate"],
+            #     gap_size=p["gap_size"],
+            #     tolerance=p["tolerance"],
+            #     add_solution=p["add_solution"],
+            #     density=p["density"],
+            #     solutes_dict=p["solutes_dict"],
+            #     structures_dict=p["structures_dict"],
+            # )
 
             parent.sync_ui(full_rebuild=True, reset_camera=True)
             parent.statusBar().showMessage("Channel created!", 5000)

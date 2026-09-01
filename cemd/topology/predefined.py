@@ -60,3 +60,17 @@ CLAYFF_RULES: list[TopologyRule] = [
     # --- Sulfate oxygens ---
     TopologyRule("type O", NeighborCriterion("type S", 1.6, 1), new_type="Os"),
 ]
+
+
+CSHFF_RULES = CLAYFF_RULES + [
+    TopologyRule(
+        center="type Ca",
+        neighbors=NeighborCriterion(
+            selection="type Ow",
+            cutoff=3.2,
+            count=1,
+            exact_match=False,
+        ),
+        new_type="Cw",
+    ),
+]
