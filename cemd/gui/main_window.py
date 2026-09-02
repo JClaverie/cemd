@@ -684,7 +684,7 @@ class AtomViewerGUI(QtWidgets.QMainWindow):
     def open_cod_browser(self):
         dialog = CODBrowserDialog(self)
         if dialog.exec() == QtWidgets.QDialog.Accepted:
-            system = dialog.selected_system  # ← déjà un AtomicSystem
+            system = dialog.selected_system  # ← already an AtomicSystem
             cod_id = dialog.last_cod_id
             title = f"COD_{cod_id}"
             self.add_structure_tab(system, title=title)

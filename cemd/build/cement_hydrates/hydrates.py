@@ -111,7 +111,7 @@ class CSHBuilder(BaseBuilder):
         ):
             cs_display = self._analysis["Ca/Si"]
 
-        # Déterminer ws_ratio à afficher
+        # Determine ws_ratio to display
         ws_display = self.ws_ratio
         if (
             ws_display is None
@@ -134,7 +134,7 @@ class CSHBuilder(BaseBuilder):
         if self._system is not None:
             lines.append(f"│   System       : {self._system.num_atoms} atoms")
 
-            # Analyse automatique si elle n'existe pas encore
+            # Automatic analysis if it does not exist yet
             if self._analysis is None:
                 try:
                     self._analysis = analyze_silicates(self._system)
@@ -494,7 +494,7 @@ class CSHBuilder(BaseBuilder):
                 raise FileNotFoundError(f"pyCSH did not generate {reax_name}")
 
             data = AtomicSystem.from_file(lmp_path)
-            data.reset_types()
+            data.set_types_from_elements()
             atomic_systems.append(data)
 
         result = atomic_systems[0] if len(atomic_systems) == 1 else atomic_systems
@@ -532,8 +532,8 @@ class CSHBuilder(BaseBuilder):
 
         system.set_type2atoms(substituted_ids, "Al")
         system.keep_connection_types(
-            bond_types=[("Hsi", "Osih"), ("Ha", "Oah"), ("Hh", "Oh"), ("Hw", "Ow")],
-            angle_types=[("Hw", "Ow", "Hw")],
+            bond_types=["Hsi-Osih", "Ha-Oah", "Hh-Oh", "Hw-Ow"],
+            angle_types=["Hw-Ow-Hw"],
         )
 
         self._system = system
@@ -574,7 +574,7 @@ class AFBuilder(BaseBuilder):
     # Required parameters
     ws_ratio: float = field(default=None)
 
-    # Optional parameter (commun)
+    # Optional parameter (common)
     progress_callback: Callable[[int, str], None] | None = None
 
     # Internal state
@@ -598,6 +598,31 @@ class AFBuilder(BaseBuilder):
     # ------------------------------------------------------------------
     # Build methods
     # ------------------------------------------------------------------
+
+    def build(
+        self,
+        structure_type: str = "aft",
+        supercell: Sequence[int] | None = None,
+        model_file: str | None = None,
+        **kwargs,
+    ) -> AtomicSystem:
+        """Build an AFt or AFm structure, dispatching on ``structure_type``.
+
+        Satisfies the ``BaseBuilder`` interface; prefer :meth:`build_aft`
+        or :meth:`build_afm` directly when the structure type is known.
+        """
+        if structure_type == "aft":
+            return self.build_aft(
+                supercell=supercell, model_file=model_file or "aft_moore.cif"
+            )
+        elif structure_type == "afm":
+            return self.build_afm(
+                supercell=supercell, model_file=model_file or "afm.cif", **kwargs
+            )
+        else:
+            raise ValueError(
+                f"Unknown structure_type: {structure_type!r}. Expected 'aft' or 'afm'."
+            )
 
     def build_aft(
         self, supercell: Sequence[int] | None = None, model_file: str = "aft_moore.cif"
@@ -665,7 +690,12 @@ class AFBuilder(BaseBuilder):
         """Internal method to build AFt/AFm structures."""
         require_program("packmol")
 
-        from .._packmol import add_packmol_structure, get_structure_path, run_packmol
+        from .._packmol import (
+            PackmolInput,
+            PackmolStructure,
+            get_structure_path,
+            run_packmol,
+        )
 
         if supercell is not None and len(supercell) != 3:
             raise ValueError(f"supercell must have 3 elements, got {len(supercell)}")
@@ -699,32 +729,44 @@ class AFBuilder(BaseBuilder):
             tempfile_ipdb = tmp_path / "itmp.pdb"
             sel.write(tempfile_ipdb)
 
-            h2o_pdb = get_structure_path("h2o", tmp)
+            # get_structure_path may resolve to a .lt (moltemplate) file,
+            # which Packmol cannot read directly; load it as an
+            # AtomicSystem so run_packmol rewrites it to PDB first.
+            h2o_path = get_structure_path("h2o", tmp)
+            h2o = AtomicSystem.from_file(h2o_path)
+
+            inside_box = (0.0, 0.0, 0.0, box[0], box[1], box[2])
 
             structures = [
-                add_packmol_structure(
-                    tempfile_ipdb,
-                    1,
-                    f"inside box 0 0 0 {box[0]:.4f} {box[1]:.4f} {box[2]:.4f}",
-                    f"atoms {idmin}",
-                    "fixed 0 0 0 0 0 0",
-                    "end atoms",
+                PackmolStructure(
+                    structure=str(tempfile_ipdb),
+                    number=1,
+                    inside_box=inside_box,
+                    extra_instructions=[
+                        f"atoms {idmin}",
+                        "fixed 0 0 0 0 0 0",
+                        "end atoms",
+                    ],
                 ),
-                add_packmol_structure(
-                    h2o_pdb,
-                    num_water,
-                    f"inside box 0 0 0 {box[0]:.4f} {box[1]:.4f} {box[2]:.4f}",
+                PackmolStructure(
+                    structure=h2o,
+                    number=num_water,
+                    inside_box=inside_box,
                 ),
             ]
 
             if _progress_callback:
                 _progress_callback(50, f"Adding {num_water} water molecules...")
 
-            output_system = run_packmol(structures)
+            packmol_input = PackmolInput(
+                tolerance=2.0,
+                output="output.pdb",
+                filetype="pdb",
+                structures=structures,
+            )
+            output_system = run_packmol(packmol_input)
 
-        # Set box and topology
         output_system.set_box(box)
-        output_system.set_topo()
 
         if _progress_callback:
             _progress_callback(100, f"{structure_type.upper()} complete")

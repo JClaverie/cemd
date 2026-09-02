@@ -18,21 +18,16 @@
 
 from __future__ import annotations
 
-import tempfile
 import warnings
-from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
-import numpy as np
 import pandas as pd
 
-from .._constants import AVOGADRO, MASSES_DICT
 from ..core._format import (
     lattice2vectors,
     vectors2lattice,
 )
 from ..core.atomic_system import AtomicSystem
-from .base import require_program
 from .solution import SolutionBuilder
 
 if TYPE_CHECKING:
@@ -60,73 +55,12 @@ def _calculate_liquid_box(
 def _build_droplet_from_blueprint(
     blueprint: SolutionBuilder, radius: float, axis: str = "z"
 ) -> AtomicSystem:
-    """Build a hemispherical droplet from a blueprint."""
-    from ._packmol import add_packmol_structure, get_structure_path, run_packmol
+    """Build a hemispherical droplet from a blueprint.
 
-    require_program("packmol")
-
-    # Hemisphere volume
-    volume = 2 * np.pi * radius**3 / 3
-
-    # Get accounts
-    solute_counts = blueprint.to_counts(volume)
-
-    # Calculate the number of water molecules
-    water_molarmass = 2 * MASSES_DICT["H"] + MASSES_DICT["O"]
-    mass_solutes_uma = blueprint.get_solute_mass(volume)
-    mass_solutes_g = mass_solutes_uma / AVOGADRO
-    mass_total_target_g = blueprint.density * volume * 1e-24
-    mass_water_g = mass_total_target_g - mass_solutes_g
-
-    if mass_water_g <= 0:
-        raise ValueError("Target density or droplet volume is too low.")
-
-    num_water = int(round((mass_water_g * AVOGADRO) / water_molarmass))
-
-    # Plane pour Packmol
-    if axis == "z":
-        plane = "over plane 0 0 1 0"
-    elif axis == "y":
-        plane = "over plane 0 1 0 0"
-    elif axis == "x":
-        plane = "over plane 1 0 0 0"
-    else:
-        raise ValueError(f"Invalid axis: {axis}")
-
-    # Build with Packmol
-    with tempfile.TemporaryDirectory(dir=".") as tmp:
-        tmp_path = Path(tmp)
-        structures = []
-
-        h2o_path = get_structure_path("H2O", tmp_path)
-        structures.append(
-            add_packmol_structure(
-                h2o_path, num_water, f"inside sphere 0 0 0 {radius:.4f}", plane
-            )
-        )
-
-        for species, count in solute_counts.items():
-            if count <= 0:
-                continue
-
-            if species in blueprint.structures:
-                struct_path = tmp_path / f"custom_{species}.pdb"
-                blueprint.structures[species].write(str(struct_path))
-            else:
-                struct_path = get_structure_path(species, tmp_path)
-
-            structures.append(
-                add_packmol_structure(
-                    struct_path, count, f"inside sphere 0 0 0 {radius:.4f}", plane
-                )
-            )
-
-        data = run_packmol(structures)
-
-    box_size = radius * 2.5
-    data.set_box([box_size, box_size, radius * 1.5, 90, 90, 90])
-
-    return data
+    This is a thin wrapper around ``SolutionBuilder.build_hemisphere``,
+    which already implements the same Packmol-based hemisphere geometry.
+    """
+    return blueprint.build_hemisphere(radius, axis)
 
 
 def _merge_data(system_a, system_b, box) -> AtomicSystem:
@@ -157,20 +91,13 @@ def _merge_data(system_a, system_b, box) -> AtomicSystem:
             df_b[atom_cols] = df_b[atom_cols].astype(int) + system_a.num_atoms
 
         merged = pd.concat([df_a, df_b], ignore_index=True)
-        output[key] = (
-            merged.assign(**{c: merged.index + 1 for c in []})
-            if not merged.empty
-            else None
-        )
+        output[key] = merged if not merged.empty else None
 
         if output[key] is not None:
             output[key].index = range(1, len(output[key]) + 1)
 
     for key in dict_a:
-        if key.endswith("_ff_keys"):
-            merged = {**dict_a[key], **dict_b.get(key, {})}
-            output[key] = merged
-        elif key.endswith("_params"):
+        if key.endswith("_ff_keys") or key.endswith("_params"):
             output[key] = _merge_param_dicts(
                 dict_a[key], dict_b.get(key, {}), param_name=key
             )
@@ -374,36 +301,8 @@ def _add_structure(
         solid_system = AtomicSystem.from_file(solid_system)
     if isinstance(structure_to_add, str):
         structure_to_add = AtomicSystem.from_file(structure_to_add)
-    else:
-        structure_to_add = structure_to_add.copy()
 
-    axis_map = {"x": 0, "y": 1, "z": 2}
-    axis_names = ["x", "y", "z"]
-    idx = axis_map[axis.lower()]
-    axis_name = axis_names[idx]
-
-    trans_indices = [i for i in [0, 1, 2] if i != idx]
-    com_solid = solid_system.get_center_of_mass()
-    com_struct = structure_to_add.get_center_of_mass()
-
-    for i in trans_indices:
-        t_name = axis_names[i]
-        shift_trans = com_solid[i] - com_struct[i]
-        structure_to_add.atoms[t_name] += shift_trans
-
-    solid_surface = solid_system.atoms[axis_name].max()
-    struct_base = structure_to_add.atoms[axis_name].min()
-
-    shift_main = (solid_surface - struct_base) + distance
-    structure_to_add.atoms[axis_name] += shift_main
-
-    new_box = solid_system.box.copy()
-    solid_min = solid_system.atoms[axis_name].min()
-    struct_top = structure_to_add.atoms[axis_name].max()
-
-    new_box[idx] = (struct_top - solid_min) + vacuum + distance
-
-    result = _merge_data(solid_system, structure_to_add, new_box)
+    result = _merge_structure(solid_system, structure_to_add, distance, axis, vacuum)
     result.wrap()
 
     return result

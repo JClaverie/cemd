@@ -77,19 +77,17 @@ def save_file_as(
     if not current_system:
         return None
 
-    # Dialog setup
     dialog = QtWidgets.QFileDialog(parent, "Save as LAMMPS datafile")
     dialog.setAcceptMode(QtWidgets.QFileDialog.AcceptSave)
     dialog.setNameFilter("LAMMPS Data (*.data)")
     dialog.setDefaultSuffix("data")
 
-    # ESSENTIAL: Forces Qt to use its own dialog (allows layout modification)
+    # ESSENTIAL: forces Qt to use its own dialog (allows layout modification)
     dialog.setOption(QtWidgets.QFileDialog.Option.DontUseNativeDialog)
 
     if current_path:
         dialog.setDirectory(os.path.dirname(current_path))
 
-    # Creating the options widget
     option_group = QtWidgets.QGroupBox("Export options")
     layout = QtWidgets.QHBoxLayout()
 
@@ -102,16 +100,15 @@ def save_file_as(
     layout.addWidget(style_combo)
     option_group.setLayout(layout)
 
-    # Secure addition to the layout
     dialog_layout = dialog.layout()
     if dialog_layout:
-        # In a classic QFileDialog, the layout is a QGridLayout
-        # We add the widget at the bottom of the grid
+        # In a classic QFileDialog, the layout is a QGridLayout;
+        # add the widget at the bottom of the grid.
         row_count = dialog_layout.rowCount()
         dialog_layout.addWidget(option_group, row_count, 0, 1, -1)
     else:
-        # Fallback solution if the layout is still not found
-        # (very rare with DontUseNativeDialog)
+        # Fallback if the layout still can't be found
+        # (very rare with DontUseNativeDialog).
         print("Warning: Could not access QFileDialog layout.")
 
     if dialog.exec() == QtWidgets.QDialog.Accepted:

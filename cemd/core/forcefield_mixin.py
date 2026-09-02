@@ -106,29 +106,23 @@ class ForceFieldMixin:
 
         self._update_masses_and_charges(db)
         self._set_pair_params_from_db(resolved_atom_assignments, db, overwrite)
-        self._set_bond_params_from_db(bond_assignments, db, overwrite)
-        self._set_angle_params_from_db(angle_assignments, db, overwrite)
-        self._set_dihedral_params_from_db(dihedral_assignments, db, overwrite)
-        self._set_improper_params_from_db(improper_assignments, db, overwrite)
+        self._set_topology_params_from_db("bond", bond_assignments, db, overwrite)
+        self._set_topology_params_from_db("angle", angle_assignments, db, overwrite)
+        self._set_topology_params_from_db(
+            "dihedral", dihedral_assignments, db, overwrite
+        )
+        self._set_topology_params_from_db(
+            "improper", improper_assignments, db, overwrite
+        )
 
         # Class2 cross terms: they apply to an existing angle/dihedral/
         # improper, so they piggyback on that category's ff-key assignments
         # rather than taking their own.
         self._set_topology_params_from_db(
-            "bondbond",
-            {},
-            db,
-            overwrite,
-            types_attr="angle_types",
-            ff_keys_attr="angle",
+            "bondbond", {}, db, overwrite, types_attr="angle_types", ff_keys_attr="angle"
         )
         self._set_topology_params_from_db(
-            "bondangle",
-            {},
-            db,
-            overwrite,
-            types_attr="angle_types",
-            ff_keys_attr="angle",
+            "bondangle", {}, db, overwrite, types_attr="angle_types", ff_keys_attr="angle"
         )
         self._set_topology_params_from_db(
             "angleangletorsion",
@@ -148,36 +142,7 @@ class ForceFieldMixin:
         )
 
     def set_atom_ff_keys(self, value: Sequence[str] | dict[str | int, str]) -> None:
-        if isinstance(value, dict):
-            current_types = set(self.atom_types)
-            missing_types = [
-                atype for atype in value.keys() if atype not in current_types
-            ]
-
-            if missing_types:
-                warnings.warn(
-                    f"Target atom types not present in current system: {missing_types}",
-                    UserWarning,
-                )
-
-            self._ff_keys.atom.update(value)
-
-        elif isinstance(value, (list, np.ndarray, tuple)):
-            current_types = list(self.atom_types)
-
-            if len(value) != len(current_types):
-                raise ValueError(
-                    f"Sequence length ({len(value)}) does not match "
-                    f"the number of atom types ({len(current_types)})."
-                )
-
-            new_map = dict(zip(current_types, value))
-            self._ff_keys.atom.update(new_map)
-        else:
-            raise TypeError(
-                f"Unsupported argument type: {type(value).__name__}. "
-                "Expected dict or sequence of strings."
-            )
+        self._apply_topology_ff_keys("atom", value)
 
     def set_bond_ff_keys(self, value: Sequence[str] | dict[str, str]) -> None:
         self._apply_topology_ff_keys("bond", value)
@@ -554,32 +519,34 @@ class ForceFieldMixin:
     def _apply_topology_ff_keys(
         self, kind: str, value: Sequence[str] | dict[str, str]
     ) -> None:
-        """Helper method to set or update force field keys for a given topology kind."""
+        """Helper method to set or update force field keys for a given topology kind.
+
+        "atom" and "dihedral" keys are stored as given (an atom type is a
+        single name; a dihedral is a directional chain). "bond", "angle"
+        and "improper" keys are canonicalized via ``canonical_ff_type`` so
+        they match the type strings the system itself generates (see
+        ``TopologyMixin._set_connection``), regardless of the atom order
+        the caller used.
+        """
         current_types_list = getattr(self, f"{kind}_types", [])
         current_types = set(current_types_list)
         target_dict = getattr(self._ff_keys, kind)
 
-        if isinstance(value, dict):
-            missing_types = []
-            for t in value.keys():
-                normalized_t = (
-                    self._normalize_binary_key(*t.split("-")) if kind == "bond" else t
-                )
-                if t not in current_types and normalized_t not in current_types:
-                    missing_types.append(t)
+        def canonicalize(topo_type: str) -> str:
+            if kind in ("bond", "angle", "improper"):
+                return canonical_ff_type(tuple(topo_type.split("-")), kind)
+            return topo_type
 
+        if isinstance(value, dict):
+            canonical_value = {canonicalize(t): ff_key for t, ff_key in value.items()}
+
+            missing_types = [t for t in canonical_value if t not in current_types]
             if missing_types:
                 warnings.warn(
                     f"Target {kind} types not present: {missing_types}", UserWarning
                 )
 
-            for topo_type, ff_key in value.items():
-                final_key = (
-                    self._normalize_binary_key(*topo_type.split("-"))
-                    if kind == "bond"
-                    else topo_type
-                )
-                target_dict[final_key] = ff_key
+            target_dict.update(canonical_value)
 
         elif isinstance(value, (list, np.ndarray, tuple)):
             if len(value) != len(current_types_list):
@@ -601,17 +568,17 @@ class ForceFieldMixin:
     ) -> Any:
         """Helper method to find or derive pair parameters from the database."""
 
-        # 1. Search with exact keys (ex: db.lj or db.buckingham)
+        # Search with exact keys (ex: db.lj or db.buckingham)
         params = db.get_lj(ff_t1, ff_t2) or db.get_buckingham(ff_t1, ff_t2)
         if params is not None:
             return params
 
-        # 2. Search with the original keys (without the suffix)
+        # Search with the original keys (without the suffix)
         params = db.get_lj(orig_t1, orig_t2) or db.get_buckingham(orig_t1, orig_t2)
         if params is not None:
             return params
 
-        # 3. If not found, try to derive it from each atom's own
+        # If not found, try to derive it from each atom's own
         # self-interaction LJ parameters (Lorentz-Berthelot mixing).
         self1 = db.get_lj(ff_t1, ff_t1) or db.get_lj(orig_t1, orig_t1)
         self2 = db.get_lj(ff_t2, ff_t2) or db.get_lj(orig_t2, orig_t2)
@@ -626,7 +593,7 @@ class ForceFieldMixin:
                 model="mixed",
             )
 
-        # 4. FALLback: if still not found and it is the same atom, we put 0
+        # Fallback: if still not found and it is a self-interaction, default to zero
         if is_self_interaction:
             return LJParams(
                 epsilon=0.0,
@@ -749,42 +716,6 @@ class ForceFieldMixin:
                 stacklevel=2,
             )
 
-    def _set_bond_params_from_db(
-        self,
-        bond_assignments: dict,
-        db: ForceFieldDatabase,
-        overwrite: bool,
-    ) -> None:
-        self._set_topology_params_from_db("bond", bond_assignments, db, overwrite)
-
-    def _set_angle_params_from_db(
-        self,
-        angle_assignments: dict,
-        db: ForceFieldDatabase,
-        overwrite: bool,
-    ) -> None:
-        self._set_topology_params_from_db("angle", angle_assignments, db, overwrite)
-
-    def _set_dihedral_params_from_db(
-        self,
-        dihedral_assignments: dict,
-        db: ForceFieldDatabase,
-        overwrite: bool,
-    ) -> None:
-        self._set_topology_params_from_db(
-            "dihedral", dihedral_assignments, db, overwrite
-        )
-
-    def _set_improper_params_from_db(
-        self,
-        improper_assignments: dict,
-        db: ForceFieldDatabase,
-        overwrite: bool,
-    ) -> None:
-        self._set_topology_params_from_db(
-            "improper", improper_assignments, db, overwrite
-        )
-
     def _resolve_atom_assignments(
         self, assignments: dict, db: ForceFieldDatabase
     ) -> dict:
@@ -856,8 +787,34 @@ class ForceFieldMixin:
             return self._ff_keys.atom.get(sys_type)
         return None
 
+    @staticmethod
+    def _remap_interaction_key(
+        interaction_type: str, kind: str, type_mapping: dict[str, str]
+    ) -> str:
+        """Rebuild a canonical interaction key after atom types are renamed."""
+        old_types = interaction_type.split("-")
+        new_types = tuple(
+            type_mapping.get(atom_type, atom_type) for atom_type in old_types
+        )
+
+        # For dihedrals, keep the original (chain) order.
+        if kind == "dihedral":
+            return "-".join(new_types)
+
+        return canonical_ff_type(new_types, kind)
+
     def _remap_ff_keys(self, type_mapping: dict[str, str]) -> None:
-        """Remap force-field keys after atom types have been renamed."""
+        """Remap force-field keys and already-resolved parameters after
+        atom types have been renamed.
+
+        Both ``_ff_keys`` (type -> database key) and ``_ff_params``
+        (type -> resolved parameter object, including the class2 cross
+        terms) are keyed by interaction-type strings built from atom type
+        names. Without this remap, a rename would silently orphan every
+        already-resolved parameter: its key would no longer match any
+        current bond/angle/dihedral/improper type, so it would simply
+        disappear from the active (filtered) view used when writing files.
+        """
 
         # Atom FF keys
         old_atom_keys = dict(self._ff_keys.atom)
@@ -870,23 +827,46 @@ class ForceFieldMixin:
         # Interaction FF keys
         for kind in ["bond", "angle", "dihedral", "improper"]:
             old_keys = dict(getattr(self._ff_keys, kind))
-            new_keys = {}
-
-            for interaction_type, ff_key in old_keys.items():
-                old_types = interaction_type.split("-")
-                new_types = tuple(
-                    type_mapping.get(atom_type, atom_type) for atom_type in old_types
+            new_keys = {
+                self._remap_interaction_key(interaction_type, kind, type_mapping): (
+                    ff_key
                 )
-
-                # For the dihedrons, keep the original order
-                if kind == "dihedral":
-                    new_interaction_type = "-".join(new_types)
-                else:
-                    new_interaction_type = canonical_ff_type(new_types, kind)
-
-                new_keys[new_interaction_type] = ff_key
-
+                for interaction_type, ff_key in old_keys.items()
+            }
             setattr(self._ff_keys, kind, new_keys)
+
+        # Pair parameters (keyed like a bond: two atom types, symmetric).
+        old_pairs = dict(self._ff_params.pair)
+        self._ff_params.pair = {
+            self._normalize_binary_key(
+                *(type_mapping.get(t, t) for t in pair_type.split("-"))
+            ): params
+            for pair_type, params in old_pairs.items()
+        }
+
+        # Interaction parameters, including the class2 cross terms, which
+        # piggyback on their parent category's key convention (bondbond and
+        # bondangle apply to an angle, angleangletorsion to a dihedral,
+        # angleangle to an improper).
+        param_kind_for = {
+            "bond": "bond",
+            "angle": "angle",
+            "dihedral": "dihedral",
+            "improper": "improper",
+            "bondbond": "angle",
+            "bondangle": "angle",
+            "angleangletorsion": "dihedral",
+            "angleangle": "improper",
+        }
+        for param_attr, kind in param_kind_for.items():
+            old_params = dict(getattr(self._ff_params, param_attr))
+            new_params = {
+                self._remap_interaction_key(interaction_type, kind, type_mapping): (
+                    params
+                )
+                for interaction_type, params in old_params.items()
+            }
+            setattr(self._ff_params, param_attr, new_params)
 
     def _validate_and_convert_coeffs(self, coeffs, expected_len, name):
         """Validates and converts a list of coefficients."""

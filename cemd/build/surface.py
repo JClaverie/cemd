@@ -54,7 +54,7 @@ class SurfaceBuilder(BaseBuilder):
         lines = ["<SurfaceBuilder>"]
         lines.append("")
 
-        # ====== Système ======
+        # ====== System ======
         lines.append("┌─ Structure")
         lines.append(f"│   sites   : {len(self._structure)}")
         lines.append(f"│   formula : {self._structure.formula}")
@@ -66,7 +66,7 @@ class SurfaceBuilder(BaseBuilder):
 
     def _get_structure(self) -> Structure:
         """Get the structure for surface generation."""
-        # Priorité à la structure originale
+        # Prefer the original structure
         if self.system._pmg_struct is not None:
             return self.system._pmg_struct
         else:
@@ -360,6 +360,7 @@ class SurfaceBuilder(BaseBuilder):
         )
         app.run()
 
-        selected_slab = slabs[selected_idx[0]]
+        if selected_idx[0] == -1:
+            return None
 
-        return selected_slab
+        return slabs[selected_idx[0]]

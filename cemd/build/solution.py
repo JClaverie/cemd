@@ -462,7 +462,7 @@ class SolutionBuilder:
             "y": (0.0, 1.0, 0.0, 0.0),
             "z": (0.0, 0.0, 1.0, 0.0),
         }[axis]
-        inside_sphere = inside_sphere = (0.0, 0.0, 0.0, radius)
+        inside_sphere = (0.0, 0.0, 0.0, radius)
 
         with tempfile.TemporaryDirectory(dir=".") as tmp:
             h2o_path = get_structure_path("H2O", tmp)

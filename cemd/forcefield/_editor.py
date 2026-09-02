@@ -45,7 +45,6 @@ from models import (
 
 from cemd.forcefield._config import get_user_config_path, reset_user_forcefields
 
-# Retrieve the database directory (passed as an argument or inferred)
 FF_DIR = get_user_config_path()
 
 
@@ -84,7 +83,7 @@ def df_to_dict(df: pd.DataFrame) -> dict:
 st.set_page_config(page_title="CEMD Forcefield Editor", layout="wide")
 st.title("CEMD Forcefield Database Editor")
 
-# Sidebar — File selection and management
+# Sidebar — file selection and management
 with st.sidebar:
     st.header("Forcefields")
     ff_names = get_all_ff()
@@ -96,7 +95,7 @@ with st.sidebar:
 
     st.divider()
 
-    # ---Create a new forcefield ---
+    # --- Create a new forcefield ---
     with st.expander("➕ New forcefield"):
         new_name = st.text_input("Name (e.g. 'reaxff')", key="new_name")
         new_display = st.text_input("Display name (e.g. 'ReaxFF')", key="new_display")
@@ -127,7 +126,7 @@ with st.sidebar:
                 st.success(f"Created: {new_name}.toml")
                 st.rerun()
 
-    # ---Duplicate ---
+    # --- Duplicate ---
     with st.expander("📋 Duplicate"):
         dup_name = st.text_input("New name", key="dup_name")
         if st.button("Duplicate", key="dup_ff") and dup_name:
@@ -139,7 +138,7 @@ with st.sidebar:
                 st.success(f"Duplicated to {dup_name}.toml")
                 st.rerun()
 
-    # ---Delete ---
+    # --- Delete ---
     with st.expander("🗑️ Delete", expanded=False):
         st.warning(f"Permanently delete '{selected}'?")
         if st.button("Confirm deletion", type="primary", key="del_ff"):
@@ -151,12 +150,10 @@ with st.sidebar:
             "This will overwrite all your custom changes with the original default forcefields."
         )
         if st.button("Confirm Reset", type="primary", key="reset_ff"):
-            # Calling the reset function
             reset_user_forcefields()
             st.success("Forcefields successfully reset to defaults!")
             st.rerun()
 
-# Loading data from the selected forcefield
 data = load_ff(selected)
 
 st.header(f"{data.get('model', {}).get('name', selected)}")
@@ -173,13 +170,11 @@ def generate_category_config(
     Extrait automatiquement les colonnes et les types d'une dataclass
     pour configurer le tableau Streamlit.
     """
-    # Récupération des champs de la dataclass
     fields = dataclasses.fields(dc_class)
 
-    # La colonne 'key' est toujours présente en premier
+    # The 'key' column always comes first
     cols = ["key"] + [f.name for f in fields]
 
-    # Configuration dynamique des types de colonnes
     config = {"key": st.column_config.TextColumn("Key", help="Unique identifier")}
 
     for f in fields:
@@ -198,7 +193,7 @@ def generate_category_config(
     return {"key": (main_key, sub_key), "cols": cols, "config": config}
 
 
-# Dictionnaire des catégories généré automatiquement grâce aux dataclasses !
+# Category dictionary generated automatically from the dataclasses!
 categories = {
     "Atom Types": generate_category_config(AtomType, "atom"),
     "Lennard-Jones (LJ)": generate_category_config(LJParams, "lj"),
@@ -247,12 +242,10 @@ categories = {
     ),
 }
 
-# Category selection via drop-down menu
 selected_category = st.selectbox(
     "Select parameter category to edit:", list(categories.keys())
 )
 
-# Dynamic information retrieval
 cat_info = categories[selected_category]
 main_key, sub_key = cat_info["key"]
 default_cols = cat_info["cols"]
@@ -264,7 +257,6 @@ else:
 
 st.subheader(selected_category)
 
-# Editor display by passing default columns
 df_section = dict_to_df(section_data, default_cols=default_cols)
 edited_df = st.data_editor(
     df_section,
@@ -273,7 +265,6 @@ edited_df = st.data_editor(
     key=f"editor_{main_key}_{sub_key}",
 )
 
-# Global save button for active category
 if st.button(f"Save {selected_category}"):
     if main_key not in data:
         data[main_key] = {}

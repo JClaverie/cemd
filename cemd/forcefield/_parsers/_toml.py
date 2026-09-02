@@ -55,7 +55,7 @@ class TOMLParser(BaseForceFieldParser):
 
     def _parse_data(self, data: dict[str, Any]) -> ParseResult:
         """Parse les données TOML."""
-        # Déterminer le nom du modèle
+        # Determine the model name
         if "model" in data:
             model_name = data["model"].get("name", "unknown")
         else:
@@ -63,7 +63,7 @@ class TOMLParser(BaseForceFieldParser):
 
         result = ParseResult(model_name=model_name)
 
-        # Métadonnées
+        # Metadata
         if "model" in data:
             result.metadata = {
                 "description": data["model"].get("description", ""),
@@ -71,7 +71,7 @@ class TOMLParser(BaseForceFieldParser):
                 "tags": data["model"].get("tags", []),
             }
 
-        # Atomes
+        # Atoms
         for key, params in data.get("atom", {}).items():
             result.atoms[key] = AtomType(
                 element=params["element"],
@@ -101,7 +101,7 @@ class TOMLParser(BaseForceFieldParser):
                 model=model_name,
             )
 
-        # Bonds harmoniques
+        # Harmonic bonds
         for key, params in data.get("bond", {}).get("harmonic", {}).items():
             result.bonds[key] = HarmonicBondParams(
                 k=params["k"],
@@ -110,7 +110,7 @@ class TOMLParser(BaseForceFieldParser):
                 model=model_name,
             )
 
-        # Bonds class2
+        # Class2 bonds
         for key, params in data.get("bond", {}).get("class2", {}).items():
             result.bonds[key] = Class2BondParams(
                 r0=params["r0"],
@@ -121,7 +121,7 @@ class TOMLParser(BaseForceFieldParser):
                 model=model_name,
             )
 
-        # Angles harmoniques
+        # Harmonic angles
         for key, params in data.get("angle", {}).get("harmonic", {}).items():
             result.angles[key] = HarmonicAngleParams(
                 k=params["k"],
@@ -130,7 +130,7 @@ class TOMLParser(BaseForceFieldParser):
                 model=model_name,
             )
 
-        # Angles class2
+        # Class2 angles
         for key, params in data.get("angle", {}).get("class2", {}).items():
             result.angles[key] = Class2AngleParams(
                 theta0=params["theta0"],
@@ -141,7 +141,7 @@ class TOMLParser(BaseForceFieldParser):
                 model=model_name,
             )
 
-        # Impropers harmoniques
+        # Harmonic impropers
         for key, params in data.get("improper", {}).get("harmonic", {}).items():
             result.impropers[key] = HarmonicImproperParams(
                 k=params["k"],
@@ -150,7 +150,7 @@ class TOMLParser(BaseForceFieldParser):
                 model=model_name,
             )
 
-        # Impropers distance
+        # Distance impropers
         for key, params in data.get("improper", {}).get("distance", {}).items():
             result.impropers[key] = DistanceImproperParams(
                 k2=params["k2"],
@@ -180,7 +180,7 @@ class TOMLParser(BaseForceFieldParser):
                 model=model_name,
             )
 
-        # Dièdres (format spécifique)
+        # Dihedrals (specific format)
         if "dihedral" in data:
             result.dihedrals = data["dihedral"]
 

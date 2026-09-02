@@ -186,7 +186,6 @@ class GlassBuilder:
         total_mass = 0.0
 
         for formula, coeff in self.composition.items():
-            # Vérifier si une structure personnalisée est fournie
             if formula in self.structures:
                 mass = self.structures[formula].total_mass
             else:
@@ -223,9 +222,13 @@ class GlassBuilder:
         for formula, coeff in self.composition.items():
             if formula in self.structures:
                 structure = self.structures[formula]
+                elem_map = structure.elements
 
-                for element in structure.elements:
-                    symbol = element.symbol
+                # Count per atom (not per unique atom type), so a custom
+                # structure like H2O contributes 2 H and 1 O per coeff,
+                # matching the pymatgen branch below.
+                for atype in structure.atoms["type"]:
+                    symbol = elem_map.get(atype, str(atype))
                     elemental[symbol] = elemental.get(symbol, 0.0) + coeff
 
                 continue
@@ -328,10 +331,8 @@ class GlassBuilder:
         boxa, boxb, boxc = box[:3]
         volume = boxa * boxb * boxc
 
-        # Calculate the number of formula units.
         num_units = self.get_num_formula_units(volume)
 
-        # Calculate the actual density.
         actual_density = self.get_actual_density(volume)
         density_error = (actual_density - self.density) / self.density
 
@@ -342,7 +343,6 @@ class GlassBuilder:
                 f"Actual: {actual_density:.3f} g/cm³"
             )
 
-        # Get the elemental composition.
         elemental_comp = self.get_elemental_composition()
 
         inside_box = (
@@ -386,11 +386,9 @@ class GlassBuilder:
 
             data = run_packmol(packmol_input)
 
-        # Set the simulation box.
         final_box = box[:3] + [90.0, 90.0, 90.0] if len(box) == 3 else box
         data.set_box(final_box)
 
-        # Store metadata.
         data._glass_metadata = {
             "density": self.density,
             "actual_density": actual_density,

@@ -121,31 +121,84 @@ class Splitter(BaseBuilder):
         Splitter
             Self for method chaining.
         """
-        self._coordinate = coordinate
+        self.coordinate = coordinate
         return self
 
     def _move_fragments(self, universe) -> None:
         """Move the second fragment to create the gap."""
         pos = universe.atoms.positions
-        mask = np.dot(pos, self._unit_norm) >= self._coordinate
-        shift_vector = self._unit_norm * self._gap_size
+        mask = np.dot(pos, self._unit_norm) >= self.coordinate
+        shift_vector = self._unit_norm * self.gap_size
         pos[mask] += shift_vector
         universe.atoms.positions = pos
 
+    def _remove_crossing_bonds(self, original_positions) -> None:
+        """Remove bonds stretched across the newly created gap.
+
+        A bond whose two atoms ended up on opposite sides of the cut gets
+        physically severed by the split: its length grows by roughly
+        ``gap_size``. Compare each bond's length before/after the move to
+        detect this, then drop the bond and any angle/dihedral/improper
+        built on it (they'd otherwise reference a pair of atoms that are
+        no longer meaningfully connected).
+        """
+        bonds = self.system.bonds
+        if bonds is None or bonds.empty:
+            return
+
+        current_positions = self.system.atoms[["x", "y", "z"]]
+        broken_pairs = set()
+
+        for _, row in bonds.iterrows():
+            a1, a2 = int(row["atom_1"]), int(row["atom_2"])
+            d_before = np.linalg.norm(
+                original_positions.loc[a1].to_numpy()
+                - original_positions.loc[a2].to_numpy()
+            )
+            d_after = np.linalg.norm(
+                current_positions.loc[a1].to_numpy()
+                - current_positions.loc[a2].to_numpy()
+            )
+            if d_after > d_before + self.gap_size / 2:
+                broken_pairs.add(frozenset((a1, a2)))
+
+        if not broken_pairs:
+            return
+
+        def _references_broken_pair(row, n_atoms) -> bool:
+            atom_cols = [f"atom_{i}" for i in range(1, n_atoms + 1)]
+            indices = [int(row[c]) for c in atom_cols]
+            return any(
+                frozenset((indices[i], indices[i + 1])) in broken_pairs
+                for i in range(len(indices) - 1)
+            )
+
+        for name, n_atoms in [
+            ("bonds", 2),
+            ("angles", 3),
+            ("dihedrals", 4),
+            ("impropers", 4),
+        ]:
+            df = getattr(self.system, name)
+            if df is None or df.empty:
+                continue
+            cleaned = df[~df.apply(_references_broken_pair, axis=1, args=(n_atoms,))]
+            setattr(self.system, name, cleaned if not cleaned.empty else None)
+
     def _update_box(self) -> None:
         """Update the simulation box after splitting."""
-        self._vec_list[self._axis] = (
-            self._vec_list[self._axis] + self._unit_norm * self._gap_size
+        self._vec_list[self.axis] = (
+            self._vec_list[self.axis] + self._unit_norm * self.gap_size
         )
         new_box = vectors2lattice(tuple(self._vec_list))
-        self._system.set_box(new_box)
+        self.system.set_box(new_box)
 
     def _calculate_solution_thickness(self) -> float:
         """Calculate the optimal thickness for the liquid."""
-        thickness = self._gap_size - 2 * self._padding - self._vacuum
+        thickness = self.gap_size - 2 * self._padding - self._vacuum
         if thickness <= 0:
             raise ValueError(
-                f"Gap size ({self._gap_size:.1f} Å) too small for "
+                f"Gap size ({self.gap_size:.1f} Å) too small for "
                 f"padding ({self._padding:.1f} Å) and vacuum ({self._vacuum:.1f} Å). "
                 f"Available space: {thickness:.1f} Å"
             )
@@ -159,21 +212,21 @@ class Splitter(BaseBuilder):
 
         # Calculate the box for the liquid
         liquid_box = _calculate_liquid_box(
-            self._system, liquid_thickness, self._axis_name
+            self.system, liquid_thickness, self._axis_name
         )
 
         # Build the liquid
         liquid = self._solution_blueprint.build(liquid_box)
 
         # Center the liquid in the gap
-        gap_center = self._coordinate + self._gap_size / 2.0
+        gap_center = self.coordinate + self.gap_size / 2.0
         liq_pos = liquid.atoms[self._axis_name].values
         liq_center = (liq_pos.max() + liq_pos.min()) / 2.0
         liquid.atoms[self._axis_name] += gap_center - liq_center
 
         # Merge everything
         result = _merge_structure(
-            self._system,
+            self.system,
             liquid,
             distance=0.0,
             axis=self._axis_name,
@@ -181,10 +234,10 @@ class Splitter(BaseBuilder):
         )
 
         # Replace the system with the merged result
-        self._system.atoms = result.atoms
-        self._system.set_box(result.box)
+        self.system.atoms = result.atoms
+        self.system.set_box(result.box)
         if hasattr(result, "bonds"):
-            self._system.bonds = result.bonds
+            self.system.bonds = result.bonds
 
     def split(self) -> AtomicSystem:
         """
@@ -195,20 +248,25 @@ class Splitter(BaseBuilder):
         AtomicSystem
             The split system, optionally with solution.
         """
-        universe = self._system.to_mda()
+        original_positions = self.system.atoms[["x", "y", "z"]].copy()
+
+        universe = self.system.to_mda()
         self._move_fragments(universe)
+        self.system.atoms[["x", "y", "z"]] = universe.atoms.positions
+
+        self._remove_crossing_bonds(original_positions)
 
         self._update_box()
 
         if self._has_solution:
             self._insert_solution()
 
-        if hasattr(self._system, "metadata"):
-            self._system.metadata["split_info"] = {
-                "axis": self._axis,
+        if hasattr(self.system, "metadata"):
+            self.system.metadata["split_info"] = {
+                "axis": self.axis,
                 "axis_name": self._axis_name,
-                "coordinate": self._coordinate,
-                "gap_size": self._gap_size,
+                "coordinate": self.coordinate,
+                "gap_size": self.gap_size,
                 "has_solution": self._has_solution,
                 "solution_padding": self._padding if self._has_solution else None,
                 "solution_thickness": self._calculate_solution_thickness()
@@ -217,4 +275,8 @@ class Splitter(BaseBuilder):
                 "solution_vacuum": self._vacuum if self._has_solution else None,
             }
 
-        return self._system
+        return self.system
+
+    def build(self, **kwargs) -> AtomicSystem:
+        """Alias for :meth:`split`, to satisfy the ``BaseBuilder`` interface."""
+        return self.split()

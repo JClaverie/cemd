@@ -33,7 +33,7 @@ class SystemSummaryPanel(QtWidgets.QFrame):
         layout.setContentsMargins(8, 8, 8, 8)
         layout.setSpacing(2)
 
-        # 1. Physical Properties
+        # Physical Properties
         self.lbl_stats = QtWidgets.QLabel()
         layout.addWidget(self.lbl_stats)
 
@@ -42,7 +42,7 @@ class SystemSummaryPanel(QtWidgets.QFrame):
         line.setFrameShape(QtWidgets.QFrame.HLine)
         layout.addWidget(line)
 
-        # 2. Box Parameters (Tableau HTML)
+        # Box Parameters (HTML table)
         self.lbl_box = QtWidgets.QLabel()
         layout.addWidget(self.lbl_box)
 
@@ -61,7 +61,7 @@ class SystemSummaryPanel(QtWidgets.QFrame):
             else "color: #263238;"
         )
 
-        # --- Partie Stats (Utilise tes @property) ---
+        # --- Stats part (Uses your @property) ---
         stats_html = f"""
         <div style="line-height: 140%;">
             <span style="font-size: 10pt;">
@@ -114,11 +114,11 @@ class BaseManagerPanel(QtWidgets.QGroupBox):
         super().__init__(title)
         self.setFixedHeight(height)
 
-        # Layout principal
+        # Main layout
         self.main_layout = QtWidgets.QVBoxLayout(self)
         self.main_layout.setContentsMargins(8, 15, 8, 8)
 
-        # Zone de scroll blanche (le rectangle central)
+        # White scroll area (the central rectangle)
         self.scroll = QtWidgets.QScrollArea()
         self.scroll.setWidgetResizable(True)
 
@@ -205,7 +205,7 @@ class FilterPanel(BaseManagerPanel):
         Reconstructs the content from the AtomicSystem (data) object.
         Adds atom count by type.
         """
-        # 1. Clean up the legacy layout
+        # Clean up the legacy layout
         count_removed = 0
         while self.list_layout.count():
             item = self.list_layout.takeAt(0)
@@ -267,7 +267,7 @@ class FilterPanel(BaseManagerPanel):
             )
             self.color_buttons[atype_str] = color_btn
 
-            # Spinbox (Rayon VdW) ---
+            # Spinbox (VdW Radius) ---
             sp = QtWidgets.QDoubleSpinBox()
             sp.setRange(0.1, 5.0)
             sp.setSingleStep(0.1)
@@ -412,7 +412,7 @@ class BondManagerPanel(BaseManagerPanel):
         # Insertion above the “Add Bond” button
         self.main_layout.insertWidget(0, self.scale_container)
 
-        # Bouton d'action via BaseManagerPanel
+        # Action button via BaseManagerPanel
         self.btn_add_pair = self.add_action_button("Add bond")
         self.btn_add_pair.clicked.connect(lambda: self.add_pair_row())
 
@@ -488,7 +488,7 @@ class BondManagerPanel(BaseManagerPanel):
         rule = {"c1": c1, "c2": c2, "dist": dist, "widget": row_widget}
         self.pair_rules.append(rule)
 
-        # Connexions
+        # Connections
         c1.currentIndexChanged.connect(self.emit_changes)
         c2.currentIndexChanged.connect(self.emit_changes)
         dist.valueChanged.connect(self.emit_changes)

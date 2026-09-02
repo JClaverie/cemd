@@ -29,45 +29,38 @@ from ..topology._apply import (
     apply_single_dihedral_rule_to_universe,
     apply_single_rule_to_universe,
 )
+from ._format import canonical_ff_type
 
 if TYPE_CHECKING:
     from ..topology.rules import DihedralRule, TopologyRule
     from .atomic_system import AtomicSystem
 
-# RULE_SETS: dict[str, callable] = {
-#     "clayff": apply_clayff_rules,
-#     "cshff": apply_cshff_rules,
-# }
-
 
 class TopologyMixin:
     def _remap_connection_types(self):
-        """Generic method to update connection types.
-        connection_type must be 'bond', 'angle', 'dihedral' or 'improper'.
+        """Recompute the "type" column of every connectivity table from the
+        atoms' current types (e.g. after a rename via ``set_types``).
+
+        Dihedrals are a directional chain: their atom types are kept in
+        their original order, never reordered/sorted (see ``add_dihedral``).
+        Bonds, angles and impropers use the shared ``canonical_ff_type``
+        convention, matching how ``_remap_ff_keys`` keys the ff-key/param
+        dictionaries.
         """
 
-        for connection_type in [
-            "bond",
-            "angle",
-            "dihedral",
-            "improper",
-        ]:
+        for connection_type in ["bond", "angle", "dihedral", "improper"]:
             df = getattr(self, connection_type + "s")
             if df is None:
-                return
+                continue
 
-            def get_new_type(row):
+            def get_new_type(row, connection_type=connection_type):
                 indices = [row[f"atom_{i + 1}"] for i in range(len(row) - 1)]
-                types = [str(self.atoms.loc[idx, "type"]) for idx in indices]
+                types = tuple(str(self.atoms.loc[idx, "type"]) for idx in indices)
 
-                if connection_type == "bond":
-                    types.sort()
+                if connection_type == "dihedral":
+                    return "-".join(types)
 
-                elif connection_type == "angle":
-                    if types[0] > types[2]:
-                        types = [types[2], types[1], types[0]]
-
-                return "-".join(types)
+                return canonical_ff_type(types, connection_type)
 
             df["type"] = df.apply(get_new_type, axis=1)
             setattr(self, connection_type + "s", df)
@@ -240,9 +233,6 @@ class TopologyMixin:
         The connection type is always derived from the atom types.
         """
 
-        import pandas as pd
-
-        # 1. Setting up connections
         conn_config = {
             "bond": {"cols": 2, "target": "bonds"},
             "angle": {"cols": 3, "target": "angles"},
@@ -254,9 +244,14 @@ class TopologyMixin:
             raise ValueError(f"Unknown connection class: {connection_class}")
 
         cfg = conn_config[connection_class]
-        df_connections = getattr(self, cfg["target"], pd.DataFrame())
+        # NB: getattr(..., default) only falls back on a missing attribute,
+        # not on a property that currently holds None (the common case for
+        # a system with no bonds/angles/etc. yet), so that has to be an
+        # explicit check.
+        df_connections = getattr(self, cfg["target"], None)
+        if df_connections is None:
+            df_connections = pd.DataFrame()
 
-        # 2. Type reconstruction based on atom types
         if isinstance(self.atom_types[0], int):
             raise ValueError(
                 f"Cannot derive a {connection_class} type from numeric atom "
@@ -264,26 +259,18 @@ class TopologyMixin:
                 "types."
             )
 
-        atom_types = [self.atoms.loc[i, "type"] for i in atom_list]
+        atom_types = tuple(self.atoms.loc[i, "type"] for i in atom_list)
 
-        if connection_class == "bond":
-            # Symmetric: no meaningful order between the two atoms.
-            connection_type = "-".join(sorted(atom_types))
-        elif connection_class == "angle":
-            # Keep the middle atom in place, sort only the two outer atoms.
-            i, j, k = atom_types
-            i, k = sorted((i, k))
-            connection_type = f"{i}-{j}-{k}"
-        else:
-            # Dihedral/improper: directional, keep the given order as-is.
+        if connection_class == "dihedral":
+            # Directional chain: keep the given order as-is.
             connection_type = "-".join(atom_types)
+        else:
+            connection_type = canonical_ff_type(atom_types, connection_class)
 
-        # 3. Preparing the new line
         new_row = {"type": connection_type}
         for i, idx in enumerate(atom_list):
             new_row[f"atom_{i + 1}"] = idx
 
-        # 4. Existence check (generic)
         atom_cols = [f"atom_{i + 1}" for i in range(cfg["cols"])]
 
         if not df_connections.empty:
@@ -293,15 +280,12 @@ class TopologyMixin:
                 print(f"This {connection_class} already exists.")
                 return self
 
-        # 5. Adding and cleaning
         new_row_df = pd.DataFrame([new_row])
         df_connections = pd.concat([df_connections, new_row_df], ignore_index=True)
 
-        # Conversion typing
-        if isinstance(self.atom_types[0], int):
-            df_connections = df_connections.astype(int)
-        else:
-            df_connections[atom_cols] = df_connections[atom_cols].astype(int)
+        # Numeric atom types were already rejected above, so atom_types[0]
+        # is always a string here; only the atom_N index columns need casting.
+        df_connections[atom_cols] = df_connections[atom_cols].astype(int)
 
         df_connections.index = range(1, len(df_connections) + 1)
         setattr(self, cfg["target"], df_connections)
@@ -330,60 +314,21 @@ class TopologyMixin:
             Improper types to remove.
         """
 
-        if bond_types is None:
-            bond_types = []
-        if angle_types is None:
-            angle_types = []
-        if dihedral_types is None:
-            dihedral_types = []
-        if improper_types is None:
-            improper_types = []
+        types_to_remove = {
+            "bonds": bond_types or [],
+            "angles": angle_types or [],
+            "dihedrals": dihedral_types or [],
+            "impropers": improper_types or [],
+        }
 
-        if len(bond_types) != 0:
-            # remove bonds; surviving rows keep their original type label
-            self.bonds = self.bonds[~self.bonds.type.isin(bond_types)]
+        for attr, types in types_to_remove.items():
+            if not types:
+                continue
 
-            # update bonds indices
-            self.bonds.index = list(range(1, len(self.bonds) + 1))
-
-            # update system info
-            if len(self.bonds) == 0:
-                self.bonds = None
-
-        if len(angle_types) != 0:
-            # remove angles; surviving rows keep their original type label
-            self.angles = self.angles[~self.angles.type.isin(angle_types)]
-
-            # update angles indices
-            self.angles.index = list(range(1, len(self.angles) + 1))
-
-            # update system info
-            if len(self.angles) == 0:
-                self.angles = None
-
-        # remove dihedrals
-        if len(dihedral_types) != 0:
-            # remove dihedrals; surviving rows keep their original type label
-            self.dihedrals = self.dihedrals[~self.dihedrals.type.isin(dihedral_types)]
-
-            # update dihedrals indices
-            self.dihedrals.index = list(range(1, len(self.dihedrals) + 1))
-
-            # update system info
-            if len(self.dihedrals) == 0:
-                self.dihedrals = None
-
-        # remove impropers
-        if len(improper_types) != 0:
-            # remove impropers; surviving rows keep their original type label
-            self.impropers = self.impropers[~self.impropers.type.isin(improper_types)]
-
-            # update impropers indices
-            self.impropers.index = list(range(1, len(self.impropers) + 1))
-
-            # update system info
-            if len(self.impropers) == 0:
-                self.impropers = None
+            # Surviving rows keep their original type label.
+            df = getattr(self, attr)[~getattr(self, attr).type.isin(types)]
+            df.index = list(range(1, len(df) + 1))
+            setattr(self, attr, df if len(df) else None)
 
     def keep_connection_types(
         self,
@@ -436,38 +381,19 @@ class TopologyMixin:
         >>> system.keep_connection_types(bond_types=[], angle_types=None)
         """
 
-        if bond_types is None:
-            bond_types = []
-        if angle_types is None:
-            angle_types = []
-        if dihedral_types is None:
-            dihedral_types = []
-        if improper_types is None:
-            improper_types = []
+        types_to_keep = {
+            "bond": bond_types or [],
+            "angle": angle_types or [],
+            "dihedral": dihedral_types or [],
+            "improper": improper_types or [],
+        }
 
-        bondtypes2remove = []
-        angletypes2remove = []
-        dihedraltypes2remove = []
-        impropertypes2remove = []
+        types_to_remove = {
+            f"{kind}_types": list(set(getattr(self, f"{kind}_types")) - set(keep))
+            for kind, keep in types_to_keep.items()
+        }
 
-        if self.num_bond_types != 0:
-            bondtypes2remove = list(set(self.bond_types) - set(bond_types))
-
-        if self.num_angle_types != 0:
-            angletypes2remove = list(set(self.angle_types) - set(angle_types))
-
-        if self.num_dihedral_types != 0:
-            dihedraltypes2remove = list(set(self.dihedral_types) - set(dihedral_types))
-
-        if self.num_improper_types != 0:
-            impropertypes2remove = list(set(self.improper_types) - set(improper_types))
-
-        self.remove_connection_types(
-            bond_types=bondtypes2remove,
-            angle_types=angletypes2remove,
-            dihedral_types=dihedraltypes2remove,
-            improper_types=impropertypes2remove,
-        )
+        self.remove_connection_types(**types_to_remove)
 
     def remove_all_connections(self) -> AtomicSystem:
         """
@@ -584,10 +510,7 @@ class TopologyMixin:
                         t2 = atom_type_map.get(center, "X")
                         t3 = atom_type_map.get(a3, "X")
 
-                        if t1 > t3:
-                            conn_type = f"{t3}-{t2}-{t1}"
-                        else:
-                            conn_type = f"{t1}-{t2}-{t3}"
+                        conn_type = canonical_ff_type((t1, t2, t3), "angle")
 
                         angles_list.append(
                             {
@@ -604,7 +527,7 @@ class TopologyMixin:
                     t_a = atom_type_map.get(a, "X")
                     t_c = atom_type_map.get(c, "X")
                     t_d = atom_type_map.get(d, "X")
-                    conn_type = f"{t_center}-{t_a}-{t_c}-{t_d}"
+                    conn_type = canonical_ff_type((t_center, t_a, t_c, t_d), "improper")
 
                     impropers_list.append(
                         {

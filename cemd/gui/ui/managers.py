@@ -592,7 +592,7 @@ class ConnectivityDialog(BaseBuilderDialog):
         top_buttons_layout.addWidget(self.btn_copy_topo)
         self.main_layout.addLayout(top_buttons_layout)
 
-        # 4. CREATION OF CONTENT (TABS)
+        # CREATION OF CONTENT (TABS)
         self.tabs = QtWidgets.QTabWidget()
         has_data = False
         topo_types = [
@@ -676,7 +676,7 @@ class ConnectivityDialog(BaseBuilderDialog):
 
             type_table.setCellWidget(i, 2, param_label)
 
-            # Bouton Delete type
+            # Delete type button
             btn_del_type = QtWidgets.QPushButton("Delete type")
             btn_del_type.clicked.connect(
                 lambda ch, n=name, t=t_id: self.delete_by_type(n, t)
@@ -963,7 +963,7 @@ class RuleBuilderDialog(QtWidgets.QDialog):
         self.neighbor_rules.append(rule_data)
         btn_del.clicked.connect(lambda: self.remove_neighbor_row(rule_data))
 
-        # Assemblage
+        # Assembly
         row_lay.addWidget(QtWidgets.QLabel("type:"))
         row_lay.addWidget(combo)
         row_lay.addWidget(QtWidgets.QLabel("n min:"))

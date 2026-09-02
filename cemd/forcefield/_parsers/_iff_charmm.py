@@ -50,8 +50,8 @@ class CHARMMInterfaceParser(BaseForceFieldParser):
         display_name: str = "CHARMM INTERFACE FF 1.5",
     ):
         super().__init__()
-        self.model_name = model_name  # Clé dans la base de données
-        self.display_name = display_name  # Nom affiché dans le modèle
+        self.model_name = model_name  # Key in database
+        self.display_name = display_name  # Name displayed in model
         self._current_section = None
         self._line_number = 0
 
@@ -77,7 +77,7 @@ class CHARMMInterfaceParser(BaseForceFieldParser):
 
         result = ParseResult(model_name=self.model_name)
         result.metadata = {
-            "name": self.display_name,  # Nom affiché dans le modèle
+            "name": self.display_name,  # Name displayed in model
             "description": "CHARMM27 Interface force field for clay minerals, silicates, cements, and metals",
             "ref": " https://doi.org/10.1021/la3038846",
             "tags": ["CHARMM", "Interface", "Clay", "Silicate", "Cement", "Metal"],

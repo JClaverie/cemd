@@ -156,7 +156,7 @@ def normalize_property_to_dict(
                 f"Length mismatch for property: expected {len(atom_types)} values "
                 f"(to match atom_types), but got {len(prop)}."
             )
-        # Zip lie chaque type d'atome à sa valeur correspondante dans la liste
+        # Zip pairs each atom type with its corresponding value in the list
         return dict(zip(atom_types, prop))
 
     raise TypeError(f"Expected dict or sequence, got {type(prop).__name__}")

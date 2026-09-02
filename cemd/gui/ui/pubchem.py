@@ -180,7 +180,7 @@ class PubChemBrowserDialog(BaseBuilderDialog):
         smiles = self.table.item(row, 4).text()
         self.status_bar.showMessage(f"Fetching 3D coordinates for CID {cid}...")
 
-        system = get_structure(cid, smiles)  # ← déjà un AtomicSystem
+        system = get_structure(cid, smiles)  # ← already an AtomicSystem
         if system:
             self.selected_system = system
             self.accept()

@@ -207,7 +207,7 @@ class LTReader(BaseReader):
                         raise ValueError(f"Atom '{atom_name}' not found in atom list")
                     atom_ids.append(atom_id)
 
-                # Créer le type descriptif
+                # Build the descriptive type
                 desc_type = "-".join(atom_names)
 
                 items.append(

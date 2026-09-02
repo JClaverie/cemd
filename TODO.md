@@ -1,4 +1,1 @@
-- Gérer les set_ff_keys et leur réinitialisation quand nécessaire
-- Tester le merge (prise en compte de la topologie et des params)
-- Créer + tester split et gérer la reconstruction des liaisons
 - Tester toutes les méthodes de AtomicSystem

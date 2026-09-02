@@ -15,7 +15,6 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-import tomllib
 from pathlib import Path
 from typing import Any
 
@@ -127,24 +126,17 @@ class ForceFieldDatabase:
 
             filename = filepath.name
 
-            # TOML files
             if filename.endswith(".toml"):
                 model_name = filepath.stem
                 self._load_toml_model(filepath, model_name)
 
-            # GROMOS .lt files
             elif filename.endswith(".lt"):
-                # Utiliser "gromos" comme clé
                 self._load_gromos_lt(filepath, "gromos")
 
-            # CHARMM .prm files
             elif filename.endswith(".prm"):
-                # Utiliser "iff_charmm" comme clé
                 self._load_charmm_prm(filepath, "iff_charmm")
 
-            # CVFF .frc files
             elif filename.endswith(".frc"):
-                # Utiliser "iff_cvff" comme clé
                 self._load_cvff_frc(filepath, "iff_cvff")
 
     def _load_toml_model(self, filepath: Path, model_name: str) -> None:
@@ -161,7 +153,6 @@ class ForceFieldDatabase:
             else model_name
         )
 
-        # Charger les métadonnées du modèle
         self.models[actual_model_name] = ForceFieldModel(
             name=actual_model_name,
             description=parse_result.metadata.get("description", ""),
@@ -169,49 +160,37 @@ class ForceFieldDatabase:
             tags=parse_result.metadata.get("tags", []),
         )
 
-        # Fusionner les résultats dans les dictionnaires de la base de données
-        # Atomes
         for short_name, atom_type in parse_result.atoms.items():
             full_key = f"{actual_model_name}.{short_name}"
             self.atom[full_key] = atom_type
 
-        # LJ
         for short_name, params in parse_result.lj.items():
             self.lj[f"{actual_model_name}.{short_name}"] = params
 
-        # Buckingham
         for short_name, params in parse_result.buckingham.items():
             self.buckingham[f"{actual_model_name}.{short_name}"] = params
 
-        # Bonds
         for short_name, params in parse_result.bonds.items():
             self.bond[f"{actual_model_name}.{short_name}"] = params
 
-        # Angles
         for short_name, params in parse_result.angles.items():
             self.angle[f"{actual_model_name}.{short_name}"] = params
 
-        # Impropers
         for short_name, params in parse_result.impropers.items():
             self.improper[f"{actual_model_name}.{short_name}"] = params
 
-        # Bondbond
         for short_name, params in parse_result.bondbond.items():
             self.bondbond[f"{actual_model_name}.{short_name}"] = params
 
-        # Bondangle
         for short_name, params in parse_result.bondangle.items():
             self.bondangle[f"{actual_model_name}.{short_name}"] = params
 
-        # Angle-angle-torsion (class2)
         for short_name, params in parse_result.angleangletorsion.items():
             self.angleangletorsion[f"{actual_model_name}.{short_name}"] = params
 
-        # Angle-angle (class2)
         for short_name, params in parse_result.angleangle.items():
             self.angleangle[f"{actual_model_name}.{short_name}"] = params
 
-        # Dihedrals
         for short_name, params in parse_result.dihedrals.items():
             self.dihedral[f"{actual_model_name}.{short_name}"] = params
 
@@ -466,7 +445,6 @@ class ForceFieldDatabase:
         """Convert to pandas DataFrames for compatibility."""
         dfs = {}
 
-        # Atom types
         records = []
         for key, params in self.atom.items():
             short_type = key.split(".")[-1] if "." in key else key
@@ -484,7 +462,6 @@ class ForceFieldDatabase:
             )
         dfs["atoms"] = pd.DataFrame(records)
 
-        # LJ parameters
         records = []
         for key, params in self.lj.items():
             pair = key.split(".")[-1] if "." in key else key
@@ -500,7 +477,6 @@ class ForceFieldDatabase:
             )
         dfs["lj"] = pd.DataFrame(records)
 
-        # Bonds
         records = []
         for key, params in self.bond.items():
             bond_id = key.split(".")[-1] if "." in key else key
@@ -545,7 +521,6 @@ class ForceFieldDatabase:
                 )
         dfs["bonds"] = pd.DataFrame(records)
 
-        # Buckingham
         records = []
         for key, params in self.buckingham.items():
             pair = key.split(".")[-1] if "." in key else key

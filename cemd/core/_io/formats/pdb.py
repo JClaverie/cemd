@@ -35,13 +35,13 @@ class PDBReader:
         for line in lines:
             line_type = line[:6].strip()
 
-            # 1. Analysis of the box (CRYST1)
+            # Analysis of the box (CRYST1)
             if line_type == "CRYST1":
                 parts = line.split()
                 if len(parts) >= 7:
                     box_params = tuple(float(p) for p in parts[1:7])
 
-            # 2. Parsing des atomes (ATOM / HETATM)
+            # Parsing atoms (ATOM / HETATM)
             elif line_type in ("ATOM", "HETATM"):
                 parts = line.split()
 
@@ -80,7 +80,7 @@ class PDBReader:
                     }
                 )
 
-            # 3. Connectivity analysis (CONECT)
+            # Connectivity analysis (CONECT)
             elif line_type == "CONECT":
                 parts = line.split()
                 source_id = int(parts[1])
@@ -176,7 +176,7 @@ class PDBWriter:
         """
         lines = []
 
-        # 1. Box header (CRYST1)
+        # Box header (CRYST1)
         if hasattr(system, "box") and system.box is not None:
             box = system.box
             a, b, c = box[0], box[1], box[2]
@@ -190,7 +190,7 @@ class PDBWriter:
             )
             lines.append(cryst_line)
 
-        # 2. Section des atomes (HETATM)
+        # Atoms section (HETATM)
         atoms_df = system.atoms
         for atom_id, row in atoms_df.iterrows():
             atom_type = str(row["type"])
@@ -205,7 +205,7 @@ class PDBWriter:
             # Element symbol (ex: C, H, O)
             element = atom_type[0].upper() if atom_type[0].isalpha() else "C"
 
-            # Écriture strict Fortran/PDB requis par Packmol :
+            # Strict Fortran/PDB column layout required by Packmol:
             # COLS 1-6 : "HETATM"
             # COLS 7-11 : Atom serial number (%5d)
             # COLS 13-16 : Atom name (%4s)
@@ -225,7 +225,7 @@ class PDBWriter:
             )
             lines.append(line)
 
-        # 3. Connections section (CONECT) -Optional
+        # Connections section (CONECT) - optional
         if (
             hasattr(system, "bonds")
             and system.bonds is not None

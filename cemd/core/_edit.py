@@ -158,7 +158,7 @@ class EditMixin:
         removes unused atom types from internal mass and charge storage, and updates
         or removes any bonds, angles, dihedrals, or impropers containing the removed atoms.
         """
-        # 1. Normalize input to a list of integers
+        # Normalize input to a list of integers
         if isinstance(indices, int):
             target_indices = [indices]
         else:
@@ -168,7 +168,7 @@ class EditMixin:
             warnings.warn("System contains no atoms to remove.", UserWarning)
             return
 
-        # 2. Filter out indices that do not exist in the current system
+        # Filter out indices that do not exist in the current system
         valid_indices = [idx for idx in target_indices if idx in self.atoms.index]
 
         if not valid_indices:
@@ -181,7 +181,7 @@ class EditMixin:
         # Store unique atom types before removal
         old_types = set(self.atom_types)
 
-        # 3. Remove selected atoms from the DataFrame
+        # Remove selected atoms from the DataFrame
         df_atoms = self.atoms.drop(index=valid_indices).copy()
 
         # Create mapping from old atom IDs to new contiguous IDs (1 to N)
@@ -190,13 +190,13 @@ class EditMixin:
         df_atoms.index = new_ids
         self.atoms = df_atoms
 
-        # 4. Synchronize velocities DataFrame if present
+        # Synchronize velocities DataFrame if present
         if hasattr(self, "velocities") and self.velocities is not None:
             df_vel = self.velocities.drop(index=valid_indices).copy()
             df_vel.index = new_ids
             self.velocities = df_vel
 
-        # 5. Clean up unused atom types from internal storage (dictionaries)
+        # Clean up unused atom types from internal storage (dictionaries)
         new_types = set(self.atom_types)
         removed_types = old_types - new_types
 
@@ -206,7 +206,7 @@ class EditMixin:
             if hasattr(self, "_charges") and isinstance(self._charges, dict):
                 self._charges.pop(atype, None)
 
-        # 6. Update topology tables (bonds, angles, dihedrals, impropers)
+        # Update topology tables (bonds, angles, dihedrals, impropers)
         id_map = dict(zip(old_ids, new_ids))
 
         topology_names = [
@@ -253,7 +253,7 @@ class EditMixin:
         new_box : Sequence[float] or np.ndarray
             The box in any valid format (Lattice parameters, LAMMPS bounds/tilts, or 3x3 matrix).
         """
-        # Vider le cache car la géométrie de la boîte change
+        # Clear the cache since the box geometry changes
 
         # Conversion/Normalisation vers les 3 formats internes
         self._box = normalize_box(new_box, target=BoxFormat.LATTICE)
@@ -551,7 +551,7 @@ class EditMixin:
         else:
             sel = u.atoms
 
-        com = sel.center_of_mass(pbc=True)  # ← Bai & Breen intégré, PBC, triclinique
+        com = sel.center_of_mass(pbc=True)  # Bai & Breen method, PBC-aware, triclinic-compatible
 
         center = u.dimensions[:3] / 2
         shift = center - com

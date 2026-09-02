@@ -235,11 +235,11 @@ def find_interfaces_coordinates(
     solid_series = pd.Series(input_df[solid_types].max(axis=1), index=input_df.index)
     liquid_series = pd.Series(input_df[liquid_types].max(axis=1), index=input_df.index)
 
-    # A gauche
+    # On the left
     solid_left = (solid_series == 0).idxmax()
     solution_left = (liquid_series != 0).idxmax()
 
-    # A droite
+    # On the right
     df_solide_r = solid_series[::-1]
     df_solution = liquid_series.loc[solution_left:]
     solid_right = (df_solide_r == 0).idxmax()

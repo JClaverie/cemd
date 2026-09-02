@@ -55,7 +55,7 @@ class AtomicModel(QtCore.QAbstractTableModel):
                 return str(self.system_obj.atoms.index[row])
             col_name = self.columns_order[col - 1]
             val = self.system_obj.atoms.iloc[row].get(col_name, "")
-            # Formatage propre pour l'affichage
+            # Clean formatting for display
             return f"{val:.4f}" if isinstance(val, float) else str(val)
 
         if role == QtCore.Qt.ItemDataRole.TextAlignmentRole:
@@ -103,7 +103,7 @@ class AtomicModel(QtCore.QAbstractTableModel):
         return None
 
 
-class AtomTable(QtWidgets.QTableView):  # On change QTableWidget en QTableView
+class AtomTable(QtWidgets.QTableView):  # We change QTableWidget to QTableView
     def __init__(self):
         super().__init__()
         self.setSelectionBehavior(
@@ -115,7 +115,7 @@ class AtomTable(QtWidgets.QTableView):  # On change QTableWidget en QTableView
         self.horizontalHeader().setSectionResizeMode(
             QtWidgets.QHeaderView.ResizeMode.Stretch
         )
-        self.verticalHeader().setVisible(True)  # Optionnel : pour voir les IDs à gauche
+        self.verticalHeader().setVisible(True)  # Optional: to see the IDs on the left
 
     def update_data(self, system_obj) -> None:
         current_model = self.model()
@@ -127,14 +127,14 @@ class AtomTable(QtWidgets.QTableView):  # On change QTableWidget en QTableView
             if same_obj and last_len == current_len:
                 return
 
-        # 2. Nettoyage de l'ancien modèle
+        # Clean up the old model
         if current_model is not None:
             try:
                 current_model.dataChanged.disconnect()
             except:
                 pass
 
-        # 3. Création du modèle (On force la reconstruction)
+        # Create the model (Force the reconstruction)
         from ui.atom_table import AtomicModel
 
         model = AtomicModel(system_obj)

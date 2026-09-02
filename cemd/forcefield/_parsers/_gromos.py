@@ -214,7 +214,7 @@ class GromosLTParser(BaseForceFieldParser):
                     k_val = float(coeffs[idx])
                     n_val = int(
                         float(coeffs[idx + 1])
-                    )  # int(float(...)) gère les "1.0"
+                    )  # int(float(...)) handles values like "1.0"
                     delta_val = float(coeffs[idx + 2])
 
                     terms_list.append(FourierTerm(k=k_val, n=n_val, delta=delta_val))

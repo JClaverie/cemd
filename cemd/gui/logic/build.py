@@ -114,7 +114,6 @@ def open_make_cash(parent: AtomViewerGUI) -> None:
                 )
 
             except Exception as e:
-                # Utilise ta fonction handle_error habituelle
                 handle_error(parent, "Import Error", e)
             finally:
                 QtWidgets.QApplication.restoreOverrideCursor()
@@ -356,7 +355,6 @@ def open_smiles_builder(parent: AtomViewerGUI) -> None:
 
 def open_translate_atoms(parent: AtomViewerGUI) -> None:
     active_tab = parent.tabs.currentWidget()
-    # Check if we have an active system to translate
     if not active_tab or not hasattr(active_tab, "system"):
         return
 
@@ -364,22 +362,20 @@ def open_translate_atoms(parent: AtomViewerGUI) -> None:
     if dialog.exec() == QtWidgets.QDialog.Accepted:
         dx, dy, dz = dialog.get_values()
 
-        # Skip if translation is null
         if all(v == 0.0 for v in [dx, dy, dz]):
             return
 
         try:
             parent.statusBar().showMessage("Translating and wrapping atoms...")
 
-            # Apply shift
             active_tab.system.atoms["x"] += dx
             active_tab.system.atoms["y"] += dy
             active_tab.system.atoms["z"] += dz
 
-            # Since wrap is always applied
+            # Wrap is always applied after a translation
             active_tab.system.wrap()
 
-            # Update visualizer without resetting the camera zoom
+            # Don't reset the camera zoom
             parent.sync_ui(full_rebuild=True, reset_camera=False)
             parent.statusBar().showMessage("Translation successful!", 3000)
 

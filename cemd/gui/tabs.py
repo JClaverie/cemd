@@ -372,7 +372,7 @@ class StructureTabWidget(QtWidgets.QWidget):
         if self.system is None or self.system.atoms.empty:
             return
 
-        # # ---PHASE 1 : UI TABLE UPDATE ---
+        # # ---UI TABLE UPDATE ---
         if full_rebuild:
             self.table.update_data(self.system)
             try:
@@ -388,7 +388,7 @@ class StructureTabWidget(QtWidgets.QWidget):
                 self.on_table_selection_changed
             )
 
-        # --- PHASE 2 : PLOTTER SETTINGS UPDATE ---
+        # --- PLOTTER SETTINGS UPDATE ---
         f_panel = self.parent_gui.filter_panel
         f_settings = f_panel.get_settings()
 
@@ -423,7 +423,7 @@ class StructureTabWidget(QtWidgets.QWidget):
             self.system.atoms["type"].astype(str).isin(sel_types)
         ].copy()
 
-        # --- PHASE 3 : 3D RENDERING ---
+        # --- 3D RENDERING ---
         if full_rebuild:
             self.plotter.clear()
             self.plotter.draw_atoms(self.df_visible)

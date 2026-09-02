@@ -90,6 +90,11 @@ class PackmolStructure:
     short_tol_dist: float | None = None
     short_tol_scale: float | None = None
 
+    # Escape hatch for Packmol directives with no dedicated field above
+    # (e.g. the "atoms N ... end atoms" sub-block to fix specific atoms).
+    # Each entry is written verbatim as one line before "end structure".
+    extra_instructions: list[str] = field(default_factory=list)
+
     def to_input(self, structure_path: str) -> str:
         """Convert the structure to Packmol syntax."""
         output = f"structure {structure_path}\n"
@@ -166,6 +171,9 @@ class PackmolStructure:
 
         if self.short_tol_scale is not None:
             output += f"  short_tol_scale {self.short_tol_scale}\n"
+
+        for instruction in self.extra_instructions:
+            output += f"  {instruction}\n"
 
         output += "end structure\n"
 
@@ -375,13 +383,18 @@ def _rebuild_topology_from_templates(
         template_atom_types = template.atoms["type"]
 
         # ==============================================================
-        # 1. Build local atom type -> global atom type mapping
+        # Build local atom type -> global atom type mapping
         # ==============================================================
 
         local_to_global = {}
 
-        for local_type, ff_key in template.ff_keys.atom.items():
+        # Iterate over every atom type actually present in the template,
+        # not just the ones with an assigned ff_key: a structure loaded
+        # straight from a file (e.g. a CIF) may have no ff_keys at all,
+        # and its atom types still need a global-type mapping below.
+        for local_type in template_atom_types.unique():
             local_type = str(local_type)
+            ff_key = template.ff_keys.atom.get(local_type)
             identity = (local_type, ff_key)
 
             if identity in atom_type_mapping:
@@ -390,7 +403,8 @@ def _rebuild_topology_from_templates(
                 global_type = local_type
                 atom_type_mapping[identity] = global_type
                 used_global_atom_types.add(global_type)
-                atom_ff_keys[global_type] = ff_key
+                if ff_key is not None:
+                    atom_ff_keys[global_type] = ff_key
             else:
                 index = 2
                 while f"{local_type}_{index}" in used_global_atom_types:
@@ -398,12 +412,13 @@ def _rebuild_topology_from_templates(
                 global_type = f"{local_type}_{index}"
                 atom_type_mapping[identity] = global_type
                 used_global_atom_types.add(global_type)
-                atom_ff_keys[global_type] = ff_key
+                if ff_key is not None:
+                    atom_ff_keys[global_type] = ff_key
 
             local_to_global[local_type] = global_type
 
         # ==============================================================
-        # 2. Build Packmol type -> global type mapping
+        # Build Packmol type -> global type mapping
         # ==============================================================
 
         new_types = np.array(u.atoms.types, dtype=object)
@@ -417,7 +432,7 @@ def _rebuild_topology_from_templates(
         u.atoms.types = new_types
 
         # ==============================================================
-        # 3. Rebuild topology
+        # Rebuild topology
         # ==============================================================
 
         for attr, n_per_interaction in topology_attrs.items():
@@ -447,7 +462,7 @@ def _rebuild_topology_from_templates(
                     local_to_global[atom_type] for atom_type in local_atom_types
                 )
 
-                # Pour les dihèdres, on garde l'ordre original
+                # For dihedrals, keep the original order
                 if kind == "dihedral":
                     global_interaction_type = "-".join(global_atom_types)
                 else:
@@ -500,7 +515,7 @@ def _rebuild_topology_from_templates(
         target.update(keys)
 
     # ==================================================================
-    # Set atom types (APRÈS la restauration des FF keys)
+    # Set atom types (after restoring FF keys)
     # ==================================================================
 
     result.set_types(packmol_type_mapping)
@@ -535,28 +550,30 @@ def get_structure_path(
     name_lower = name.lower()
     temp_path = Path(temp_dir)
 
-    # 1. Vérification du fichier .lt
+    # Check for a .lt file
     lt_path = STRUCTURES_DIR / f"{name_lower}.lt"
     if lt_path.exists():
         return lt_path
 
-    # 2. Vérification du fichier .pdb
+    # Check for a .pdb file
     pdb_path = STRUCTURES_DIR / f"{name_lower}.pdb"
     if pdb_path.exists():
         return pdb_path
 
-    # 3. Vérification du fichier .sdf
+    # Check for a .sdf file
     sdf_path = STRUCTURES_DIR / f"{name_lower}.sdf"
     if sdf_path.exists():
         return sdf_path
 
-    # 4. Génération d'un fichier temporaire si l'atome est monoatomique
-    if name in MASSES_DICT:
+    # Generate a temporary file if the atom is monoatomic. MASSES_DICT is
+    # keyed by proper element symbols (e.g. "Ca"), so normalize the case
+    # regardless of how the caller spelled it (e.g. "ca", "CA").
+    element = name.capitalize()
+    if element in MASSES_DICT:
         temp_pdb = temp_path / f"{name_lower}.pdb"
 
-        # Écriture propre et directe du fichier texte
         temp_pdb.write_text(
-            f"HETATM    1 {name:>2s}  {name:>3s} A   1"
+            f"HETATM    1 {element:>2s}  {element:>3s} A   1"
             "       0.000   0.000   0.000"
             "  1.00  0.00\n"
             "END\n",
@@ -564,7 +581,7 @@ def get_structure_path(
         )
         return temp_pdb
 
-    # 5. Levée d'erreur si aucune structure n'est trouvée
+    # Raise an error if no structure is found
     raise FileNotFoundError(
         f"Structure for '{name}' not found as ATB (MOLTEMPLATE), PDB or SDF and cannot be generated."
     )

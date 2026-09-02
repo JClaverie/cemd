@@ -161,7 +161,7 @@ class IonGridWidget(QtWidgets.QGroupBox):
         if not display_name:
             return
 
-        # ---CASE 1: The structure is already known (Local tabs or previously imported) ---
+        # ---The structure is already known (Local tabs or previously imported) ---
         if display_name in self.custom_structures:
             selected_system = self.custom_structures[display_name]
             ion_key = display_name
@@ -169,7 +169,7 @@ class IonGridWidget(QtWidgets.QGroupBox):
             # Internal helper logic to proceed with table insertion
             self._insert_into_table(display_name, ion_key, selected_system)
 
-        # ---CASE 2: Unknown structure -> Search and Import from PubChem ---
+        # ---Unknown structure -> Search and Import from PubChem ---
         else:
             from .pubchem import PubChemBrowserDialog
 
@@ -507,7 +507,7 @@ class AddStructureDialog(BaseBuilderDialog):
             get_icon("search"), "Search in PubChem...", "PUBCHEM_ACTION"
         )
 
-        # 1. Add Local Tabs
+        # Add Local Tabs
         tabs = self.parent_gui.tabs
         for i in range(tabs.count()):
             name = tabs.tabText(i)
@@ -649,7 +649,7 @@ class AddDropletDialog(BaseBuilderDialog):
 
 class AddLiquidLayerDialog(BaseBuilderDialog):
     def __init__(self, parent_gui) -> None:
-        # CORRECTION : Ordre des arguments (parent, titre, largeur)
+        # CORRECTION: Order of arguments (parent, title, width)
         super().__init__(parent_gui, "Add Liquid Layer", 500)
         self.resize(500, 450)
         self.parent_gui = parent_gui

@@ -254,7 +254,7 @@ class CODBrowserDialog(BaseBuilderDialog):
         try:
             system = get_structure_by_cod_id(self.last_cod_id)
             if system:
-                self.selected_system = system  # ← déjà un AtomicSystem
+                self.selected_system = system  # ← already an AtomicSystem
                 self.accept()
             else:
                 raise ValueError("Could not parse CIF.")

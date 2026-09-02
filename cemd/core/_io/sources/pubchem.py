@@ -245,7 +245,7 @@ def explore_pubchem(visible_rows: int = 20) -> Any:
             separator,
         ]
 
-        # N'afficher que la fenêtre visible
+        # Only show the visible window
         visible = results[scroll_top : scroll_top + visible_rows]
 
         for i, r in enumerate(visible):
@@ -317,7 +317,7 @@ def explore_pubchem(visible_rows: int = 20) -> Any:
     app = Application(
         layout=Layout(HSplit([window])),
         key_bindings=kb,
-        full_screen=True,  # Plein écran pour plus d'espace
+        full_screen=True,  # Full screen for more space
     )
 
     app.run()

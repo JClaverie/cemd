@@ -187,7 +187,7 @@ class MDAReader(BaseReader):
         except (AttributeError, ValueError, TypeError):
             pass
 
-        # Utilisation de getattr pour gérer proprement les Universes ou AtomGroups
+        # Use getattr to cleanly handle both Universes and AtomGroups
         n_atoms = getattr(atoms, "n_atoms", len(atoms))
         return np.arange(1, n_atoms + 1, dtype=int)
 

@@ -23,6 +23,7 @@ import MDAnalysis as mda
 import numpy as np
 
 from ...core._format import lattice2vectors
+from ...core.atomic_system import AtomicSystem
 from .._packmol import PackmolInput, PackmolStructure, get_structure_path, run_packmol
 from ._silicate_helpers import grouped_average
 
@@ -110,27 +111,32 @@ def fill_csh_interlayers(
     """Runs Packmol iteratively to fill each CSH interlayer with water and Ca."""
     tmp_path = Path(tmp)
     left, right, bottom, top = _get_packmol_bounding_planes(box)
-    h2o_pdb = get_structure_path("h2o", tmp_path)
+
+    # get_structure_path may resolve "h2o" to a .lt (moltemplate) file,
+    # which Packmol cannot read directly; load it as an AtomicSystem so
+    # run_packmol rewrites it to PDB first.
+    h2o = AtomicSystem.from_file(get_structure_path("h2o", tmp_path))
     ca_pdb = get_structure_path("ca", tmp_path) if nca_to_add != 0 else None
 
     current_pdb = tmp_path / "tmp0.pdb"
     univ.write(str(current_pdb))
-    idmin = int(np.argmin(univ.select_atoms("all").positions[:, 2]) + 1)
 
     for i in range(nlayers):
         z_start, z_end, dist = interlayers_bounds[i]
         z_upper = z_start + dist if z_end < z_start else z_end
 
-        # Définition des plans pour restreindre le remplissage à la couche
-        above_planes = [
-            (0.0, 0.0, 1.0, z_start + 1.5),
-            bottom,
-            left,
-        ]
-        below_planes = [
-            (0.0, 0.0, 1.0, z_upper - 1.5),
-            top,
-            right,
+        # Restrict the fill to this interlayer and to the box's transverse
+        # bounds. Packmol only accepts one plane per "above/below plane"
+        # line, so each simultaneous half-space constraint needs its own
+        # instruction (PackmolStructure.above_plane/below_plane only model
+        # a single plane each).
+        plane_instructions = [
+            f"above plane 0.0 0.0 1.0 {z_start + 1.5}",
+            f"above plane {bottom}",
+            f"above plane {left}",
+            f"below plane 0.0 0.0 1.0 {z_upper - 1.5}",
+            f"below plane {top}",
+            f"below plane {right}",
         ]
 
         structures = [
@@ -139,13 +145,11 @@ def fill_csh_interlayers(
                 number=1,
                 inside_box=(0.0, 0.0, 0.0, float(box[0]), float(box[1]), float(box[2])),
                 fixed=(0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
-                fixed_atoms=idmin,
             ),
             PackmolStructure(
-                structure=h2o_pdb,
+                structure=h2o,
                 number=int(nw_layers[i]),
-                above_plane=above_planes,
-                below_plane=below_planes,
+                extra_instructions=list(plane_instructions),
             ),
         ]
 
@@ -154,14 +158,13 @@ def fill_csh_interlayers(
                 PackmolStructure(
                     structure=ca_pdb,
                     number=int(nca_layers[i]),
-                    above_plane=above_planes,
-                    below_plane=below_planes,
+                    extra_instructions=list(plane_instructions),
                 )
             )
 
         next_pdb = tmp_path / f"tmp{i + 1}.pdb"
 
-        # Construction de l'objet de configuration Packmol
+        # Construction of the Packmol configuration object
         packmol_input = PackmolInput(
             tolerance=2.0,
             output=str(next_pdb),

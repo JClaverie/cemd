@@ -301,7 +301,7 @@ def remove_bridging_silicates(
         bridging_indices = _get_bridging_silicates_indices(univ)
         to_remove = np.random.choice(bridging_indices, nsi_to_remove, replace=False)
 
-    # Mise à jour de l'univers
+    # Update the universe
     idx_str = " ".join(map(str, to_remove))
     univ = univ.select_atoms(f"not index {idx_str}")
     univ = univ.select_atoms("not (name O and not around 2.1 type Si)")

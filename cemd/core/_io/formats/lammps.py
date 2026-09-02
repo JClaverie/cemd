@@ -95,7 +95,6 @@ class LAMMPSReader(BaseReader):
             "velocities": None,
             "masses": {},
             "charges": {},
-            # "atom_types": [],
             "bond_types": [],
             "angle_types": [],
             "dihedral_types": [],
@@ -336,6 +335,8 @@ class LAMMPSReader(BaseReader):
         # Detect image flags
         # ------------------------------------------------------------------
 
+        # Detect image flags (ix, iy, iz): present if the last 3 columns
+        # are integer-valued.
         n_cols = array.shape[1]
 
         if n_cols >= 8:
@@ -345,7 +346,6 @@ class LAMMPSReader(BaseReader):
                     dtype=float,
                 )
 
-                # All three values must be integers.
                 is_integer = np.all(
                     np.isfinite(last_three) & (last_three == np.round(last_three))
                 )
@@ -354,21 +354,12 @@ class LAMMPSReader(BaseReader):
                 is_integer = False
 
             if is_integer:
-                # Remove ix, iy, iz
                 array = array[:, :-3]
                 n_cols -= 3
 
-        # ------------------------------------------------------------------
-        # Detect atom style from the cleaned data
-        # ------------------------------------------------------------------
-
+        # Infer the atom style from the remaining column count (see the
+        # supported formats in the docstring above).
         if n_cols == 5:
-            # --------------------------------------------------------------
-            # atomic
-            #
-            # id type x y z
-            # --------------------------------------------------------------
-
             atom_style = "atomic"
 
             array = array[:, [0, 1, 2, 3, 4]]
@@ -384,12 +375,6 @@ class LAMMPSReader(BaseReader):
             has_charge = False
 
         elif n_cols == 6:
-            # --------------------------------------------------------------
-            # charge
-            #
-            # id type q x y z
-            # --------------------------------------------------------------
-
             atom_style = "charge"
 
             array = array[:, [0, 1, 2, 3, 4, 5]]
@@ -406,16 +391,9 @@ class LAMMPSReader(BaseReader):
             has_charge = True
 
         elif n_cols == 7:
-            # --------------------------------------------------------------
-            # full
-            #
-            # id mol type q x y z
-            #
-            # mol is ignored.
-            # --------------------------------------------------------------
-
             atom_style = "full"
 
+            # The "mol" column (index 1) is ignored.
             array = array[:, [0, 2, 3, 4, 5, 6]]
 
             columns = [
@@ -436,18 +414,10 @@ class LAMMPSReader(BaseReader):
                 "Expected 5, 6, or 7 columns."
             )
 
-        # ------------------------------------------------------------------
-        # Create DataFrame
-        # ------------------------------------------------------------------
-
         df = pd.DataFrame(
             array,
             columns=columns,
         )
-
-        # ------------------------------------------------------------------
-        # Convert columns
-        # ------------------------------------------------------------------
 
         df["id"] = pd.to_numeric(
             df["id"],
@@ -468,12 +438,7 @@ class LAMMPSReader(BaseReader):
                 lambda atom_type: type_labels.get(atom_type, atom_type)
             )
 
-        # Coordinates
         df[["x", "y", "z"]] = df[["x", "y", "z"]].astype(float)
-
-        # ------------------------------------------------------------------
-        # Charges
-        # ------------------------------------------------------------------
 
         if has_charge:
             df["charge"] = df["charge"].astype(float)
@@ -488,10 +453,6 @@ class LAMMPSReader(BaseReader):
         else:
             df["charge"] = 0.0
             topology["charges"] = {}
-
-        # ------------------------------------------------------------------
-        # Finalize
-        # ------------------------------------------------------------------
 
         df.set_index("id", inplace=True)
 
@@ -517,13 +478,12 @@ class LAMMPSReader(BaseReader):
         The Velocities section in a LAMMPS data file has the format:
         atom-ID vx vy vz
         """
-        # Take only the first 4 columns (id, vx, vy, vz)
+        # Take only the first 4 columns (id, vx, vy, vz).
         columns = ["id", "vx", "vy", "vz"]
         array = array[:, :4] if array.shape[1] >= 4 else array
 
         df = pd.DataFrame(array, columns=columns[: array.shape[1]])
 
-        # Convert to numeric types
         df["id"] = pd.to_numeric(df["id"], errors="coerce")
         for col in ["vx", "vy", "vz"]:
             if col in df.columns:
@@ -959,14 +919,11 @@ class LAMMPSWriter(BaseWriter):
         use_numeric_ids = oldstyle or not isinstance(system.atom_types[0], str)
 
         for i, atype in enumerate(system.atom_types, 1):
-            # Safely fetch mass from dictionary (defaults to 0.0 if unassigned)
             mass = system.masses.get(atype, 0.0)
 
             if use_numeric_ids:
-                # Write numeric ID (1-based index) and mass
                 f.write(f"{i} {mass}\n")
             else:
-                # Write string type label and mass
                 f.write(f"{atype} {mass}\n")
 
     @staticmethod

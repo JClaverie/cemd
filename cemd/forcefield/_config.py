@@ -47,7 +47,7 @@ def get_user_config_path() -> Path:
 
 
 # ============================================================================
-# Force fields (private in package, public in .config)
+# Force fields (private in the package, public in .config)
 # ============================================================================
 
 
@@ -83,12 +83,10 @@ def init_user_forcefields_database(force: bool = False) -> None:
     user_dir = get_user_config_path()
     default_dir = get_default_config_path()
 
-    # Vérifier si le dossier source existe
     if not default_dir.exists():
         print(f"Default force field directory not found: {default_dir}")
         return
 
-    # Lister les fichiers TOML
     toml_files = [
         f for f in default_dir.iterdir() if f.is_file() and f.suffix == ".toml"
     ]
@@ -96,15 +94,12 @@ def init_user_forcefields_database(force: bool = False) -> None:
         print(f"No TOML files found in default directory: {default_dir}")
         return
 
-    # Créer le dossier utilisateur si nécessaire
     user_dir.mkdir(parents=True, exist_ok=True)
 
-    # Copier les fichiers
     copied = 0
     for src in toml_files:
         dst = user_dir / src.name
 
-        # Copier si force=True ou si le fichier n'existe pas
         if force or not dst.exists():
             shutil.copy2(src, dst)
             copied += 1

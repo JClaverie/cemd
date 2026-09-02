@@ -96,11 +96,11 @@ class PMGReader(BaseReader):
             angles = [angles[i] for i in best_mapping]
             positions = positions[:, best_mapping].copy()
 
-        # 5. Extract Atom Types
+        # Extract Atom Types
         types = [site.species.elements[0].name for site in refined_structure]
         unique_types = sorted(set(types))
 
-        # 6. Create the DataFrames
+        # Create the DataFrames
         ids = np.arange(1, len(positions) + 1)
         charges = np.array([CHARGES_DICT.get(t, 0.0) for t in types])
 
@@ -122,7 +122,7 @@ class PMGReader(BaseReader):
         ].astype(float)
         df_atoms.set_index("id", inplace=True)
 
-        # Masses et charges par type
+        # Masses and charges per type
         masses_dict = {t: MASSES_DICT.get(t, 1.0) for t in unique_types}
         charges_dict = {t: CHARGES_DICT.get(t, 0.0) for t in unique_types}
 

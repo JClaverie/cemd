@@ -109,7 +109,7 @@ class TCLGenerator:
             lines.append(f'    {elem_symbol}  "{types_str}"')
 
         # else:
-        #     # Fallback si une simple liste/ensemble d'éléments est fournie
+        #     # Fallback if a plain list/set of elements is provided
         #     for element in sorted(set(elements)):
         #         types = VMD_ELEMENT_TYPES.get(element, [element])
         #         types_str = " ".join(types) if isinstance(types, list) else str(types)
@@ -124,7 +124,7 @@ class TCLGenerator:
         lines = []
         color_id = 20
 
-        # Extraction des symboles d'éléments uniques
+        # Extract the unique element symbols
         if isinstance(elements, dict):
             unique_elements = sorted(set(elements.values()))
         else:
