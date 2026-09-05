@@ -53,6 +53,10 @@ docs = [
     "sphinx",
     "pydata-sphinx-theme",
     "numpydoc",
+    # Loaded by docs/conf.py for the grid/card directives used on the
+    # landing pages. It was missing here and only went unnoticed because
+    # it happened to be installed in the development environment.
+    "sphinx-design",
 ]
 dev = [
     "pytest",
