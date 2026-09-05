@@ -117,6 +117,11 @@ extensions = [
     "sphinx.ext.intersphinx",
     "sphinx.ext.doctest",
     "sphinx.ext.todo",
+    # Writes a .nojekyll file into the build. Without it GitHub Pages runs
+    # the site through Jekyll, which ignores every directory starting with
+    # an underscore -- _static and _modules would silently disappear,
+    # leaving the site unstyled and the source-code pages missing.
+    "sphinx.ext.githubpages",
     "sphinx_design",
     "numpydoc",
 ]

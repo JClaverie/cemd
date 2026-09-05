@@ -1,0 +1,60 @@
+name: Documentation
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+# Needed by the deploy job to publish to GitHub Pages.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# One deployment at a time; queue rather than cancel, so a push never
+# leaves the published site half-updated.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      # The package itself, not just Sphinx: autodoc and autosummary
+      # import cemd, and conf.py runs docs/_scripts/ to regenerate the
+      # force-field viewer from the database.
+      - name: Install cemd and the docs dependencies
+        run: pip install ".[docs]"
+
+      # -W turns warnings into errors: a broken cross-reference or a
+      # malformed docstring fails the build instead of quietly shipping.
+      - name: Build the documentation
+        run: sphinx-build -b html -W --keep-going docs docs/_build/html
+
+      - name: Upload the site
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs/_build/html
+
+  # Publishing only happens on main; a pull request just gets the build
+  # above as a check.
+  deploy:
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
