@@ -37,7 +37,12 @@ class AtomType:
     """Atom type parameters."""
 
     element: str
-    charge: float
+    # None means the force field defines no per-type charge (GROMOS and the
+    # CHARMM Interface parameter files carry the charges in the molecular
+    # topology instead). It is distinct from a genuine 0.0, and callers must
+    # not overwrite a system's real charges with it -- see
+    # `ForceFieldMixin._update_masses_and_charges`.
+    charge: float | None = None
     environment: str = ""
     ref: str = ""
     mass: float | None = None

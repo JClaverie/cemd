@@ -672,7 +672,7 @@ class CHARMMInterfaceParser(BaseForceFieldParser):
 
             result.atoms[atom_type] = AtomType(
                 element=element,
-                charge=0.0,  # Charges are not available in PAR file
+                charge=None,  # Charges are not available in PAR file
                 mass=mass,
                 environment=f"CHARMM Interface atom type {atom_type} (charge not available)",
                 model=result.model_name,

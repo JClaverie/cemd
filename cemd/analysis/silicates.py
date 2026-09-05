@@ -101,7 +101,11 @@ def _process_analyze(source, si_types, o_types, al_types, ca_types, cutoff):
     sel_ca = safe_select(ca_types)
 
     try:
-        sel_h = source.select_atoms("type H*h*")
+        # "H*h*" only ever matched types carrying a second, lowercase "h"
+        # (i.e. "Hh"), so the water hydrogens -- "H" straight from a build,
+        # "Hw" after the ClayFF/CSHFF rules -- were skipped and the H2O
+        # ratios below came out as 0. Count every hydrogen-named type.
+        sel_h = source.select_atoms("type H*")
     except:
         sel_h = None
 
@@ -154,7 +158,7 @@ def _process_analyze(source, si_types, o_types, al_types, ca_types, cutoff):
     pqsi = (cqsi / n_si) * 100
 
     # Calculation of Average Chain Length (MCL)
-    mcl = 2 * (1 + pqsi[2] / pqsi[1]) if pqsi[1] > 1e-3 else float("In")
+    mcl = 2 * (1 + pqsi[2] / pqsi[1]) if pqsi[1] > 1e-3 else float("inf")
 
     return {
         "Ca/(Si+Al)": ca_m_ratio,
@@ -191,20 +195,23 @@ def analyze_silicates(
         A dictionary containing chemical ratios, mean chain length (MCL),
         and the Q^n distribution.
     """
-    config = TYPES_PRESET.copy()
-    if types_map:
-        config.update(types_map)
-
-    # Call from dispatch
-    func = analyze_silicates.dispatch(type(source))
-    return func(source, config, cutoff)
+    raise TypeError(
+        f"analyze_silicates() does not support source of type {type(source).__name__}; "
+        "expected an AtomicSystem or an MDAnalysis Universe."
+    )
 
 
+# NB: `functools.singledispatch` calls the registered implementation below
+# directly with whatever arguments the caller passed (it does not route
+# through the generic function body above once a type is registered), so
+# the preset-merging has to happen in each implementation, and the
+# parameter must be named `types_map` here too -- a caller passing
+# `types_map=...` by keyword (as documented) would otherwise hit
+# `TypeError: got an unexpected keyword argument 'types_map'`.
 @analyze_silicates.register(AtomicSystem)
-def _(source: AtomicSystem, config=None, cutoff: float = 1.85) -> dict[str, Any]:
+def _(source: AtomicSystem, types_map: dict = None, cutoff: float = 1.85) -> dict[str, Any]:
     _check_elements(source)
-    # Use TYPES_PRESET if no dictionary is provided
-    config = config if config is not None else TYPES_PRESET
+    config = {**TYPES_PRESET, **(types_map or {})}
     u = source.to_mda()
     return _process_analyze(
         u,
@@ -217,9 +224,8 @@ def _(source: AtomicSystem, config=None, cutoff: float = 1.85) -> dict[str, Any]
 
 
 @analyze_silicates.register(mda.Universe)
-def _(source: mda.Universe, config=None, cutoff: float = 1.85) -> dict[str, Any]:
-    # Use TYPES_PRESET if no dictionary is provided
-    config = config if config is not None else TYPES_PRESET
+def _(source: mda.Universe, types_map: dict = None, cutoff: float = 1.85) -> dict[str, Any]:
+    config = {**TYPES_PRESET, **(types_map or {})}
     return _process_analyze(
         source,
         si_types=config.get("si_types", "Si"),

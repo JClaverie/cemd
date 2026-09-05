@@ -135,10 +135,11 @@ class TopologyMixin:
         self, indices: Sequence[int], atom_type: str | int
     ) -> AtomicSystem:
         """Assign a new type to a specific subset of atoms."""
-        if not isinstance(atom_type, type(self.atom_types[0])):
-            raise TypeError(
-                "The atom type must be of the same type (string or integer) as existing atom types."
+        if len(indices) == 0:
+            warnings.warn(
+                "No indices given; the system was left unchanged.", UserWarning
             )
+            return self
 
         old_types = self.atoms.loc[indices, "type"].unique()
         if len(old_types) > 1:
@@ -148,6 +149,17 @@ class TopologyMixin:
                 UserWarning,
             )
         old_type = old_types[0]
+
+        # `self.atom_types` always returns strings (see its docstring), so
+        # comparing against it would reject *every* int, even on a system
+        # that genuinely uses numeric (LAMMPS-style) types; compare against
+        # the actual atoms-column value instead, and treat any non-string
+        # (int, numpy.integer, ...) as "numeric" so numpy scalar dtypes
+        # don't trip a spurious mismatch.
+        if isinstance(atom_type, str) != isinstance(old_type, str):
+            raise TypeError(
+                "The atom type must be of the same type (string or integer) as existing atom types."
+            )
 
         self.atoms.loc[indices, "type"] = atom_type
 
@@ -252,14 +264,17 @@ class TopologyMixin:
         if df_connections is None:
             df_connections = pd.DataFrame()
 
-        if isinstance(self.atom_types[0], int):
+        # `self.atom_types` always returns strings (see its docstring), so
+        # this must check the raw atoms-column value to actually catch
+        # numeric (LAMMPS-style) types instead of being permanently dead.
+        atom_types = tuple(self.atoms.loc[i, "type"] for i in atom_list)
+
+        if not isinstance(atom_types[0], str):
             raise ValueError(
                 f"Cannot derive a {connection_class} type from numeric atom "
                 "types; connection types can only be built from named atom "
                 "types."
             )
-
-        atom_types = tuple(self.atoms.loc[i, "type"] for i in atom_list)
 
         if connection_class == "dihedral":
             # Directional chain: keep the given order as-is.
@@ -361,10 +376,10 @@ class TopologyMixin:
 
         Notes
         -----
-        -If a connection type is specified as a string, it will match the
+        - If a connection type is specified as a string, it will match the
           type name in the topology.
-        -If specified as an integer, it will match the type index (1-based).
-        -This operation modifies the system in place.
+        - If specified as an integer, it will match the type index (1-based).
+        - This operation modifies the system in place.
 
         Examples
         --------
@@ -427,8 +442,19 @@ class TopologyMixin:
             -DihedralRule: Single dihedral rule
             - list[TopologyRule | DihedralRule]: Mixed list of rules
         """
+        from ..topology.predefined import CLAYFF_RULES, CSHFF_RULES
         from ..topology.rules import DihedralRule, TopologyRule
         from .atomic_system import AtomicSystem
+
+        if isinstance(r, str):
+            predefined = {"clayff": CLAYFF_RULES, "cshff": CSHFF_RULES}
+            key = r.strip().lower()
+            if key not in predefined:
+                raise ValueError(
+                    f"Unknown predefined topology style '{r}'. "
+                    f"Available styles: {sorted(predefined)}."
+                )
+            r = predefined[key]
 
         universe = self.to_mda()
         actions = {}

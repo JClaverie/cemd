@@ -18,6 +18,7 @@
 import shutil
 import subprocess
 import tempfile
+import warnings
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Literal
@@ -364,6 +365,7 @@ def _rebuild_topology_from_templates(
 
     new_topology = {attr: [] for attr in topology_attrs}
     atom_ff_keys = {}
+    atom_charges = {}
     interaction_ff_keys = {kind: {} for kind in dict_names.values()}
     atom_type_mapping = {}
     used_global_atom_types = set()
@@ -417,6 +419,13 @@ def _rebuild_topology_from_templates(
 
             local_to_global[local_type] = global_type
 
+            # A PDB round-trip (Packmol's own output included) can't carry
+            # charge -- the standard format has no such field, and cemd's
+            # own writer/reader pair used to silently corrupt it to 1.0
+            # (see `PDBReader`). Carry the template's real per-type charge
+            # through explicitly instead of trusting the reloaded PDB.
+            atom_charges[global_type] = template.charges.get(local_type, 0.0)
+
         # ==============================================================
         # Build Packmol type -> global type mapping
         # ==============================================================
@@ -453,10 +462,6 @@ def _rebuild_topology_from_templates(
                 # Resolve FF key
                 ff_key = get_ff_key(template_ff_keys, local_atom_types, kind)
 
-                if ff_key is None:
-                    print(f"Warning: no ff_key for {kind} {local_atom_types}")
-                    continue
-
                 # Convert local types -> global types
                 global_atom_types = tuple(
                     local_to_global[atom_type] for atom_type in local_atom_types
@@ -468,15 +473,23 @@ def _rebuild_topology_from_templates(
                 else:
                     global_interaction_type = canonical_ff_type(global_atom_types, kind)
 
-                # Store FF key
-                existing_ff_key = interaction_ff_keys[kind].get(global_interaction_type)
-                if existing_ff_key is not None and existing_ff_key != ff_key:
-                    raise ValueError(
-                        f"{kind.capitalize()} type {global_interaction_type!r} "
-                        f"has multiple force-field keys: {existing_ff_key!r} and {ff_key!r}"
+                # A template can carry real connectivity while having no
+                # force-field assignment yet (a molecule read from an SDF or
+                # a PDB, say). That is chemistry, not bookkeeping: keep the
+                # interaction and leave the ff key to be assigned later,
+                # instead of silently dropping the bond.
+                if ff_key is not None:
+                    existing_ff_key = interaction_ff_keys[kind].get(
+                        global_interaction_type
                     )
+                    if existing_ff_key is not None and existing_ff_key != ff_key:
+                        raise ValueError(
+                            f"{kind.capitalize()} type {global_interaction_type!r} "
+                            f"has multiple force-field keys: {existing_ff_key!r} "
+                            f"and {ff_key!r}"
+                        )
 
-                interaction_ff_keys[kind][global_interaction_type] = ff_key
+                    interaction_ff_keys[kind][global_interaction_type] = ff_key
 
                 # Add interaction for every copy
                 for copy_idx in range(n_copies):
@@ -519,6 +532,15 @@ def _rebuild_topology_from_templates(
     # ==================================================================
 
     result.set_types(packmol_type_mapping)
+
+    # ==================================================================
+    # Restore per-type charges from the original templates (see the
+    # `atom_charges` comment above for why this can't be trusted to a
+    # PDB round-trip); `atom_charges` is already keyed by global type,
+    # matching what `set_types` just renamed atoms to.
+    # ==================================================================
+
+    result.set_charges(atom_charges)
 
     # ==================================================================
     # Restore force-field parameters
@@ -628,6 +650,17 @@ def run_packmol(
                     tmp_path,
                 )
 
+            # Packmol only reads PDB here, but the bundled library also
+            # holds SDF and moltemplate files (e.g. `ho.sdf`), which it
+            # rejects with "Could not read any atom from file". Species
+            # named in a blueprint rather than passed as an AtomicSystem
+            # went through unconverted, so "HO", usable via
+            # `structures={...}`, failed when used by name alone.
+            if structure_path.suffix.lower() != ".pdb":
+                converted = tmp_path / f"structure_{index}.pdb"
+                AtomicSystem.from_file(str(structure_path)).write(str(converted))
+                structure_path = converted
+
             structure_paths.append(structure_path)
 
         input_content = packmol.to_input(
@@ -649,11 +682,26 @@ def run_packmol(
             stderr=subprocess.DEVNULL,
         )
 
-        if result.returncode != 0:
-            raise RuntimeError(f"Packmol failed with return code {result.returncode}.")
-
+        # Packmol reports a dense-but-usable packing ("ended without perfect
+        # packing") with a non-zero status, while still writing the best
+        # solution it found -- which it describes as a reasonable starting
+        # configuration. Tight interlayers hit this routinely, so judge the
+        # run by whether an output was produced, not by the status alone.
         if not pdb_output_file.exists():
-            raise RuntimeError("Packmol failed to generate output.")
+            raise RuntimeError(
+                f"Packmol failed with return code {result.returncode} "
+                "and produced no output."
+            )
+
+        if result.returncode != 0:
+            warnings.warn(
+                f"Packmol ended without a perfect packing (return code "
+                f"{result.returncode}); using the best solution it found. "
+                "Relax the structure before production, or give the "
+                "molecules more room.",
+                UserWarning,
+                stacklevel=2,
+            )
 
         if output_path is not None:
             out_path = Path(output_path)

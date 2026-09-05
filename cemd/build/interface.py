@@ -178,7 +178,7 @@ def _add_liquid_layer(
 
     Examples
     --------
-    >>> blueprint = SolutionBuilder.from_molarities(...)
+    >>> blueprint = SolutionBuilder(...)
     >>> result = add_liquid_layer(surface, blueprint, thickness=30.0)
     """
     liquid_box = _calculate_liquid_box(system, thickness, axis)
@@ -219,7 +219,7 @@ def _add_droplet(
 
     Examples
     --------
-    >>> blueprint = SolutionBuilder.from_molarities(...)
+    >>> blueprint = SolutionBuilder(...)
     >>> result = add_droplet(surface, blueprint, radius=15.0)
     """
     droplet = _build_droplet_from_blueprint(blueprint, radius, axis)

@@ -242,7 +242,14 @@ def calculate_csh_modifiers(
             nsi_to_remove -= 1
             vacancy_fraction = nsi_to_remove / nsi
 
-        nca_to_add = max(0, np.floor(target_cs_ratio * (nsi - nsi_to_remove)) - nca)
+        # The product is rounded to 9 decimals before flooring: in binary,
+        # 1.4 * 180 is 251.99999999999997, so a bare floor() dropped one
+        # calcium and the built system came out at Ca/Si = 1.3944 instead
+        # of the requested 1.4. The rounding only absorbs the
+        # representation error -- a genuinely fractional target still
+        # floors down, keeping the ratio from overshooting.
+        n_ca_target = np.floor(round(target_cs_ratio * (nsi - nsi_to_remove), 9))
+        nca_to_add = int(max(0, n_ca_target - nca))
 
     return nsi_to_remove, nca_to_add, vacancy_fraction
 

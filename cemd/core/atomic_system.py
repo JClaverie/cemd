@@ -266,7 +266,11 @@ class AtomicSystem(EditMixin, IOMixin, TopologyMixin, ForceFieldMixin):
             other._velocities.copy() if other._velocities is not None else None
         )
 
-        self._box_lmp = other._box_lmp
+        # Through `set_box`, so that the three internal representations
+        # (lattice, LAMMPS bounds, vectors) stay consistent: assigning
+        # `_box_lmp` alone left `.box` and `.volume` reporting the
+        # *previous* cell after add_layer()/add_droplet()/set_topology().
+        self.set_box(other._box_lmp)
         self._masses = dict(other._masses)
         self._charges = dict(other._charges)
         self._atom_style = other._atom_style
@@ -686,12 +690,17 @@ class AtomicSystem(EditMixin, IOMixin, TopologyMixin, ForceFieldMixin):
         float
             Sum of all atomic charges.
         """
-        counts = self.atoms["type"].value_counts()
-        total_charge = sum(
-            counts.get(atype, 0) * self.charges.get(atype, 0.0)
-            for atype in self.atom_types
-        )
-        return total_charge
+        # Summed over the per-atom `charge` column rather than rebuilt from
+        # the per-type `charges` mapping: a force field can assign a charge
+        # per atom rather than per type (ReaxFF's EEM charges, ATB/GROMOS
+        # partial charges), and collapsing those to one representative value
+        # per type reported wildly wrong totals -- a neutral ReaxFF-relaxed
+        # C-S-H came back as +69 e. `set_charges` keeps this column in sync
+        # with `_charges`, so per-type force fields are unaffected.
+        if "charge" not in self.atoms:
+            return 0.0
+
+        return float(self.atoms["charge"].sum())
 
     @property
     def total_mass(self) -> float:
@@ -703,7 +712,8 @@ class AtomicSystem(EditMixin, IOMixin, TopologyMixin, ForceFieldMixin):
         float
             Total mass calculated from atomic types and counts.
         """
-        counts = self.atoms["type"].value_counts()
+        # See the comment in `total_charge` about the str/raw-dtype mismatch.
+        counts = self.atoms["type"].astype(str).value_counts()
         total_mass = sum(
             counts.get(atype, 0) * self.masses.get(atype, 0.0)
             for atype in self.atom_types
@@ -727,6 +737,10 @@ class AtomicSystem(EditMixin, IOMixin, TopologyMixin, ForceFieldMixin):
         Return a summarized DataFrame of atom types, numbers, masses and charges.
         """
         df_atoms = self.atoms.copy()
+        # Keep types as strings, matching `atom_types`/`masses`/`charges`,
+        # so the `_masses` lookup below doesn't miss on a dtype mismatch
+        # (e.g. numeric LAMMPS types).
+        df_atoms["type"] = df_atoms["type"].astype(str)
 
         df_atoms["number"] = df_atoms.groupby("type")["type"].transform("size")
 
@@ -940,7 +954,7 @@ class AtomicSystem(EditMixin, IOMixin, TopologyMixin, ForceFieldMixin):
         >>> from cemd.builders import SolutionBuilder
         >>>
         >>> surface = AtomicSystem.from_file("surface.lmp")
-        >>> blueprint = SolutionBuilder.from_molarities(
+        >>> blueprint = SolutionBuilder(
         ...     density=1.0,
         ...     molarities={'NaCl': 0.1}
         ... )
@@ -998,7 +1012,7 @@ class AtomicSystem(EditMixin, IOMixin, TopologyMixin, ForceFieldMixin):
         >>> from cemd.builders import SolutionBuilder
         >>>
         >>> surface = AtomicSystem.from_file("surface.lmp")
-        >>> blueprint = SolutionBuilder.from_molarities(
+        >>> blueprint = SolutionBuilder(
         ...     density=1.0,
         ...     molarities={'NaCl': 0.1}
         ... )

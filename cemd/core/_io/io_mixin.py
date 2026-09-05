@@ -36,15 +36,13 @@ class IOMixin:
         path : str
             Path to the file (supports .cif, .data, .pdb, etc.)
         **kwargs
-            Additional arguments passed to the specific reader.
-            For CIF files:
-                primitive : bool, default=False
-                    If True, use the primitive cell.
-                refine : bool, default=True
-                    If True, refine the structure using SpacegroupAnalyzer.
-            For LAMMPS data files:
-                atom_style : str, default='full'
-                    LAMMPS atom style.
+            Additional arguments passed to the specific reader:
+
+            - For CIF files: ``primitive`` (bool, default ``False``) to
+              use the primitive cell; ``refine`` (bool, default ``True``)
+              to refine the structure using SpacegroupAnalyzer.
+            - For LAMMPS data files: ``atom_style`` (str, default
+              ``"full"``).
         """
 
         file_path = Path(path)

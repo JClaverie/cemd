@@ -21,6 +21,7 @@ import tempfile
 import warnings
 from collections.abc import Sequence
 from dataclasses import dataclass, field
+from functools import lru_cache
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -38,6 +39,34 @@ if TYPE_CHECKING:
     from ..core.atomic_system import AtomicSystem
 
 WATER_MOLAR_MASS: float = 2 * MASSES_DICT["H"] + MASSES_DICT["O"]
+
+# Extensions probed by `_packmol._resolve_structure`, in its own order.
+_BUNDLED_EXTENSIONS: tuple[str, ...] = (".lt", ".pdb", ".sdf")
+
+
+def _bundled_structure_names() -> set[str]:
+    """Names of the polyatomic species shipped with CEMD."""
+    from .._paths import STRUCTURES_DIR
+
+    return {
+        path.stem.upper()
+        for extension in _BUNDLED_EXTENSIONS
+        for path in STRUCTURES_DIR.glob(f"*{extension}")
+    }
+
+
+@lru_cache(maxsize=None)
+def _bundled_structure_mass(species: str) -> float | None:
+    """Total mass of a species shipped with CEMD, or None if it has none."""
+    from .._paths import STRUCTURES_DIR
+    from ..core.atomic_system import AtomicSystem
+
+    for extension in _BUNDLED_EXTENSIONS:
+        path = STRUCTURES_DIR / f"{species.lower()}{extension}"
+        if path.exists():
+            return float(AtomicSystem.from_file(path).total_mass)
+
+    return None
 
 
 def _concentration2count(molarity: float | int, volume: float) -> tuple[int, float]:
@@ -107,7 +136,7 @@ class SolutionBuilder:
     >>> water = SolutionBuilder.from_water()
 
     >>> # With explicit counts
-    >>> blueprint = SolutionBuilder.from_counts(
+    >>> blueprint = SolutionBuilder(
     ...     density=1.0,
     ...     counts={'Na': 50, 'Cl': 50}
     ... )
@@ -274,13 +303,26 @@ class SolutionBuilder:
         for species, count in counts.items():
             if species in self.structures:
                 total_mass += count * self.structures[species].total_mass
+                continue
+
+            # Same resolution order as the packer (`_resolve_structure`):
+            # a bundled file wins over the element table, so that the mass
+            # used here describes whatever actually gets packed. Without
+            # this, the polyatomic species shipped with CEMD -- "HO",
+            # "CO3", "SO4" -- could be packed by name but not weighed, and
+            # had to be passed again through `structures=`.
+            bundled = _bundled_structure_mass(species)
+            if bundled is not None:
+                total_mass += count * bundled
             elif species in MASSES_DICT:
                 total_mass += count * MASSES_DICT[species]
             else:
                 raise ValueError(
                     f"Species '{species}' not found in mass database "
                     f"and no custom structure provided.\n"
-                    f"Available: {list(MASSES_DICT.keys())}"
+                    f"Available: {list(MASSES_DICT.keys())} "
+                    f"and the bundled structures "
+                    f"{sorted(_bundled_structure_names())}"
                 )
 
         return total_mass
@@ -467,6 +509,10 @@ class SolutionBuilder:
         with tempfile.TemporaryDirectory(dir=".") as tmp:
             h2o_path = get_structure_path("H2O", tmp)
             h2o = AtomicSystem.from_file(h2o_path)
+            # Match `build()`'s naming convention: downstream topology
+            # rules (e.g. CLAYFF_RULES) and force-field assignment key off
+            # "Ow"/"Hw", not the raw template types "O1"/"H1"/"H2".
+            h2o.set_types({"H1": "Hw", "H2": "Hw", "O1": "Ow"})
 
             structures = [
                 PackmolStructure(

@@ -508,13 +508,23 @@ class LAMMPSReader(BaseReader):
         columns = ["id", "type"] + [f"atom_{i}" for i in range(1, n_atoms + 1)]
         df = pd.DataFrame(array, columns=columns)
         df["id"] = pd.to_numeric(df["id"], errors="coerce")
-        df["type"] = pd.to_numeric(df["type"], errors="coerce").astype(int)
-        if type_labels:
-            df["type"] = df["type"].map(
-                lambda connection_type: type_labels.get(
-                    connection_type, connection_type
+
+        # The type column is usually a numeric type id resolved through
+        # type_labels, but with LAMMPS "Type Labels" the label can also be
+        # spelled out directly in the section itself (this package's own
+        # writer does exactly that) -- mirrors the same fallback used for
+        # the Atoms section in `_parse_atoms`.
+        try:
+            df["type"] = pd.to_numeric(df["type"], errors="raise").astype(int)
+            if type_labels:
+                df["type"] = df["type"].map(
+                    lambda connection_type: type_labels.get(
+                        connection_type, connection_type
+                    )
                 )
-            )
+        except (TypeError, ValueError):
+            df["type"] = df["type"].astype(str)
+
         for col in columns[2:]:
             df[col] = df[col].astype(int)
         df.set_index("id", inplace=True)
@@ -526,10 +536,22 @@ class LAMMPSReader(BaseReader):
         topology: dict,
         type_labels: dict[int, str] | None = None,
     ) -> None:
-        """Parse Masses section."""
+        """Parse Masses section.
+
+        The type column is usually a numeric type id resolved through
+        ``type_labels``, but files written with LAMMPS "Type Labels"
+        (e.g. round-tripped through this package's own writer) may
+        already spell the type out directly (e.g. "C" instead of "1").
+        """
+
+        def resolve_type(raw: Any) -> str:
+            try:
+                return (type_labels or {}).get(int(raw), str(raw))
+            except (TypeError, ValueError):
+                return str(raw)
+
         topology["masses"] = {
-            (type_labels or {}).get(int(row[0]), str(row[0])): float(row[1])
-            for row in array
+            resolve_type(row[0]): float(row[1]) for row in array
         }
 
     @staticmethod

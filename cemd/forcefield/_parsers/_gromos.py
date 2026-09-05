@@ -87,7 +87,9 @@ class GromosLTParser(BaseForceFieldParser):
                 atom_type, mass = match.groups()
                 result.atoms[atom_type] = AtomType(
                     element=self._guess_element(atom_type),
-                    charge=0.0,
+                    # GROMOS carries partial charges per atom in the molecule
+                    # topology, not per atom type.
+                    charge=None,
                     mass=float(mass),
                     environment="",
                     model=result.model_name,
@@ -157,7 +159,9 @@ class GromosLTParser(BaseForceFieldParser):
 
     def _parse_bond_coeff(self, lines: list[str], result: ParseResult) -> None:
         """Parses binding parameters."""
-        pattern = r"bond_coeff\s+@bond:(\w+)\s+([\d.E+-]+)\s+([\d.]+)"
+        # Both columns are written in scientific notation, so the exponent
+        # has to be part of the second group too -- see `_parse_angle_coeff`.
+        pattern = r"bond_coeff\s+@bond:(\w+)\s+([\d.E+-]+)\s+([\d.E+-]+)"
 
         for line in lines:
             match = re.search(pattern, line)
@@ -169,7 +173,11 @@ class GromosLTParser(BaseForceFieldParser):
 
     def _parse_angle_coeff(self, lines: list[str], result: ParseResult) -> None:
         """Parse angle parameters."""
-        pattern = r"angle_coeff\s+@angle:(\w+)\s+([\d.E+-]+)\s+([\d.]+)"
+        # The equilibrium angle is written as e.g. "1.2600000000E+02" for
+        # 126 deg. Leaving "E+-" out of this group truncated the match at
+        # the mantissa, so every GROMOS angle came out a factor of ten or a
+        # hundred too small (126 deg read as 1.26, 109.5 as 1.095).
+        pattern = r"angle_coeff\s+@angle:(\w+)\s+([\d.E+-]+)\s+([\d.E+-]+)"
 
         for line in lines:
             match = re.search(pattern, line)

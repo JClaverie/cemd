@@ -148,7 +148,12 @@ def normalize_property_to_dict(
         return {}
 
     if isinstance(prop, dict):
-        return prop
+        # Atom types are always exposed as strings (see
+        # ``AtomicSystem.atom_types``); a dict keyed by the raw (possibly
+        # numeric) type must be normalized the same way, or lookups like
+        # ``self._masses.get(t, ...)`` against a string type silently miss
+        # and fall back to a default value.
+        return {str(k): v for k, v in prop.items()}
 
     if isinstance(prop, (list, tuple, np.ndarray)):
         if len(prop) != len(atom_types):

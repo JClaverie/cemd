@@ -17,7 +17,6 @@
 
 from __future__ import annotations
 
-from collections.abc import Sequence
 from itertools import combinations
 from typing import TYPE_CHECKING
 
@@ -123,24 +122,24 @@ def apply_single_rule_to_universe(
 
 def apply_single_dihedral_rule_to_universe(
     universe: mda.Universe,
-    dihedral_rules: list[DihedralRule],
+    rule: DihedralRule,
     default_cutoff: float = 2.0,
-) -> Sequence[int]:
-    """Generate proper dihedrals using temporary bonds when needed.
+) -> mda.Universe:
+    """Generate proper dihedrals for a single DihedralRule, in-place.
 
     Parameters
     ----------
     universe : mda.Universe
         MDAnalysis universe containing the system.
-    dihedral_rules : List[DihedralRule]
-        List of DihedralRule objects defining dihedral patterns.
+    rule : DihedralRule
+        The dihedral rule defining the i-j-k-l selection pattern.
     default_cutoff : float
         Default cutoff if not specified in rule.
 
     Returns
     -------
-    Sequence[int]
-        Sequence of dihedral indices (i, j, k, l).
+    mda.Universe
+        The modified universe.
     """
 
     from MDAnalysis.lib.distances import capped_distance
@@ -148,62 +147,61 @@ def apply_single_dihedral_rule_to_universe(
     dihedrals = []
     seen_dihedrals = set()
 
-    for rule in dihedral_rules:
-        sel_i = universe.select_atoms(rule.i)
-        sel_j = universe.select_atoms(rule.j)
-        sel_k = universe.select_atoms(rule.k)
-        sel_l = universe.select_atoms(rule.l_)
+    sel_i = universe.select_atoms(rule.i)
+    sel_j = universe.select_atoms(rule.j)
+    sel_k = universe.select_atoms(rule.k)
+    sel_l = universe.select_atoms(rule.l_)
 
-        cutoffs = rule.cutoffs
-        if len(cutoffs) < 3:
-            cutoffs = list(cutoffs) + [default_cutoff] * (3 - len(cutoffs))
+    cutoffs = rule.cutoffs
+    if len(cutoffs) < 3:
+        cutoffs = list(cutoffs) + [default_cutoff] * (3 - len(cutoffs))
 
-        if len(sel_i) == 0 or len(sel_j) == 0 or len(sel_k) == 0 or len(sel_l) == 0:
-            continue
+    if len(sel_i) == 0 or len(sel_j) == 0 or len(sel_k) == 0 or len(sel_l) == 0:
+        return universe
 
-        pairs_ij, _ = capped_distance(
-            sel_i.positions,
-            sel_j.positions,
-            max_cutoff=cutoffs[0],
-            box=universe.dimensions,
-        )
+    pairs_ij, _ = capped_distance(
+        sel_i.positions,
+        sel_j.positions,
+        max_cutoff=cutoffs[0],
+        box=universe.dimensions,
+    )
 
-        pairs_jk, _ = capped_distance(
-            sel_j.positions,
-            sel_k.positions,
-            max_cutoff=cutoffs[1],
-            box=universe.dimensions,
-        )
+    pairs_jk, _ = capped_distance(
+        sel_j.positions,
+        sel_k.positions,
+        max_cutoff=cutoffs[1],
+        box=universe.dimensions,
+    )
 
-        pairs_kl, _ = capped_distance(
-            sel_k.positions,
-            sel_l.positions,
-            max_cutoff=cutoffs[2],
-            box=universe.dimensions,
-        )
+    pairs_kl, _ = capped_distance(
+        sel_k.positions,
+        sel_l.positions,
+        max_cutoff=cutoffs[2],
+        box=universe.dimensions,
+    )
 
-        idx_ij = {(sel_i.indices[i], sel_j.indices[j]) for i, j in pairs_ij}
-        idx_jk = {(sel_j.indices[j], sel_k.indices[k]) for j, k in pairs_jk}
-        idx_kl = {(sel_k.indices[k], sel_l.indices[l_]) for k, l_ in pairs_kl}
+    idx_ij = {(sel_i.indices[i], sel_j.indices[j]) for i, j in pairs_ij}
+    idx_jk = {(sel_j.indices[j], sel_k.indices[k]) for j, k in pairs_jk}
+    idx_kl = {(sel_k.indices[k], sel_l.indices[l_]) for k, l_ in pairs_kl}
 
-        for i, j in idx_ij:
-            for j2, k in idx_jk:
-                if j != j2:
+    for i, j in idx_ij:
+        for j2, k in idx_jk:
+            if j != j2:
+                continue
+            for k2, l_ in idx_kl:
+                if k != k2:
                     continue
-                for k2, l_ in idx_kl:
-                    if k != k2:
-                        continue
-                    if i == l_:
-                        continue
+                if i == l_:
+                    continue
 
-                    dih = (i, j, k, l_)
+                dih = (i, j, k, l_)
 
-                    dih_rev = (l_, k, j, i)
-                    if dih not in seen_dihedrals and dih_rev not in seen_dihedrals:
-                        seen_dihedrals.add(dih)
-                        dihedrals.append(dih)
+                dih_rev = (l_, k, j, i)
+                if dih not in seen_dihedrals and dih_rev not in seen_dihedrals:
+                    seen_dihedrals.add(dih)
+                    dihedrals.append(dih)
 
-        _update_topo(universe, "dihedrals", dihedrals)
+    _update_topo(universe, "dihedrals", dihedrals)
 
     return universe
 

@@ -58,7 +58,15 @@ class CSHBuilder(BaseBuilder):
     cs_ratio : float
         Calcium/Silicate ratio.
     ws_ratio : float
-        Water/Silicate ratio.
+        Water/Silicate ratio, counted *before* the interlayer calcium: the
+        builder adds ``round(n_Si * ws_ratio)`` water molecules plus one
+        more per Ca²⁺ inserted to reach a high ``cs_ratio``. Up to
+        Ca/Si ~ 1.33 the target is met by removing bridging silicates
+        alone, no calcium is inserted, and the H2O/Si reported by
+        :meth:`analyze` comes back exactly equal to ``ws_ratio``. Past that
+        threshold ``min_mcl`` (see :meth:`build`) forbids further
+        vacancies, so the measured H2O/Si exceeds ``ws_ratio`` by
+        ``n_Ca_inserted / n_Si``.
     progress_callback : Callable, optional
         Progress callback function.
 
@@ -526,8 +534,13 @@ class CSHBuilder(BaseBuilder):
         nsi = len(si_sel)
         nal_target = round(as_ratio * nsi)
 
+        # `substitute_si_by_al`'s 3rd positional parameter is `symmetry`
+        # (bool), not a supercell factor -- passing `supercell_factor`
+        # there silently mapped any nonzero value to `symmetry=True`
+        # regardless of its actual value. There is currently no
+        # supercell-aware substitution logic to forward it to.
         universe, substituted_ids = substitute_si_by_al(
-            universe, nal_target, supercell_factor
+            universe, nal_target, symmetry=True
         )
 
         system.set_type2atoms(substituted_ids, "Al")

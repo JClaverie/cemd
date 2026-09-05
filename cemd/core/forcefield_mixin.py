@@ -384,6 +384,31 @@ class ForceFieldMixin:
         pair_key = self._normalize_binary_key(atom_type1, atom_type2)
         self._ff_params.pair[pair_key] = params
 
+    def _apply_topology_param(self, kind: str, topo_type: str, params: Any) -> None:
+        """Store force-field parameters for a single bond/angle/dihedral/improper type.
+
+        "bond", "angle" and "improper" type strings are canonicalized via
+        ``canonical_ff_type`` first, matching the convention the system
+        itself uses when generating them (see
+        ``TopologyMixin._set_connection``) so a caller-supplied type in a
+        different atom order still resolves to the right entry. Dihedrals
+        keep their given (chain) order, since they are directional.
+        """
+        current_types = getattr(self, f"{kind}_types", [])
+
+        if kind in ("bond", "angle", "improper"):
+            canonical_type = canonical_ff_type(tuple(topo_type.split("-")), kind)
+        else:
+            canonical_type = topo_type
+
+        if canonical_type not in current_types:
+            warnings.warn(
+                f"Target {kind} type '{topo_type}' not present in the system.",
+                UserWarning,
+            )
+
+        getattr(self._ff_params, kind)[canonical_type] = params
+
     def set_bond_params(self, bond_type: str, params: Any) -> None:
         self._apply_topology_param("bond", bond_type, params)
 
@@ -479,6 +504,11 @@ class ForceFieldMixin:
                 f"Unsupported argument type for {property_name}: "
                 f"{type(value).__name__}. Expected a dict."
             )
+
+        # Atom types are always exposed as strings (see `atom_types`); keep
+        # dict keys consistent so a numeric key (e.g. LAMMPS-style type 1)
+        # actually matches instead of silently missing.
+        value = {str(k): v for k, v in value.items()}
 
         current_types = set(self.atom_types)
         missing_types = [t for t in value if t not in current_types]
@@ -766,7 +796,14 @@ class ForceFieldMixin:
             if atom_type:
                 if atom_type.mass is not None:
                     masses_update[sys_type] = atom_type.mass
-                charges_update[sys_type] = atom_type.charge
+                # Guarded like the mass: a force field that defines no
+                # per-type charge (GROMOS, the CHARMM Interface files)
+                # reports None, and applying that as 0.0 silently wiped the
+                # partial charges the system already carried -- a molecule
+                # solvated from an ATB topology lost all its electrostatics
+                # the moment its parameters were looked up.
+                if atom_type.charge is not None:
+                    charges_update[sys_type] = atom_type.charge
             else:
                 missing_types.append((sys_type, db_type))
 

@@ -19,6 +19,8 @@ import re
 
 import pandas as pd
 
+from ...._constants import MASSES_DICT
+
 
 class PDBReader:
     """Column offset tolerant PDB file reader."""
@@ -61,11 +63,23 @@ class PDBReader:
                     # Fallback safety if Regex does not find decimal places
                     x, y, z = float(parts[-5]), float(parts[-4]), float(parts[-3])
 
-                # Load extraction if available
-                charge = floats[3] if len(floats) >= 4 else 0.0
+                # The standard PDB format has no charge field: columns
+                # after x/y/z are occupancy and temperature factor (both
+                # written as fixed placeholders by `PDBWriter`, and by
+                # Packmol's own output). Reading `floats[3]` back as
+                # "charge" was actually reading occupancy (always 1.00),
+                # silently overwriting every atom's real charge with 1.0
+                # on any PDB round-trip.
+                charge = 0.0
 
+                # The element column is written upper-cased ("CA", "SI") by
+                # the PDB standard, so it has to be normalized before being
+                # looked up in the mass table. An entry that still doesn't
+                # match a known element (a truncated symbol from an older
+                # file, a non-standard label) falls back to the atom name.
                 element = line[76:78].strip() if len(line) >= 78 else ""
-                if not element:
+                element = element.capitalize()
+                if element not in MASSES_DICT:
                     element = cls._guess_element(local_name)
 
                 atoms_data.append(
@@ -154,8 +168,6 @@ class PDBReader:
 
     @classmethod
     def _guess_mass(cls, element: str) -> float:
-        from ...._constants import MASSES_DICT
-
         return MASSES_DICT.get(element, 12.011)
 
 
@@ -192,6 +204,15 @@ class PDBWriter:
 
         # Atoms section (HETATM)
         atoms_df = system.atoms
+
+        # Elements are inferred from the masses carried by the system, which
+        # is the only reliable source here: the type names are force-field
+        # labels ("Ow", "Hw", "Oc"...) and truncating them to their first
+        # letter turned every two-letter element into another one -- "Ca"
+        # was written as carbon, "Si" as sulfur -- so a PDB round-trip (i.e.
+        # every Packmol build) silently replaced their masses.
+        elements = dict(system.elements)
+
         for atom_id, row in atoms_df.iterrows():
             atom_type = str(row["type"])
             x, y, z = float(row["x"]), float(row["y"]), float(row["z"])
@@ -202,8 +223,12 @@ class PDBWriter:
             else:
                 formatted_atom_name = f"{atom_type[:4]:<4s}"
 
-            # Element symbol (ex: C, H, O)
-            element = atom_type[0].upper() if atom_type[0].isalpha() else "C"
+            # Element symbol (ex: C, Ca, Si), upper-cased as the PDB standard
+            # requires, right-justified in columns 77-78.
+            element = elements.get(row["type"], "")
+            if not element:
+                element = PDBReader._guess_element(atom_type)
+            element = element.upper()[:2]
 
             # Strict Fortran/PDB column layout required by Packmol:
             # COLS 1-6 : "HETATM"

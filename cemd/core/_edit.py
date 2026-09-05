@@ -108,7 +108,15 @@ class EditMixin:
     def protonate_atoms(
         self, atom_indices: list[int], bond_length: float = 1.0
     ) -> None:
-        """Add protons to multiple atoms in a single operation."""
+        """Add protons to multiple atoms in a single operation.
+
+        Parameters
+        ----------
+        atom_indices : list[int]
+            Atom indices, as used everywhere else in this class (i.e. the
+            `atoms` DataFrame's label index / atom id) -- not a 0-based
+            positional row offset.
+        """
 
         u = self.to_mda()
         p_mass = MASSES_DICT.get("H", 1.008)
@@ -116,10 +124,15 @@ class EditMixin:
         new_atoms = []
 
         for atom_index in atom_indices:
-            target_atom = self.atoms.iloc[atom_index]
+            target_atom = self.atoms.loc[atom_index]
             pos_target = target_atom[["x", "y", "z"]].values.astype(float)
 
-            neighbors = u.select_atoms(f"around 2.2 index {atom_index + 1}")
+            # `to_mda()` tags atoms with an `ids` TopologyAttr matching
+            # `self.atoms.index`, so select by that real id directly rather
+            # than MDAnalysis's own 0-based positional "index" -- using the
+            # latter here previously mismatched `.loc` by one atom (or
+            # raised IndexError for the last atom in the system).
+            neighbors = u.select_atoms(f"around 2.2 id {atom_index}")
             if len(neighbors) > 0:
                 direction = pos_target - neighbors.center_of_mass()
             else:

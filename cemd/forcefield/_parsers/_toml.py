@@ -75,7 +75,9 @@ class TOMLParser(BaseForceFieldParser):
         for key, params in data.get("atom", {}).items():
             result.atoms[key] = AtomType(
                 element=params["element"],
-                charge=params.get("charge", 0.0),
+                # Absent means "this force field has no per-type charge",
+                # which must not be applied as a 0.0 over a real charge.
+                charge=params.get("charge"),
                 environment=params.get("environment", ""),
                 ref=params.get("ref", ""),
                 mass=params.get("mass"),
