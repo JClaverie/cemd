@@ -1,8 +1,13 @@
 CEMD Documentation
 ==================
 
-**Computational Elementary Matter Design** — a Python library for building,
-manipulating and analyzing atomistic systems for cement and silicate simulations.
+Atomistic models of **cements, clays, carbonates and oxide glasses**, built
+for `LAMMPS <https://www.lammps.org/>`__.
+
+CEMD covers the whole path from a crystal structure to a simulation input:
+assembling the solid, cutting surfaces and pores, filling them with a
+solution, assigning atom types from force-field rules, resolving the
+parameters, and analysing the result.
 
 .. grid:: 2
    :gutter: 3

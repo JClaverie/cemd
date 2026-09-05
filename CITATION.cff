@@ -4,11 +4,11 @@ type: software
 
 title: cemd
 abstract: >-
-  A Python package for building atomistic models of cementitious materials
-  and clays, and writing them out ready for LAMMPS. It covers assembling
-  the solid, cutting surfaces and pores, filling them with a solution,
-  assigning atom types from force-field rules, resolving the parameters,
-  and analysing the result.
+  A Python package for building atomistic models of cements, clays,
+  carbonates and oxide glasses, and writing them out ready for LAMMPS. It
+  covers assembling the solid, cutting surfaces and pores, filling them
+  with a solution, assigning atom types from force-field rules, resolving
+  the parameters, and analysing the result.
 
 authors:
   - family-names: Claverie
@@ -29,11 +29,15 @@ url: "https://github.com/JClaverie/cemd"
 
 keywords:
   - molecular dynamics
+  - LAMMPS
   - cement
   - C-S-H
   - clay
-  - LAMMPS
+  - calcite
+  - carbonate
+  - oxide glass
   - force field
+  - atomistic modelling
 
 # TODO: after the first Zenodo deposit, paste the *concept* DOI here --
 # the one that always resolves to the latest version, not the DOI of a

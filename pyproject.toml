@@ -1,7 +1,7 @@
 [project]
 name = "cemd"
 version = "0.1.0"
-description = "Atomistic models of cementitious materials and clays, for LAMMPS"
+description = "Atomistic models of cements, clays, carbonates and oxide glasses, for LAMMPS"
 readme = "README.rst"
 authors = [{name = "Jérôme Claverie", email = "Jerome.claverie@univ-nantes.fr"}]
 # GPL-3.0-only, not -or-later: the file headers read "as published by the
@@ -11,11 +11,15 @@ license-files = ["LICENCE"]
 requires-python = ">=3.11"
 keywords = [
     "molecular dynamics",
+    "LAMMPS",
     "cement",
     "C-S-H",
     "clay",
-    "LAMMPS",
+    "calcite",
+    "carbonate",
+    "oxide glass",
     "force field",
+    "atomistic modelling",
 ]
 classifiers = [
     "Development Status :: 3 - Alpha",

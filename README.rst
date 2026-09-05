@@ -2,8 +2,9 @@
 cemd
 ====
 
-**cemd** builds atomistic models of cementitious materials and clays, and
-writes them out ready for `LAMMPS <https://www.lammps.org/>`__.
+**cemd** builds atomistic models of **cements, clays, carbonates and oxide
+glasses**, and writes them out ready for
+`LAMMPS <https://www.lammps.org/>`__.
 
 It covers the whole path from a crystal structure to a simulation input:
 assembling the solid, cutting surfaces and pores, filling them with a
