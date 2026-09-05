@@ -17,10 +17,6 @@
 
 from __future__ import annotations
 
-import os
-import re
-import shutil
-import subprocess
 import tempfile
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
@@ -29,7 +25,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from ..._paths import PYCSH_DIR, STRUCTURES_DIR
+from ..._paths import STRUCTURES_DIR
 from ...analysis import analyze_silicates
 from ...core.atomic_system import AtomicSystem
 from ..base import BaseBuilder, require_program
@@ -49,9 +45,9 @@ class CSHBuilder(BaseBuilder):
     """
     Builder for creating C-S-H (Calcium-Silicate-Hydrate) structures.
 
-    This builder creates C-S-H models using either:
-    - build()          : Classic tobermorite-based approach with interlayer filling
-    - build_pycsh()    : Full atomistic model using pyCSH
+    C-S-H is built from a tobermorite model: bridging silicates are removed
+    to reach the requested Ca/Si ratio, then the interlayers are filled with
+    water and charge-balancing calcium.
 
     Parameters
     ----------
@@ -72,19 +68,10 @@ class CSHBuilder(BaseBuilder):
 
     Examples
     --------
-    >>> # Create C-S-H with classic method (tobermorite)
     >>> builder = CSHBuilder(cs_ratio=1.5, ws_ratio=1.0)
     >>> system = builder.build(
     ...     supercell=[4,1,1],
     ...     model='tob11a_merlino.cif'
-    ... )
-    >>>
-    >>> # Create C-S-H with pyCSH
-    >>> builder = CSHBuilder(cs_ratio=1.2, ws_ratio=0.8)
-    >>> systems = builder.build_pycsh(
-    ...     supercell=[3,5,2],
-    ...     nsamples=3,
-    ...     seed=42
     ... )
     """
 
@@ -385,130 +372,6 @@ class CSHBuilder(BaseBuilder):
         self._system = final_system
         self._update_analysis()
         return final_system
-
-    # ------------------------------------------------------------------
-    # pyCSH method
-    # ------------------------------------------------------------------
-
-    def build_pycsh(
-        self,
-        supercell: Sequence[int] = (3, 5, 2),
-        nsamples: int = 1,
-        name: str | None = None,
-        seed: int | None = None,
-        _progress_callback: Callable[[int, str], None] | None = None,
-    ) -> AtomicSystem | list[AtomicSystem]:
-        """
-        Build C-S-H using pyCSH (full atomistic model).
-
-        Parameters
-        ----------
-        supercell : Sequence[int], default=(3,5,2)
-            Supercell dimensions [a, b, c].
-        nsamples : int, default=1
-            Number of samples to generate.
-        name : str, optional
-            Prefix for output files.
-        seed : int, optional
-            Random seed for reproducibility.
-
-        Returns
-        -------
-        AtomicSystem or list[AtomicSystem]
-            The built C-S-H structure(s). Returns a single AtomicSystem if
-            nsamples=1, otherwise a list.
-
-        Examples
-        --------
-        >>> builder = CSHBuilder(cs_ratio=1.2, ws_ratio=0.8)
-        >>> system = builder.build_pycsh(
-        ...     supercell=[3,5,2],
-        ...     nsamples=1,
-        ...     seed=42
-        ... )
-        >>>
-        >>> # Generate multiple samples
-        >>> systems = builder.build_pycsh(
-        ...     supercell=[3,5,2],
-        ...     nsamples=3
-        ... )
-        """
-        # Validate pycsh-specific parameters
-        if nsamples < 1:
-            raise ValueError(f"nsamples must be >= 1, got {nsamples}")
-
-        if len(supercell) != 3:
-            raise ValueError(f"supercell must have 3 elements, got {len(supercell)}")
-
-        output_path = PYCSH_DIR / "output"
-
-        if output_path.exists():
-            shutil.rmtree(output_path)
-
-        output_path.mkdir(parents=True, exist_ok=True)
-
-        seed = seed or int.from_bytes(os.urandom(4), "big")
-        name = name or f"cs{self.cs_ratio}_ws{self.ws_ratio}"
-
-        param_file = Path(PYCSH_DIR) / "parameters.py"
-
-        content = (
-            f"seed = {seed}\n"
-            f"shape = {supercell}\n"
-            f"Ca_Si_ratio = {self.cs_ratio}\n"
-            f"W_Si_ratio = {self.ws_ratio}\n"
-            f"N_samples = {nsamples}\n"
-            "create = True\n"
-            "write_lammps = True\n"
-            "write_lammps_erica = False\n"
-            "write_vasp = False\n"
-            "write_siesta = False\n"
-            f'prefix = "{name}"\n'
-        )
-
-        param_file.write_text(content, encoding="utf-8")
-
-        try:
-            pattern = re.compile(r"Structure\s+(\d+)\s+converged")
-
-            process = subprocess.Popen(
-                ["python", "-u", "main_brick.py"],
-                cwd=PYCSH_DIR,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
-                text=True,
-            )
-
-            for line in process.stdout:
-                match = pattern.search(line)
-                if match and _progress_callback:
-                    current_id = int(match.group(1)) + 1
-                    _progress_callback(
-                        current_id, f"pyCSH: structure {current_id}/{nsamples}"
-                    )
-
-            process.wait()
-
-        except subprocess.CalledProcessError as e:
-            raise RuntimeError(f"Error executing pyCSH: {e}")
-
-        # Collect results
-        atomic_systems = []
-        for i in range(1, nsamples + 1):
-            reax_name = f"{name}_reax{i}.data"
-            lmp_path = output_path / reax_name
-
-            if not lmp_path.exists():
-                raise FileNotFoundError(f"pyCSH did not generate {reax_name}")
-
-            data = AtomicSystem.from_file(lmp_path)
-            data.set_types_from_elements()
-            atomic_systems.append(data)
-
-        result = atomic_systems[0] if len(atomic_systems) == 1 else atomic_systems
-        self._system = result if isinstance(result, AtomicSystem) else result[0]
-        self._update_analysis()
-        return result
 
     # ------------------------------------------------------------------
     # Conversion to C-A-S-H

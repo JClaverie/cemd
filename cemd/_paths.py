@@ -21,4 +21,3 @@ BASE_DIR = Path(__file__).resolve().parent
 
 FF_DATABASE_DIR = BASE_DIR / "core" / "_forcefield" / "db"
 STRUCTURES_DIR = BASE_DIR / "build" / "_structures"
-PYCSH_DIR = BASE_DIR / "build" / "pyCSH-main"

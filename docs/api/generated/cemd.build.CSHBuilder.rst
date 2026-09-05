@@ -16,7 +16,6 @@
       ~CSHBuilder.__init__
       ~CSHBuilder.analyze
       ~CSHBuilder.build
-      ~CSHBuilder.build_pycsh
       ~CSHBuilder.from_system
       ~CSHBuilder.to_cash
    

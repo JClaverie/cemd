@@ -38,7 +38,6 @@ from cemd.gui.logic.build import (
     open_make_glass,
     open_make_solution,
     open_make_surface,
-    open_pycsh,
     open_replicate,
     open_smiles_builder,
     open_split,
@@ -346,9 +345,6 @@ class AtomViewerGUI(QtWidgets.QMainWindow):
         )
         add_action(
             "action_cash", "CEMD", "cash", lambda: open_make_cash(self), sensitive=False
-        )
-        add_action(
-            "action_pycsh", "pyCSH", "pycsh", lambda: open_pycsh(self), sensitive=False
         )
 
         self.tools_toolbar.addSeparator()

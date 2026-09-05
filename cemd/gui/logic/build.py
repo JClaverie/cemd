@@ -39,7 +39,6 @@ from cemd.gui.ui.build import (
     SplitterDialog,
     SurfaceDialog,
     TranslateAtomsDialog,
-    pyCSHGeneratorDialog,
 )
 
 if TYPE_CHECKING:
@@ -117,29 +116,6 @@ def open_make_cash(parent: AtomViewerGUI) -> None:
                 handle_error(parent, "Import Error", e)
             finally:
                 QtWidgets.QApplication.restoreOverrideCursor()
-
-
-def open_pycsh(parent: AtomViewerGUI) -> None:
-    dialog = pyCSHGeneratorDialog(parent)
-    if dialog.exec_():
-        systems = dialog.selected_systems
-        if not systems:
-            return
-        try:
-            parent.setUpdatesEnabled(False)  # Bloque le rafraîchissement multiple
-            QtWidgets.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
-            for i, s in enumerate(systems):
-                parent.add_structure_tab(s, title=f"pyCSH #{i + 1}")
-
-            # parent.sync_ui(full_rebuild=True, reset_camera=True)
-            parent.statusBar().showMessage(
-                f"Imported {len(systems)} pyCSH models.", 5000
-            )
-        except Exception as e:
-            handle_error(parent, "Import Error", e)
-        finally:
-            parent.setUpdatesEnabled(True)
-            QtWidgets.QApplication.restoreOverrideCursor()
 
 
 def open_make_surface(parent: AtomViewerGUI) -> None:
