@@ -46,10 +46,18 @@ jobs:
         with:
           path: docs/_build/html
 
-  # Publishing only happens on main; a pull request just gets the build
-  # above as a check.
+  # Publishing only happens on main, and only once the PUBLISH_DOCS
+  # repository variable is set to "true" (Settings > Secrets and variables
+  # > Actions > Variables). Until then the build above still runs on every
+  # push, which is where the value is today: it already caught a missing
+  # documentation dependency. Deployment waits because the site address
+  # derives from the repository owner, so it would change if the project
+  # moves to an organisation -- see the note in README/CITATION.
   deploy:
-    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    if: >-
+      vars.PUBLISH_DOCS == 'true'
+      && github.ref == 'refs/heads/main'
+      && github.event_name != 'pull_request'
     needs: build
     runs-on: ubuntu-latest
     environment:
