@@ -228,6 +228,10 @@ def test_set_ff_from_database_applies_the_charges_a_force_field_defines():
     # field does define a per-type charge, it wins over whatever the system
     # was carrying. Only a force field that defines none (GROMOS, the
     # CHARMM Interface files) leaves the existing charges alone.
+    #
+    # +/-9.99 is a sentinel, not a physical charge: no force field would
+    # ever assign it, so the assertions below fail loudly if ClayFF's
+    # values are not written over it.
     atoms = pd.DataFrame(
         {
             "type": ["ao", "ob"],
