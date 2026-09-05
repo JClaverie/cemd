@@ -13,6 +13,14 @@ Distribution Functions
 
    cemd.analysis.compute_rdf
 
+Silicate Network
+----------------
+
+.. autosummary::
+   :toctree: generated/
+
+   cemd.analysis.analyze_silicates
+
 Diffusion
 ---------
 
@@ -20,7 +28,20 @@ Diffusion
    :toctree: generated/
 
    cemd.analysis.msd
+   cemd.analysis.msd_profile
    cemd.analysis.diffusion_coefficient
+   cemd.analysis.diffusion.diffusion_coefficient_profile
+   cemd.analysis.diffusion.plot_msd
+   cemd.analysis.diffusion.plot_diffusion_profile
+
+Bond Correlation
+----------------
+
+.. autosummary::
+   :toctree: generated/
+
+   cemd.analysis.tcf.bondcorr
+   cemd.analysis.tcf.lifetime
 
 Interface Properties
 --------------------
@@ -29,4 +50,7 @@ Interface Properties
    :toctree: generated/
 
    cemd.analysis.density_profile
+   cemd.analysis.density_map
    cemd.analysis.electrostatic_potential
+   cemd.analysis.density.find_interfaces_coordinates
+   cemd.analysis.density.shift_profile

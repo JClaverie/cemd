@@ -18,3 +18,4 @@ Advanced builders for creating and modifying complex structures.
    cemd.build.Splitter
    cemd.build.GlassBuilder
    cemd.build.CSHBuilder
+   cemd.build.AFBuilder

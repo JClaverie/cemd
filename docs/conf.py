@@ -149,8 +149,7 @@ autodoc_default_options = {
     # Exclude instance attributes already documented in the class docstring
     # to avoid them appearing twice in the rendered page.
     "exclude-members": (
-        "atoms, bonds, angles, dihedrals, impropers, velocities, "
-        "pair_params, bond_params, angle_params, dihedral_params, improper_params"
+        "atoms, bonds, angles, dihedrals, impropers, velocities"
     ),
 }
 

@@ -18,7 +18,7 @@ Prerequisites
 
    import numpy as np
    from cemd import AtomicSystem
-   from cemd.builders import SurfaceBuilder
+   from cemd.build import SurfaceBuilder
 
 Step 1: Retrieve Calcite Structure from COD
 ============================================
@@ -59,10 +59,10 @@ Download the calcite structure (COD ID: 9016705) directly from the COD database:
     4.98   4.98  17.19  90.00  90.00 120.00
 
     Atoms
-    type  number     %     mass  charge
-    C       6 20.00 12.01078     4.0
-    Ca       6 20.00 40.07840     2.0
-    O      18 60.00 15.99943    -2.0
+    type  number       mass  charge
+    C       6 12.01078     4.0
+    Ca       6 40.07840     2.0
+    O      18 15.99943    -2.0
 
     Total charge: 0.000e
     Volume: 0.37 nm3
@@ -150,10 +150,10 @@ Inspect the generated surface slab:
    4.98  24.36  60.89  90.00  90.00  90.00
 
    Atoms
-   type  number     %     mass  charge
-      C      72 20.00 12.01078     4.0
-   Ca      72 20.00 40.07840     2.0
-      O     216 60.00 15.99943    -2.0
+   type  number       mass  charge
+      C      72 12.01078     4.0
+   Ca      72 40.07840     2.0
+      O     216 15.99943    -2.0
 
    Total charge: 0.000e
    Volume: 7.38 nm3
@@ -172,7 +172,7 @@ Visualize the generated surface using VMD:
 .. code-block:: python
 
    # Visualize the surface
-   slab.view(material="AOEdgy", resolution=12)
+   slab.view()
 
 .. image:: /_static/images/calcite_104.png
    :alt: Calcite (104) slab

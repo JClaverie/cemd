@@ -236,7 +236,7 @@ Interface Detection
 
 .. code-block:: python
 
-   from cemd.analysis import find_interfaces_coordinates, shift_profile
+   from cemd.analysis.density import find_interfaces_coordinates, shift_profile
 
    # Find solid/liquid interface positions
    solid_types = ["Si", "Ca"]
@@ -257,8 +257,29 @@ Interface Detection
 Electrostatic Potential
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-Compute the electrostatic potential from density profiles and charges:
+Compute the charge density, electric field, and electrostatic potential
+from a set of per-type density profiles and their charges:
 
 .. code-block:: python
 
-   from c
+   from cemd.analysis import density_profile
+   from cemd.analysis.density import electrostatic_potential
+
+   # One profile with a column per atom type
+   profile = density_profile(
+       universe,
+       atom_types=["Ow", "Hw", "Ca"],
+       axis="z",
+       bin_size=0.1,
+   )
+
+   # Charges must be given in the same order as the profile's columns
+   charges = [-0.82, 0.41, 2.0]
+
+   charge_density, efield, potential = electrostatic_potential(profile, charges)
+
+   import matplotlib.pyplot as plt
+   potential.plot()
+   plt.xlabel("z (Å)")
+   plt.ylabel("Potential (V)")
+   plt.show()

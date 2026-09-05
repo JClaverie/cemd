@@ -29,7 +29,6 @@
    .. autosummary::
    
       ~CSHBuilder.cs_ratio
-      ~CSHBuilder.progress_callback
       ~CSHBuilder.ws_ratio
    
    

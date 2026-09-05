@@ -20,7 +20,7 @@ This guide explains how to build and analyze your atomistic models.
          :click-parent:
 
    .. grid-item-card:: :material-regular:`query_stats;2em` Analysis Guide
-      :link: build_guide
+      :link: analysis_guide
       :link-type: doc
       :text-align: center
 
@@ -64,4 +64,22 @@ This guide explains how to build and analyze your atomistic models.
       :link-type: doc
       :text-align: center
 
-      Solvating caffeine molecules in an NaCl solution.
+      Solvating caffeine in an NaCl solution, topology and force field included.
+
+   .. grid-item-card:: :material-regular:`school;2em` Tutorial
+      :link: tuto_csh_nanopore
+      :link-type: doc
+      :text-align: center
+
+      Opening a nanopore in a C-S-H matrix and filling it with an alkaline pore solution.
+
+.. toctree::
+   :hidden:
+
+   build_guide
+   analysis_guide
+   ff_database
+   tuto_calcite_surface
+   tuto_topo_ff
+   tuto_caffeine_solvation
+   tuto_csh_nanopore

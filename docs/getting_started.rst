@@ -25,23 +25,23 @@ The easiest way to load a system is directly from a LAMMPS ``.data`` file:
 .. code-block:: none
 
    <AtomicSystem with 2709 atoms, 1806 bonds>
-   
+
    Box
    a (Å)  b (Å)  c (Å)  α (°)  β (°)  γ (°)
       30     30     30     90     90     90
-   
+
    Atoms
-   type  number     %      mass  charge
-      H    1806 66.67  1.007947     0.0
-      O     903 33.33 15.999430     0.0
-   
+   type  number      mass  charge
+      H    1806  1.007947     0.0
+      O     903 15.999430     0.0
+
    Bonds
    type  number
    H-O    1806
-   
-   Total charge: 0.000e
-   Volume: 27.00 nm3
-   Density: 1.00 g/cm3
+
+   Total charge: 0.000 e
+   Volume: 27.00 nm³
+   Density: 1.00 g/cm³
 
 Other supported formats include ``.cif``, ``.pdb``, ``.sdf``, ``.lt``:
 
@@ -76,10 +76,10 @@ Crystallography Open Database (COD)
 
 .. code-block:: python
 
-   from cemd.db import explore_cod
+   from cemd import AtomicSystem
 
    # Launches an interactive TUI to browse COD
-   system = explore_cod()
+   system = AtomicSystem.from_cod()
 
 .. code-block:: none
 
@@ -113,10 +113,10 @@ PubChem Database
 
 .. code-block:: python
 
-   from cemd.db import explore_pubchem
+   from cemd import AtomicSystem
 
    # Interactive PubChem explorer
-   molecule = explore_pubchem()
+   molecule = AtomicSystem.from_pubchem()
 
 Inspecting a System
 -------------------
@@ -325,9 +325,6 @@ You can visualize your system in `VMD <https://www.ks.uiuc.edu/Research/vmd/>`_ 
    # Static view of the current configuration
    system.view()
 
-   # Customize the visualization
-   system.view(material="AOEdgy", resolution=12)
-   
    # View with an associated MD trajectory
    system.view(trajectory="md_production.dcd")
 
@@ -365,16 +362,19 @@ Manual Assignment
 
 .. code-block:: python
 
+   from cemd.forcefield.models import LJParams
+
    # Set masses
    system.set_masses({'H': 1.008, 'O': 15.999, 'Si': 28.085})
 
    # Set charges
    system.set_charges({'H': 0.41, 'O': -0.82, 'Si': 2.1})
 
-   # Set Lennard-Jones parameters
-   system.set_ff_pair_param('Si', [0.000184, 3.302])  # [epsilon, sigma]
+   # Set Lennard-Jones self-interaction parameters (epsilon, sigma)
+   system.set_pair_params('Si', params=LJParams(epsilon=0.000184, sigma=3.302))
 
-   # Apply mixing rules for cross-interactions
+   # Apply mixing rules for cross-interactions (requires that every atom
+   # type already has a self-interaction LJ pair set, as above)
    system.apply_pair_mixing_rules(rule='arithmetic')
 
 Setting Topology
@@ -399,19 +399,24 @@ Custom Rules
 
 .. code-block:: python
 
-   # Define a custom rule
-   custom_rule = {
-       "center_sel": "type O",
-       "new_type": "Ow",
-       "neighbors": [
-           {"sel": "type H", "cutoff": 1.2, "n": 2, "exact": True, "new_type": "Hw"}
-       ],
-       "create_bond": True,
-       "create_angle": True
-   }
-   
+   from cemd.topology import TopologyRule, NeighborCriterion
+
+   # Define a custom rule: an O bonded to exactly 2 H within 1.2 A becomes
+   # "Ow", its H neighbors become "Hw", and the O-H bonds/H-O-H angle are
+   # created.
+   custom_rule = TopologyRule(
+       center="type O",
+       neighbors=[NeighborCriterion("type H", cutoff=1.2, count=2, new_type="Hw")],
+       new_type="Ow",
+       bonds=True,
+       angles=True,
+   )
+
    # Apply the rule
    system.set_topology(custom_rule)
+
+   # Several rules can be applied in one call, in order
+   system.set_topology([custom_rule, another_rule])
 
 Manual Connectivity
 ^^^^^^^^^^^^^^^^^^^
@@ -439,13 +444,26 @@ Manual Connectivity
 Combining Systems
 -----------------
 
+To stack one structure on top of another (e.g. a molecule on a surface),
+see :meth:`~cemd.core.atomic_system.AtomicSystem.add_structure`,
+:meth:`~cemd.core.atomic_system.AtomicSystem.add_liquid_layer` and
+:meth:`~cemd.core.atomic_system.AtomicSystem.add_droplet`, described in the
+:doc:`build guide <user_guide/build_guide>`.
+
+To open a gap inside an existing system (optionally filling it with a
+solution), use :class:`~cemd.build.Splitter`:
+
 .. code-block:: python
 
-   from cemd.build import merge
+   from cemd.build import Splitter, SolutionBuilder
 
-   # Merge two systems with a new box
-   merged = merge(system1, system2, box=[50, 30, 30, 90, 90, 90])
-   
-   # Split a system
-   from cemd.build import split
-   system = split(system, axis=2, gap_size=20.0)
+   # Cut the system at z=15 A and open a 30 A gap there
+   split_system = Splitter(system, coordinate=15.0, axis='z', gap_size=30.0).split()
+
+   # Or fill the gap with a solution (fluent API)
+   blueprint = SolutionBuilder(density=1.0, counts={'Na': 10, 'Cl': 10})
+   filled_system = (
+       Splitter(system, coordinate=15.0, axis='z', gap_size=30.0)
+       .add_solution(blueprint, padding=2.0)
+       .split()
+   )

@@ -66,12 +66,15 @@ If you know which parameters you want to use, you can assign them directly:
 
    system = AtomicSystem.from_file("my_structure.data")
 
-   # Map your system's atom types to database types
+   # Map your system's atom types to database types. A bare short name
+   # (e.g. "ospc") works only if it is unambiguous across every loaded
+   # model; several models define the same short name, so prefer the
+   # fully-qualified "Model.type" form shown here.
    assignments = {
-       'O': 'ospc',      # Water oxygen (SPC model)
-       'H': 'hspc',      # Water hydrogen (SPC model)
-       'Si': 'st',       # Tetrahedral silicon (ClayFF)
-       'Ca': 'ca',       # Aqueous calcium (ClayFF)
+       'O': 'SPC.ospc',      # Water oxygen (SPC model)
+       'H': 'SPC.hspc',      # Water hydrogen (SPC model)
+       'Si': 'ClayFF.st',    # Tetrahedral silicon (ClayFF)
+       'Ca': 'ClayFF.ca',    # Aqueous calcium (ClayFF)
    }
 
    # Apply the force field parameters
@@ -90,14 +93,17 @@ You can mix parameters from different force field models:
 
 .. code-block:: python
 
-   # Mix ClayFF and SPC parameters
+   # Mix ClayFF and SPC parameters. Model names are case-sensitive as
+   # loaded (check with ForceFieldDatabase().get_model_names()) --
+   # "clayff.o_star" would *not* raise an error, it would silently fall
+   # back to an arbitrary model that also defines an "o_star" type.
    assignments = {
-       'O': 'clayff.o_star',     # Water oxygen from ClayFF
-       'H': 'clayff.h_star',     # Water hydrogen from ClayFF
-       'Si': 'clayff.st',        # Silicon from ClayFF
-       'Ca': 'clayff.ca',        # Calcium from ClayFF
-       'Ow': 'spc.ospc',         # Water oxygen from SPC
-       'Hw': 'spc.hspc',         # Water hydrogen from SPC
+       'O': 'ClayFF.o_star',     # Water oxygen from ClayFF
+       'H': 'ClayFF.h_star',     # Water hydrogen from ClayFF
+       'Si': 'ClayFF.st',        # Silicon from ClayFF
+       'Ca': 'ClayFF.ca',        # Calcium from ClayFF
+       'Ow': 'SPC.ospc',         # Water oxygen from SPC
+       'Hw': 'SPC.hspc',         # Water hydrogen from SPC
    }
 
    system.set_ff_from_database(assignments)
@@ -113,17 +119,15 @@ After assignment, you can inspect the parameters that were applied:
 .. code-block:: python
 
    # Check masses and charges
-   print(f"Masses: {system.masses}")
-   print(f"Charges: {system.charges}")
+   print(f"Masses: {dict(system.masses)}")
+   print(f"Charges: {dict(system.charges)}")
 
-   # Check LJ parameters
-   print(f"Pair parameters: {system.pair_params}")
-
-   # Check bond parameters
-   print(f"Bond parameters: {system.bond_params}")
-
-   # Check angle parameters
-   print(f"Angle parameters: {system.angle_params}")
+   # Force-field parameters live under `ff_params`, keyed by the
+   # (canonical, hyphen-joined) interaction type -- e.g. "Ow-Ow" for a
+   # pair, "Hw-Ow-Hw" for an angle.
+   print(f"Pair parameters: {dict(system.ff_params.pair)}")
+   print(f"Bond parameters: {dict(system.ff_params.bond)}")
+   print(f"Angle parameters: {dict(system.ff_params.angle)}")
 
 Applying Mixing Rules
 ^^^^^^^^^^^^^^^^^^^^^
@@ -141,21 +145,6 @@ If cross-interactions are not explicitly defined in the database, you can apply 
    # Overwrite existing cross-interactions
    system.apply_pair_mixing_rules(rule='arithmetic', overwrite=True)
 
-Custom Database Location
-^^^^^^^^^^^^^^^^^^^^^^^^
-
-If you have a custom database location:
-
-.. code-block:: python
-
-   # Use custom database directory
-   custom_db_dir = "/path/to/your/forcefield/database"
-
-   system.set_ff_from_database(assignments, ff_database_dir=custom_db_dir)
-
-   # Or explore a custom database
-   system.explore_ff_database(ff_database_dir=custom_db_dir)
-
 Full Example: Setting Up a Water System
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -170,22 +159,26 @@ Here is a complete example of setting up a water system with force field paramet
 
    # Check current atom types
    print(f"Atom types: {system.atom_types}")
-   print(f"Elements: {system.elements}")
+   print(f"Elements: {dict(system.elements)}")
 
-   # Assign SPC water parameters
+   # Assign SPC water parameters. Prefer the fully-qualified "model.type"
+   # key ("SPC.ospc") over the bare short name ("ospc") -- several models
+   # define a type with the same short name (e.g. "ospc" also exists under
+   # "iff_cvff"), and an unqualified short name resolves to whichever one
+   # happens to be loaded first, silently picking the wrong model.
    assignments = {
-       'O': 'ospc',  # Water oxygen
-       'H': 'hspc',  # Water hydrogen
+       'O': 'SPC.ospc',  # Water oxygen
+       'H': 'SPC.hspc',  # Water hydrogen
    }
 
    system.set_ff_from_database(assignments)
 
    # Verify the assignment
-   print(f"Masses: {system.masses}")
-   print(f"Charges: {system.charges}")
-   print(f"LJ parameters: {system.pair_params}")
-   print(f"Bond parameters: {system.bond_params}")
-   print(f"Angle parameters: {system.angle_params}")
+   print(f"Masses: {dict(system.masses)}")
+   print(f"Charges: {dict(system.charges)}")
+   print(f"LJ parameters: {dict(system.ff_params.pair)}")
+   print(f"Bond parameters: {dict(system.ff_params.bond)}")
+   print(f"Angle parameters: {dict(system.ff_params.angle)}")
 
    # Export to LAMMPS data file
    system.write("water_spc.data")
@@ -193,12 +186,12 @@ Here is a complete example of setting up a water system with force field paramet
 .. code-block:: none
 
    Atom types: ['H', 'O']
-   Elements: ['H', 'O']
-   Masses: [1.008, 15.999]
-   Charges: [0.41, -0.82]
-   LJ parameters: {('O', 'O'): LJParams(epsilon=0.15535, sigma=3.166), ...}
-   Bond parameters: {'H-O': BondParams(k=554.1349, r0=1.0)}
-   Angle parameters: {'H-O-H': AngleParams(k=45.7696, theta0=109.47)}
+   Elements: {'H': 'H', 'O': 'O'}
+   Masses: {'H': 1.007947, 'O': 15.99943}
+   Charges: {'H': 0.41, 'O': -0.82}
+   LJ parameters: {'O-O': LJParams(epsilon=0.15535, sigma=3.166, ...), 'H-O': LJParams(epsilon=0.0, sigma=1.583, ...), 'H-H': LJParams(epsilon=0, sigma=0, ...)}
+   Bond parameters: {'H-O': HarmonicBondParams(k=554.1349, r0=1.0, ...)}
+   Angle parameters: {'H-O-H': HarmonicAngleParams(k=45.7696, theta0=109.47, ...)}
 
 Full Example: Setting Up a C-S-H System
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -214,12 +207,12 @@ For a more complex example with cementitious materials:
 
    # Assign CSHFF2014 parameters
    assignments = {
-       'Si': 'si_cshff2014',    # Silicon in C-S-H
-       'O': 'o_cshff2014',      # Oxygen in C-S-H
-       'Ca': 'ca_cshff2014',    # Calcium in C-S-H
-       'H': 'h_cshff2014',      # Hydrogen in C-S-H
-       'Ow': 'ow_cshff2014',    # Water oxygen in C-S-H
-       'Hw': 'hw_cshff2014',    # Water hydrogen in C-S-H
+       'Si': 'CSHFF2014.si_cshff2014',    # Silicon in C-S-H
+       'O': 'CSHFF2014.o_cshff2014',      # Oxygen in C-S-H
+       'Ca': 'CSHFF2014.ca_cshff2014',    # Calcium in C-S-H
+       'H': 'CSHFF2014.h_cshff2014',      # Hydrogen in C-S-H
+       'Ow': 'CSHFF2014.ow_cshff2014',    # Water oxygen in C-S-H
+       'Hw': 'CSHFF2014.hw_cshff2014',    # Water hydrogen in C-S-H
    }
 
    system.set_ff_from_database(assignments)

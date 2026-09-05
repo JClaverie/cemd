@@ -16,7 +16,8 @@ Prerequisites
 
 .. code-block:: python
 
-   from cemd import AtomicSystem, TopologyRule, NeighborCriterion
+   from cemd import AtomicSystem
+   from cemd.topology import TopologyRule, NeighborCriterion
 
 Step 1: Load Calcite Structure
 ===============================
@@ -38,10 +39,10 @@ Load the calcite structure from :ref:`tutorial_calcite_surface` and understand w
     34.86  24.36  60.89  90.00  90.00  90.00
 
     Atoms
-    type  number     %     mass  charge
-    C     504 20.00 12.01078     4.0
-    Ca     504 20.00 40.07840     2.0
-    O    1512 60.00 15.99943    -2.0
+    type  number       mass  charge
+    C     504 12.01078     4.0
+    Ca     504 40.07840     2.0
+    O    1512 15.99943    -2.0
 
     Total charge: 0.000e
     Volume: 51.69 nm3
@@ -73,10 +74,10 @@ Now we create topology rules using the known bond distances.
     34.86  24.36  60.89  90.00  90.00  90.00
 
     Atoms
-    type  number     %     mass  charge
-       C     504 20.00 12.01078     4.0
-      Ca     504 20.00 40.07840     2.0
-       O    1512 60.00 15.99943    -2.0
+    type  number       mass  charge
+       C     504 12.01078     4.0
+      Ca     504 40.07840     2.0
+       O    1512 15.99943    -2.0
 
     Bonds
     type  number

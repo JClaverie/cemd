@@ -4,7 +4,7 @@ AtomicSystem
 ============
 
 .. autoclass:: AtomicSystem
-   :members: atoms, bonds, angles, dihedrals, impropers, velocities, pair_params, bond_params, angle_params, dihedral_params, improper_params
+   :members: atoms, bonds, angles, dihedrals, impropers, velocities
 
 Properties
 ----------
@@ -18,15 +18,21 @@ Properties
    AtomicSystem.density
    AtomicSystem.total_charge
    AtomicSystem.total_mass
-   AtomicSystem.density
    AtomicSystem.masses
    AtomicSystem.charges
    AtomicSystem.elements
+   AtomicSystem.ff_keys
+   AtomicSystem.ff_params
    AtomicSystem.num_atoms
    AtomicSystem.num_bonds
    AtomicSystem.num_angles
    AtomicSystem.num_dihedrals
    AtomicSystem.num_impropers
+   AtomicSystem.num_atom_types
+   AtomicSystem.num_bond_types
+   AtomicSystem.num_angle_types
+   AtomicSystem.num_dihedral_types
+   AtomicSystem.num_improper_types
    AtomicSystem.atom_types
    AtomicSystem.bond_types
    AtomicSystem.angle_types
@@ -41,6 +47,10 @@ Inspection
    :nosignatures:
 
    AtomicSystem.summary
+   AtomicSystem.get_count
+   AtomicSystem.get_center_of_mass
+   AtomicSystem.copy
+   AtomicSystem.view
 
 Input/Output
 ------------
@@ -50,6 +60,7 @@ Input/Output
    :nosignatures:
 
    AtomicSystem.from_file
+   AtomicSystem.from_smiles
    AtomicSystem.from_cod
    AtomicSystem.from_pubchem
    AtomicSystem.from_mda
@@ -95,7 +106,15 @@ Force Field
    AtomicSystem.set_pair_params
    AtomicSystem.set_bond_params
    AtomicSystem.set_angle_params
+   AtomicSystem.set_dihedral_params
+   AtomicSystem.set_improper_params
    AtomicSystem.apply_pair_mixing_rules
+   AtomicSystem.set_ff_keys
+   AtomicSystem.set_atom_ff_keys
+   AtomicSystem.set_bond_ff_keys
+   AtomicSystem.set_angle_ff_keys
+   AtomicSystem.set_dihedral_ff_keys
+   AtomicSystem.set_improper_ff_keys
 
 Modifiers
 ---------
