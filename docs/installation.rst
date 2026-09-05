@@ -59,7 +59,7 @@ If you plan to contribute to **cemd** development, clone the repository and inst
 
 .. code-block:: bash
 
-   git clone https://github.com/JClaverie/cemd.git
+   git clone https://github.com/cemd-dev/cemd.git
    cd cemd
 
 Create a dedicated conda environment:

@@ -24,8 +24,8 @@ authors:
 version: 0.1.0
 date-released: "2026-09-05"
 license: GPL-3.0-only
-repository-code: "https://github.com/JClaverie/cemd"
-url: "https://github.com/JClaverie/cemd"
+repository-code: "https://github.com/cemd-dev/cemd"
+url: "https://github.com/cemd-dev/cemd"
 
 keywords:
   - molecular dynamics

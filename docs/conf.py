@@ -196,7 +196,7 @@ html_theme_options = {
     "icon_links": [
         {
             "name": "GitHub",
-            "url": "https://github.com/JClaverie/cemd",
+            "url": "https://github.com/cemd-dev/cemd",
             "icon": "fa-brands fa-github",
             "type": "fontawesome",
         },
