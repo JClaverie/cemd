@@ -55,7 +55,7 @@ class AtomicPlotter(QtInteractor):
 
         self.add_axes()
 
-    def get_current_config_dict(self) -> None:
+    def get_current_config_dict(self) -> dict[str, Any]:
         """Returns the current state of this plotter's settings in dictionary form."""
         return {
             "color_map": self.color_map.copy(),
@@ -265,7 +265,9 @@ class AtomicPlotter(QtInteractor):
             # Determine color based on current background
             current_bg = self.bg_cycle[self.bg_idx]
             # If the background is white, we trace the box in black, otherwise in white
-            box_color = "black" if current_bg in ["white", "#b0c4de"] else "white"
+            box_color = (
+                "black" if current_bg.lower() in ["white", "#b0c4de"] else "white"
+            )
 
             mesh = pv.PolyData(pts, faces)
             # box_tubes = mesh.extract_all_edges().tube(radius=0.03)

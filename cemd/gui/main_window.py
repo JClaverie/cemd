@@ -424,17 +424,10 @@ class AtomViewerGUI(QtWidgets.QMainWindow):
     @QtCore.Slot()
     def open_file_clicked(self) -> None:
         """The user clicked Open."""
-        import sys
-
-        from pyinstrument import Profiler
-
         system, path = open_file(self)
         if system:
-            with Profiler() as p:
-                self.add_structure_tab(system, path)
-                self.statusBar().showMessage(f"Chargé : {path}", 3000)
-
-            print(p.output_text(unicode=True, color=False), file=sys.stderr, flush=True)
+            self.add_structure_tab(system, path)
+            self.statusBar().showMessage(f"Chargé : {path}", 3000)
 
     @QtCore.Slot()
     def save_file_clicked(self) -> None:
@@ -734,7 +727,7 @@ class AtomViewerGUI(QtWidgets.QMainWindow):
         except Exception as e:
             print(f"JSON writing error: {e}")
 
-    def close_event(self, event: QtGui.QCloseEvent) -> None:
+    def closeEvent(self, event: QtGui.QCloseEvent) -> None:
         """Centralized global backup on shutdown."""
         try:
             self.save_global_to_json()

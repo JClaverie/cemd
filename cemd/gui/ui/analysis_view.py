@@ -40,6 +40,9 @@ class RDFDialog(BaseBuilderDialog):
 
         self.current_r = None
         self.current_gr_raw = None
+        # `update_plot_only` is wired to signals (sigma slider, tab switch)
+        # that can fire before `run_calculation` ever sets this.
+        self.rdf_results = None
 
         self.setup_ui()
 
@@ -282,16 +285,20 @@ class SilicateDialog(BaseBuilderDialog):
         """Detects types based on atomic masses."""
         mass_dict = {"Si": 28.085, "O": 15.999, "Al": 26.982, "Ca": 40.078, "H": 1.008}
         found = {"Si": [], "O": [], "Al": [], "Ca": []}
-        data_masses = getattr(self.data, "masses", [])
+        # `masses` is a {type: mass} mapping, not a plain sequence -- look
+        # each atom type up by name instead of pairing it with `atom_types`
+        # positionally via `enumerate`.
+        data_masses = getattr(self.data, "masses", {})
 
-        for i, t_mass in enumerate(data_masses):
-            if i < len(self.atom_types):
-                t_name = self.atom_types[i]
-                for element, target_mass in mass_dict.items():
-                    if abs(t_mass - target_mass) < 0.5:
-                        if element in found:
-                            found[element].append(t_name)
-                        break
+        for t_name in self.atom_types:
+            t_mass = data_masses.get(t_name)
+            if t_mass is None:
+                continue
+            for element, target_mass in mass_dict.items():
+                if abs(t_mass - target_mass) < 0.5:
+                    if element in found:
+                        found[element].append(t_name)
+                    break
 
         self.edit_si.setText(" ".join(found["Si"]))
         self.edit_o.setText(" ".join(found["O"]))
@@ -319,12 +326,16 @@ class SilicateDialog(BaseBuilderDialog):
                 )
                 return
 
+            # `analyze_silicates` takes a single `types_map` dict, not
+            # per-element keyword arguments.
             res = analyze_silicates(
                 self.data,
-                si_types=si,
-                o_types=o,
-                al_types=al,
-                ca_types=ca,
+                types_map={
+                    "si_types": si,
+                    "o_types": o,
+                    "al_types": al,
+                    "ca_types": ca,
+                },
                 cutoff=cutoff,
             )
 
@@ -346,8 +357,11 @@ class SilicateDialog(BaseBuilderDialog):
                 item.setTextAlignment(QtCore.Qt.AlignCenter)
                 self.table_qn.setItem(0, i, item)
 
+            # `analyze_silicates`'s result has no "n_si_analyzed" key; use
+            # the actual atom count for the selected Si type(s) instead.
+            n_si = sum(self.data.get_count(t) for t in si.split())
             self.status_bar.showMessage(
-                f"✓ Success: {res['n_si_analyzed']} Si atoms analyzed.", 7000
+                f"✓ Success: {n_si} Si atoms analyzed.", 7000
             )
 
         except Exception as e:

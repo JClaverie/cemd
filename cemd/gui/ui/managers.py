@@ -23,6 +23,7 @@ from PySide6 import QtCore, QtGui, QtWidgets
 from PySide6Qlementine import ActionButton
 
 from ...forcefield import ForceFieldDatabase
+from ...topology import NeighborCriterion, TopologyRule
 from .base_dialog import BaseBuilderDialog
 from .gui_utils import get_icon
 
@@ -121,7 +122,7 @@ class TypeManagerDialog(BaseBuilderDialog):
     def load_ff_database(self) -> None:
         """Loads the Excel file and its different tabs"""
         try:
-            self.all_sheets = ForceFieldDatabase.to_dataframes()
+            self.all_sheets = ForceFieldDatabase().to_dataframes()
             self.ff_db = self.all_sheets["atoms"]
             self.ff_db.columns = self.ff_db.columns.str.strip()
         except Exception as e:
@@ -229,7 +230,7 @@ class TypeManagerDialog(BaseBuilderDialog):
             self.on_ff_changed(item.row())
 
     def reset_via_masses(self) -> None:
-        self.system_obj.reset_types()
+        self.system_obj.set_types_from_elements()
         self.fill_table()
 
     def apply_and_refresh(self) -> None:
@@ -277,9 +278,11 @@ class TypeManagerDialog(BaseBuilderDialog):
                     if original_id in radius_map:
                         radius_map[new_name] = radius_map[original_id]
 
-        ids_order = list(temp_names.keys())
-        self.system_obj.set_types([temp_names[tid] for tid in ids_order])
-        self.system_obj.set_charges([temp_charges[tid] for tid in ids_order])
+        # `set_types`/`set_charges` take a {old_value: new_value} mapping,
+        # not a bare list of new values -- `temp_names`/`temp_charges` are
+        # already built as such dicts above.
+        self.system_obj.set_types(temp_names)
+        self.system_obj.set_charges(temp_charges)
 
         self.session_ff_dict.clear()
         self.session_ff_dict.update(new_session_map)
@@ -297,7 +300,7 @@ class TypeManagerDialog(BaseBuilderDialog):
             return
 
         try:
-            self.system_obj.set_ff_from_database(assignments=assignments)
+            self.system_obj.set_ff_from_database(atom_assignments=assignments)
         except Exception as e:
             QtWidgets.QMessageBox.critical(
                 self,
@@ -541,7 +544,7 @@ class ConnectivityDialog(BaseBuilderDialog):
     def load_ff_database(self) -> None:
         """Loads the Excel file and its different tabs"""
         try:
-            self.all_sheets = ForceFieldDatabase.to_dataframes()
+            self.all_sheets = ForceFieldDatabase().to_dataframes()
             self.ff_db = self.all_sheets["atoms"]
             self.ff_db.columns = self.ff_db.columns.str.strip()
         except Exception as e:
@@ -979,29 +982,27 @@ class RuleBuilderDialog(QtWidgets.QDialog):
         rule_data["widget"].deleteLater()
         self.neighbor_rules.remove(rule_data)
 
-    def get_rule(self) -> None:
-        """Builds the rule dictionary for set_topology_rule"""
-        neighbors = []
-        for r in self.neighbor_rules:
-            neighbors.append(
-                {
-                    "sel": f"type {r['type_cb'].currentText()}",
-                    "n": r["n_spin"].value(),
-                    "cutoff": r["dist_spin"].value(),
-                    "exact": False,
-                    "new_type": r["new_type"].text() if r["new_type"].text() else None,
-                }
+    def get_rule(self) -> TopologyRule:
+        """Builds the TopologyRule expected by AtomicSystem.set_topology()."""
+        neighbors = [
+            NeighborCriterion(
+                selection=f"type {r['type_cb'].currentText()}",
+                cutoff=r["dist_spin"].value(),
+                count=r["n_spin"].value(),
+                new_type=r["new_type"].text() if r["new_type"].text() else None,
             )
+            for r in self.neighbor_rules
+        ]
 
-        return {
-            "center_sel": f"type {self.combo_center.currentText()}",
-            "new_type": self.new_type_center.text()
+        return TopologyRule(
+            center=f"type {self.combo_center.currentText()}",
+            neighbors=neighbors,
+            new_type=self.new_type_center.text()
             if self.new_type_center.text()
             else None,
-            "neighbors": neighbors,
-            "create_bond": self.cb_bonds.isChecked(),
-            "create_angle": self.cb_angles.isChecked(),
-        }
+            bonds=self.cb_bonds.isChecked(),
+            angles=self.cb_angles.isChecked(),
+        )
 
 
 class NeutralizeDialog(QtWidgets.QDialog):

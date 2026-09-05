@@ -135,7 +135,5 @@ class AtomTable(QtWidgets.QTableView):  # We change QTableWidget to QTableView
                 pass
 
         # Create the model (Force the reconstruction)
-        from ui.atom_table import AtomicModel
-
         model = AtomicModel(system_obj)
         self.setModel(model)

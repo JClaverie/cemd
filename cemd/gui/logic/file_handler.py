@@ -58,7 +58,7 @@ def save_file(
         return False
 
     if not current_path or not current_path.lower().endswith(".data"):
-        parent.save_file_as()
+        parent.save_file_as_clicked()
         return False
 
     try:

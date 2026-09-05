@@ -26,13 +26,13 @@ from typing import TYPE_CHECKING, Any
 from PySide6 import QtCore, QtGui, QtWidgets
 from rdkit import Chem, RDLogger
 from rdkit.Chem import Draw, rdMolDescriptors
-from ui.base_dialog import BaseBuilderDialog
-from ui.gui_utils import get_icon
 
 from ..._paths import PYCSH_DIR
 from ...build import CSHBuilder, SurfaceBuilder
 from ...build.solution import _concentration2count
 from ...core.atomic_system import AtomicSystem
+from .base_dialog import BaseBuilderDialog
+from .gui_utils import get_icon
 
 if TYPE_CHECKING:
     from cemd.core.atomic_system import AtomicSystem
@@ -719,10 +719,10 @@ class AddLiquidLayerDialog(BaseBuilderDialog):
         thickness = self.thickness.value()
 
         # We try to recover the real volume of the parent system
-        if system and hasattr(system, "get_volume"):
-            current_v = system.get_volume()
+        if system is not None:
+            current_v = system.volume
             # We recover the length of the growth axis (ex: z)
-            lengths = system.cell.lengths()
+            lengths = system.box[:3]
             axis_map = {"x": 0, "y": 1, "z": 2}
             idx = axis_map[self.axis_combo.currentText().lower()]
 
@@ -897,8 +897,16 @@ class pyCSHGeneratorDialog(BaseBuilderDialog):
 
             if al_si > 0:
                 for s in raw_systems:
-                    builder = CSHBuilder(s)
-                    new_sys, real_as = builder.to_cash(s, as_ratio=al_si)
+                    # `CSHBuilder(s)` would bind `s` to the `cs_ratio`
+                    # dataclass field instead of wrapping the system, and
+                    # `to_cash` takes no system argument (it operates on
+                    # the builder's own `_system`).
+                    builder = CSHBuilder.from_system(s)
+                    result = builder.to_cash(as_ratio=al_si)
+                    if isinstance(result, (tuple, list)):
+                        new_sys, real_as = result[0], result[1]
+                    else:
+                        new_sys, real_as = result, al_si
                     self.generated_systems.append(new_sys)
                     self.real_as_list.append(real_as)
             else:
@@ -1250,56 +1258,57 @@ class CASHBuilderDialog(BaseBuilderDialog):
         layout.addWidget(self.status_bar)
 
 
-def on_calculate(self):
-    """Generate C-(A)-S-H structure in a worker thread."""
-    try:
-        QtWidgets.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
+    def on_calculate(self):
+        """Generate C-(A)-S-H structure in a worker thread."""
+        try:
+            QtWidgets.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
 
-        self.show_message("Generating C-(A)-S-H structure... Please wait")
+            self.show_message("Generating C-(A)-S-H structure... Please wait")
 
-        params = {
-            "cs_ratio": self.cs.value(),
-            "ws_ratio": self.ws.value(),
-            "supercell": [
-                self.sx.value(),
-                self.sy.value(),
-                self.sz.value(),
-            ],
-            "min_mcl": self.min_mcl.value(),
-            "model": "tob11a_hamid.cif",
-        }
+            params = {
+                "cs_ratio": self.cs.value(),
+                "ws_ratio": self.ws.value(),
+                "supercell": [
+                    self.sx.value(),
+                    self.sy.value(),
+                    self.sz.value(),
+                ],
+                "min_mcl": self.min_mcl.value(),
+                "model": "tob11a_hamid.cif",
+            }
 
-        builder = CSHBuilder(
-            cs_ratio=params["cs_ratio"],
-            ws_ratio=params["ws_ratio"],
-        )
+            builder = CSHBuilder(
+                cs_ratio=params["cs_ratio"],
+                ws_ratio=params["ws_ratio"],
+            )
 
-        self.worker = TaskWorker(
-            builder.build,
-            supercell=params["supercell"],
-            min_mcl=params["min_mcl"],
-            symmetry=True,
-            model=params["model"],
-        )
+            self.worker = TaskWorker(
+                builder.build,
+                supercell=params["supercell"],
+                min_mcl=params["min_mcl"],
+                symmetry=True,
+                model=params["model"],
+            )
 
-        self.worker.progress_changed.connect(self.set_progress)
-        self.worker.status_msg.connect(self.set_status)
-        self.worker.finished.connect(self.on_success)
-        self.worker.error.connect(lambda e: self.show_error("Calculation Error", e))
+            self.worker.status_msg.connect(self.set_status)
+            self.worker.finished.connect(self.on_success)
+            self.worker.error.connect(
+                lambda e: self.show_error("Calculation Error", e)
+            )
 
-        self.worker.start()
+            self.worker.start()
 
-    except Exception as e:
-        self.show_error("Error", f"Generation failed: {e}")
+        except Exception as e:
+            self.show_error("Error", f"Generation failed: {e}")
 
-    finally:
-        QtWidgets.QApplication.restoreOverrideCursor()
+        finally:
+            QtWidgets.QApplication.restoreOverrideCursor()
 
     def on_success(self, system: AtomicSystem) -> None:
         """This method is called automatically when the Worker has finished"""
         try:
             if self.as_r.value() > 0:
-                builder = CSHBuilder(system)
+                builder = CSHBuilder.from_system(system)
                 res_al = builder.to_cash(as_ratio=self.as_r.value())
                 system = res_al[0] if isinstance(res_al, (tuple, list)) else res_al
 
@@ -1435,10 +1444,10 @@ class SplitterDialog(BaseBuilderDialog):
         system = getattr(self.parent_gui, "system", None)
         gap_width = self.gap.value()
 
-        if system and hasattr(system, "get_volume"):
+        if system is not None:
             # Same logic as for the liquid layer
-            current_v = system.get_volume()
-            lengths = system.cell.lengths()
+            current_v = system.volume
+            lengths = system.box[:3]
             # Here the axis is the index selected in the combo (0, 1, 2)
             idx = self.axis.currentIndex()
 

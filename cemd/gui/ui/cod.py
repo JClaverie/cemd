@@ -25,9 +25,9 @@ from typing import TYPE_CHECKING, Any
 from PySide6 import QtCore, QtWidgets
 
 if TYPE_CHECKING:
-    from main_window import AtomViewerGUI
+    from ..main_window import AtomViewerGUI
 
-from ui.base_dialog import BaseBuilderDialog
+from .base_dialog import BaseBuilderDialog
 
 from ...core._io.sources.cod import (
     cod_search_by_elements,
@@ -148,17 +148,13 @@ class CODBrowserDialog(BaseBuilderDialog):
             elif search_mode == "COD ID":
                 results = cod_search_by_id(query)
 
-            if not results:
-                self.status_bar.showMessage("No results found")
-
             self.display_results(results)
             self.save_last_search(query, search_mode, results)
+            self.status_bar.showMessage(f"{len(results)} structures found")
 
         except Exception as e:
             self.status_bar.showMessage("⚠ Error during search")
             QtWidgets.QMessageBox.critical(self, "Search Error", str(e))
-        finally:
-            self.status_bar.showMessage(f"{len(results)} structures found")
 
     def save_last_search(
         self, query: str, mode: str, results: list[dict[str, Any]]

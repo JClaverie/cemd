@@ -33,7 +33,7 @@ from ...core._io.sources.pubchem import (
 from .base_dialog import BaseBuilderDialog
 
 if TYPE_CHECKING:
-    from main_window import AtomViewerGUI
+    from ..main_window import AtomViewerGUI
 
 
 class PubChemBrowserDialog(BaseBuilderDialog):
@@ -180,7 +180,14 @@ class PubChemBrowserDialog(BaseBuilderDialog):
         smiles = self.table.item(row, 4).text()
         self.status_bar.showMessage(f"Fetching 3D coordinates for CID {cid}...")
 
-        system = get_structure(cid, smiles)  # ← already an AtomicSystem
+        try:
+            system = get_structure(cid, smiles)  # ← already an AtomicSystem
+        except Exception as e:
+            QtWidgets.QMessageBox.critical(
+                self, "3D Error", f"Failed to fetch structure for CID {cid}:\n{e}"
+            )
+            return
+
         if system:
             self.selected_system = system
             self.accept()

@@ -23,9 +23,10 @@ from typing import TYPE_CHECKING, Any
 import numpy as np
 import pandas as pd
 import pyvista as pv
-from plotter_widget import AtomicPlotter
 from PySide6 import QtCore, QtWidgets
-from ui.atom_table import AtomTable
+
+from .plotter_widget import AtomicPlotter
+from .ui.atom_table import AtomTable
 
 if TYPE_CHECKING:
     from PySide6.QtGui import QKeyEvent
@@ -290,7 +291,7 @@ class StructureTabWidget(QtWidgets.QWidget):
         # you must therefore update the FilterPanel counters if necessary.
         self.parent_gui.sync_ui(full_rebuild=True)
 
-    def key_press_event(self, event: QKeyEvent) -> None:
+    def keyPressEvent(self, event: QKeyEvent) -> None:
         """Handles keyboard shortcuts, specifically intercepting the Delete and Backspace keys for atom removal."""
         # Security: If are editing a cell, let the table do its work
         if self.table.state() == QtWidgets.QAbstractItemView.EditingState:
@@ -302,7 +303,9 @@ class StructureTabWidget(QtWidgets.QWidget):
             if self.selected_real_indices:
                 self.delete_selected()
             else:
-                self.statusBar().showMessage("Aucun atome sélectionné.", 2000)
+                self.parent_gui.statusBar().showMessage(
+                    "Aucun atome sélectionné.", 2000
+                )
         else:
             # Very important for other keys (Escape, etc.) to work
             super().keyPressEvent(event)
@@ -336,8 +339,16 @@ class StructureTabWidget(QtWidgets.QWidget):
 
             # ---UPDATE LOGIC ---
             if col_name in ["x", "y", "z"]:
+                # `set_atom_position` takes a single atom index and the
+                # full (x, y, z) position, not a per-axis keyword -- start
+                # from the atom's current position and only change the
+                # edited axis.
                 new_val = model.data(top_left, QtCore.Qt.ItemDataRole.EditRole)
-                self.system.set_atom_position([real_idx], **{col_name: float(new_val)})
+                position = self.system.atoms.loc[real_idx, ["x", "y", "z"]].to_numpy(
+                    dtype=float, copy=True
+                )
+                position["xyz".index(col_name)] = float(new_val)
+                self.system.set_atom_position(real_idx, position)
                 QtCore.QTimer.singleShot(
                     10, lambda: self.parent_gui.sync_ui(full_rebuild=False)
                 )
