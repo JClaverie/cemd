@@ -52,6 +52,12 @@ For GUI support:
 
    pip install "cemd[gui]"
 
+That installs a ``cemd-gui`` command, which opens the interface:
+
+.. code-block:: bash
+
+   cemd-gui
+
 Developer Installation
 ----------------------
 

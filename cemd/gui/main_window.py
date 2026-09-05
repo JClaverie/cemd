@@ -282,10 +282,29 @@ class AtomViewerGUI(QtWidgets.QMainWindow):
         self.tools_toolbar.setIconSize(QtCore.QSize(24, 24))
         self._tab_sensitive_actions = []
 
-        def add_action(attr_name, name, icon, slot, sensitive=True):
-            """Crée l'action, l'assigne à self.attr_name et l'ajoute à la toolbar."""
+        def add_action(
+            attr_name, name, icon, slot, sensitive=True, tip=None, shortcut=None
+        ):
+            """Create the action, bind it to self.attr_name and add it to the toolbar.
+
+            `tip` is what the toolbar shows on hover and the status bar
+            shows on focus: the icons carry no label, so without it the
+            only clue to what a button does is its one-word name.
+            """
             action = QtGui.QAction(get_icon(icon), name, self)
             action.triggered.connect(slot)
+
+            if shortcut is not None:
+                action.setShortcut(QtGui.QKeySequence(shortcut))
+                # Qt appends the shortcut to the tooltip only when one is
+                # set explicitly, so build it here to get "Open (Ctrl+O)".
+                action.setShortcutContext(QtCore.Qt.ApplicationShortcut)
+
+            if tip is not None:
+                hint = action.shortcut().toString()
+                action.setToolTip(f"{tip} ({hint})" if hint else tip)
+                action.setStatusTip(tip)
+
             self.tools_toolbar.addAction(action)
 
             setattr(self, attr_name, action)
@@ -295,29 +314,63 @@ class AtomViewerGUI(QtWidgets.QMainWindow):
             return action
 
         add_action(
-            "action_open", "Open", "open", self.open_file_clicked, sensitive=False
+            "action_open",
+            "Open",
+            "open",
+            self.open_file_clicked,
+            sensitive=False,
+            tip="Open a structure file (LAMMPS data, PDB, CIF, moltemplate, SDF)",
+            shortcut="Ctrl+O",
         )
-        add_action("action_save", "Save", "save", self.save_file_clicked)
-        add_action("action_save_as", "Save as", "save-all", self.save_file_as_clicked)
         add_action(
-            "action_bg_color", "Background color", "bg-color", self.on_cycle_bg_clicked
+            "action_save",
+            "Save",
+            "save",
+            self.save_file_clicked,
+            tip="Save the active structure to its current file",
+            shortcut="Ctrl+S",
+        )
+        add_action(
+            "action_save_as",
+            "Save as",
+            "save-all",
+            self.save_file_as_clicked,
+            tip="Save the active structure under a new name",
+            shortcut="Ctrl+Shift+S",
+        )
+        add_action(
+            "action_bg_color",
+            "Background color",
+            "bg-color",
+            self.on_cycle_bg_clicked,
+            tip="Cycle the 3D view background colour",
         )
         add_action(
             "action_reset_camera",
             "Reset camera",
             "camera",
             lambda: self.sync_ui(reset_camera=True),
+            tip="Reset the camera to fit the whole structure",
+            shortcut="Ctrl+R",
         )
 
         self.tools_toolbar.addSeparator()
 
-        add_action("action_cod", "COD", "cod", self.open_cod_browser, sensitive=False)
+        add_action(
+            "action_cod",
+            "COD",
+            "cod",
+            self.open_cod_browser,
+            sensitive=False,
+            tip="Search the Crystallography Open Database and import a structure",
+        )
         add_action(
             "action_pubchem",
             "PubChem",
             "pubchem",
             self.open_pubchem_browser,
             sensitive=False,
+            tip="Search PubChem and import a molecule by name or formula",
         )
         add_action(
             "action_smiles",
@@ -325,6 +378,7 @@ class AtomViewerGUI(QtWidgets.QMainWindow):
             "mol",
             lambda: open_smiles_builder(self),
             sensitive=False,
+            tip="Build a molecule from a SMILES string",
         )
 
         self.tools_toolbar.addSeparator()
@@ -335,6 +389,7 @@ class AtomViewerGUI(QtWidgets.QMainWindow):
             "solution",
             lambda: open_make_solution(self),
             sensitive=False,
+            tip="Pack a solution of given density and composition",
         )
         add_action(
             "action_glass",
@@ -342,70 +397,122 @@ class AtomViewerGUI(QtWidgets.QMainWindow):
             "glass",
             lambda: open_make_glass(self),
             sensitive=False,
+            tip="Build an amorphous oxide glass",
         )
         add_action(
-            "action_cash", "CEMD", "cash", lambda: open_make_cash(self), sensitive=False
+            "action_cash",
+            "CEMD",
+            "cash",
+            lambda: open_make_cash(self),
+            sensitive=False,
+            tip="Build a C-S-H or C-A-S-H structure from tobermorite",
         )
 
         self.tools_toolbar.addSeparator()
 
         add_action(
-            "action_replicate", "Replicate", "replicate", lambda: open_replicate(self)
+            "action_replicate",
+            "Replicate",
+            "replicate",
+            lambda: open_replicate(self),
+            tip="Replicate the cell along a, b and c",
         )
         add_action(
             "action_orthogonalize",
             "Orthogonalize",
             "orthogonalize",
             self.on_orthogonalize_clicked,
+            tip="Convert the cell to an orthogonal box",
         )
         add_action(
-            "action_translate", "Translate", "move", lambda: open_translate_atoms(self)
+            "action_translate",
+            "Translate",
+            "move",
+            lambda: open_translate_atoms(self),
+            tip="Translate selected atoms by a vector",
         )
-        add_action("action_center", "Center/Wrap", "wrap", self.on_center_clicked)
         add_action(
-            "action_surface", "Surface", "surface", lambda: open_make_surface(self)
+            "action_center",
+            "Center/Wrap",
+            "wrap",
+            self.on_center_clicked,
+            tip="Centre the structure and wrap atoms into the box",
+        )
+        add_action(
+            "action_surface",
+            "Surface",
+            "surface",
+            lambda: open_make_surface(self),
+            tip="Cut a surface slab from Miller indices",
         )
         add_action(
             "action_add_structure",
             "Add structure",
             "add_mol",
             lambda: open_add_structure(self),
+            tip="Insert another structure into the active system",
         )
         add_action(
             "action_add_liquid",
             "Add liquid",
             "interface",
             lambda: open_add_liquid(self),
+            tip="Add a liquid layer on top of the structure",
         )
         add_action(
             "action_add_droplet",
             "Add droplet",
             "droplet",
             lambda: open_add_droplet(self),
+            tip="Add a hemispherical droplet on the structure",
         )
-        add_action("action_split", "Split", "channel", lambda: open_split(self))
         add_action(
-            "action_protonate", "Protonate", "protonate", lambda: on_protonate(self)
+            "action_split",
+            "Split",
+            "channel",
+            lambda: open_split(self),
+            tip="Open a gap along an axis and optionally fill it with a solution",
+        )
+        add_action(
+            "action_protonate",
+            "Protonate",
+            "protonate",
+            lambda: on_protonate(self),
+            tip="Add hydrogens to under-coordinated oxygens",
         )
 
         self.tools_toolbar.addSeparator()
 
-        add_action("action_type_manager", "Types", "atom", self.on_type_manager_clicked)
+        add_action(
+            "action_type_manager",
+            "Types",
+            "atom",
+            self.on_type_manager_clicked,
+            tip="Edit atom types, masses and charges",
+        )
         add_action(
             "action_connectivity_manager",
             "Connectivity",
             "connectivity",
             self.on_connectivity_manager_clicked,
+            tip="Edit bonds, angles and topology rules",
         )
 
         self.tools_toolbar.addSeparator()
 
-        add_action("action_rdf_analysis", "RDF", "rdf", self.open_rdf_analysis)
+        add_action(
+            "action_rdf_analysis",
+            "RDF",
+            "rdf",
+            self.open_rdf_analysis,
+            tip="Compute a radial distribution function",
+        )
         add_action(
             "action_silicate_analysis",
             "Silicate",
             "silicate",
             self.open_silicate_analysis,
+            tip="Analyse the silicate network (Ca/Si, Qn, MCL)",
         )
 
         self.set_tools_enabled(False)
@@ -792,7 +899,12 @@ class AtomViewerGUI(QtWidgets.QMainWindow):
         line_edit.editingFinished.connect(save_name)
 
 
-if __name__ == "__main__":
+def main() -> int:
+    """Launch the graphical interface.
+
+    Exposed as the ``cemd-gui`` command so the interface can be started
+    without knowing where the package was installed.
+    """
     app = QtWidgets.QApplication(sys.argv)
 
     style = QlementineStyle(app)
@@ -805,4 +917,8 @@ if __name__ == "__main__":
     window = AtomViewerGUI()
     window.show()
 
-    sys.exit(app.exec())
+    return app.exec()
+
+
+if __name__ == "__main__":
+    sys.exit(main())

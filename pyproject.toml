@@ -64,6 +64,11 @@ dev = [
     "ipython",
 ]
 
+[project.gui-scripts]
+# gui-scripts rather than scripts: on Windows this launches without a
+# console window behind the interface.
+cemd-gui = "cemd.gui.main_window:main"
+
 [project.urls]
 Homepage = "https://github.com/cemd-dev/cemd"
 Repository = "https://github.com/cemd-dev/cemd"
