@@ -17,7 +17,7 @@
 
 from pathlib import Path
 
-BASE_DIR = Path(__file__).resolve().parent
-
-FF_DATABASE_DIR = BASE_DIR / "core" / "_forcefield" / "db"
-STRUCTURES_DIR = BASE_DIR / "build" / "_structures"
+#: The structure library shipped with the package: the tobermorite and
+#: ettringite models, and the small molecules Packmol packs by name
+#: (h2o.lt, ho.sdf, co3.pdb, so4.pdb).
+STRUCTURES_DIR = Path(__file__).resolve().parent / "build" / "_structures"
