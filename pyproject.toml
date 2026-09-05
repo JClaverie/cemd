@@ -61,6 +61,23 @@ Homepage = "https://github.com/JClaverie/cemd"
 Repository = "https://github.com/JClaverie/cemd"
 Issues = "https://github.com/JClaverie/cemd/issues"
 
+[tool.setuptools.package-data]
+# Without this, a built wheel contains nothing but .py files: no structure
+# library, no force-field database, no icons. It goes unnoticed in an
+# editable install, which reads straight from the source tree, and breaks
+# every builder in a real one.
+cemd = [
+    "build/_structures/*.cif",
+    "build/_structures/*.lt",
+    "build/_structures/*.pdb",
+    "build/_structures/*.sdf",
+    "forcefield/db/*",
+    "core/_view/*.tcl",
+    "core/_view/*.toml",
+    "gui/icons/*.svg",
+    "gui/default_config.json",
+]
+
 [build-system]
 # >=77 for the PEP 639 `license` / `license-files` fields above.
 requires = ["setuptools>=77", "wheel"]

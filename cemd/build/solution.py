@@ -21,7 +21,7 @@ import tempfile
 import warnings
 from collections.abc import Sequence
 from dataclasses import dataclass, field
-from functools import lru_cache
+from functools import cache
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -46,7 +46,7 @@ _BUNDLED_EXTENSIONS: tuple[str, ...] = (".lt", ".pdb", ".sdf")
 
 def _bundled_structure_names() -> set[str]:
     """Names of the polyatomic species shipped with CEMD."""
-    from .._paths import STRUCTURES_DIR
+    from ._structures import STRUCTURES_DIR
 
     return {
         path.stem.upper()
@@ -55,11 +55,11 @@ def _bundled_structure_names() -> set[str]:
     }
 
 
-@lru_cache(maxsize=None)
+@cache
 def _bundled_structure_mass(species: str) -> float | None:
     """Total mass of a species shipped with CEMD, or None if it has none."""
-    from .._paths import STRUCTURES_DIR
     from ..core.atomic_system import AtomicSystem
+    from ._structures import STRUCTURES_DIR
 
     for extension in _BUNDLED_EXTENSIONS:
         path = STRUCTURES_DIR / f"{species.lower()}{extension}"

@@ -27,8 +27,8 @@ import numpy as np
 
 from .. import AtomicSystem
 from .._constants import MASSES_DICT
-from .._paths import STRUCTURES_DIR
 from ..core._format import canonical_ff_type, get_ff_key
+from ._structures import STRUCTURES_DIR
 
 
 @dataclass

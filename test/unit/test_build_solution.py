@@ -178,7 +178,7 @@ def test_build_keeps_bonds_of_templates_that_have_no_ff_keys():
     # `_rebuild_topology_from_templates` used to drop every such bond --
     # hydroxide ions came out as two unbonded atoms.
     from cemd import AtomicSystem
-    from cemd._paths import STRUCTURES_DIR
+    from cemd.build._structures import STRUCTURES_DIR
 
     hydroxide = AtomicSystem.from_file(STRUCTURES_DIR / "ho.sdf")
     assert hydroxide.num_bonds == 1

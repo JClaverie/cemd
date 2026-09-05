@@ -25,9 +25,9 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from ..._paths import STRUCTURES_DIR
 from ...analysis import analyze_silicates
 from ...core.atomic_system import AtomicSystem
+from .._structures import STRUCTURES_DIR
 from ..base import BaseBuilder, require_program
 from ._silicate_helpers import substitute_si_by_al
 
