@@ -1,0 +1,45 @@
+cff-version: 1.2.0
+message: "If you use cemd in your research, please cite it as below."
+type: software
+
+title: cemd
+abstract: >-
+  A Python package for building atomistic models of cementitious materials
+  and clays, and writing them out ready for LAMMPS. It covers assembling
+  the solid, cutting surfaces and pores, filling them with a solution,
+  assigning atom types from force-field rules, resolving the parameters,
+  and analysing the result.
+
+authors:
+  - family-names: Claverie
+    given-names: Jérôme
+    email: Jerome.claverie@univ-nantes.fr
+    # TODO: add your ORCID -- it is what makes the citation unambiguous
+    # across authors with similar names, and Zenodo links the deposit to
+    # your researcher profile with it.
+    # orcid: "https://orcid.org/0000-0000-0000-0000"
+    # TODO: add your affiliation, e.g.
+    # affiliation: "Nantes Université, ..."
+
+version: 0.1.0
+date-released: "2026-09-05"
+license: GPL-3.0-only
+repository-code: "https://github.com/JClaverie/cemd"
+url: "https://github.com/JClaverie/cemd"
+
+keywords:
+  - molecular dynamics
+  - cement
+  - C-S-H
+  - clay
+  - LAMMPS
+  - force field
+
+# TODO: after the first Zenodo deposit, paste the *concept* DOI here --
+# the one that always resolves to the latest version, not the DOI of a
+# single release. It cannot be filled in before the first deposit exists.
+# doi: "10.5281/zenodo.XXXXXXX"
+
+# If cemd is later described in a paper, add a `preferred-citation:` block
+# here with that article's metadata. Tools then cite the paper while this
+# top-level block still identifies the software itself.

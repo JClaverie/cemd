@@ -1,10 +1,29 @@
 [project]
 name = "cemd"
 version = "0.1.0"
-description = "Computational Elementary Matter Design"
-authors = [{name = "Jérôme Claverie"}]
-license = {text = "GPL-3.0"}
+description = "Atomistic models of cementitious materials and clays, for LAMMPS"
+readme = "README.rst"
+authors = [{name = "Jérôme Claverie", email = "Jerome.claverie@univ-nantes.fr"}]
+# GPL-3.0-only, not -or-later: the file headers read "as published by the
+# Free Software Foundation, version 3" with no "or any later version".
+license = "GPL-3.0-only"
+license-files = ["LICENCE"]
 requires-python = ">=3.11"
+keywords = [
+    "molecular dynamics",
+    "cement",
+    "C-S-H",
+    "clay",
+    "LAMMPS",
+    "force field",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "Programming Language :: Python :: 3",
+    "Topic :: Scientific/Engineering :: Chemistry",
+    "Topic :: Scientific/Engineering :: Physics",
+]
 dependencies = [
     "numpy>=2.0,<3",
     "scipy>=1.10",
@@ -37,8 +56,14 @@ dev = [
     "ipython",
 ]
 
+[project.urls]
+Homepage = "https://github.com/JClaverie/cemd"
+Repository = "https://github.com/JClaverie/cemd"
+Issues = "https://github.com/JClaverie/cemd/issues"
+
 [build-system]
-requires = ["setuptools>=68", "wheel"]
+# >=77 for the PEP 639 `license` / `license-files` fields above.
+requires = ["setuptools>=77", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [tool.pytest.ini_options]
