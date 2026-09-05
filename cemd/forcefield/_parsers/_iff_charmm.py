@@ -658,7 +658,11 @@ class CHARMMInterfaceParser(BaseForceFieldParser):
         Add atom types to result from collected atom types.
         This should be called after parsing all sections.
         """
-        for atom_type in self._atom_types:
+        # Sorted, because `_atom_types` is a set and Python randomizes
+        # string hashing per process: iterating it directly made the parsed
+        # order -- and therefore the generated docs/_static/ff_data.json --
+        # differ on every run, for a 1500-line diff of pure noise.
+        for atom_type in sorted(self._atom_types):
             # Skip wildcards
             if atom_type == "X" or atom_type == "*":
                 continue

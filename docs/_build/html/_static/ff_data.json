@@ -897,574 +897,24 @@
       "mass": 15.9994
     },
     {
-      "type": "CLAL",
-      "full_type": "iff_charmm.CLAL",
-      "element": "C",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type CLAL (charge not available)",
-      "ref": "",
-      "mass": 0.0
-    },
-    {
-      "type": "HE1",
-      "full_type": "iff_charmm.HE1",
-      "element": "H",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type HE1 (charge not available)",
-      "ref": "",
-      "mass": 0.0
-    },
-    {
-      "type": "OC5",
-      "full_type": "iff_charmm.OC5",
-      "element": "O",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type OC5 (charge not available)",
-      "ref": "",
-      "mass": 15.999
-    },
-    {
-      "type": "NA+",
-      "full_type": "iff_charmm.NA+",
-      "element": "N",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type NA+ (charge not available)",
-      "ref": "",
-      "mass": 0.0
-    },
-    {
-      "type": "HL",
-      "full_type": "iff_charmm.HL",
-      "element": "H",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type HL (charge not available)",
-      "ref": "",
-      "mass": 1.008
-    },
-    {
-      "type": "CS",
-      "full_type": "iff_charmm.CS",
-      "element": "C",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type CS (charge not available)",
-      "ref": "",
-      "mass": 12.011
-    },
-    {
-      "type": "HAL1",
-      "full_type": "iff_charmm.HAL1",
-      "element": "H",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type HAL1 (charge not available)",
-      "ref": "",
-      "mass": 1.008
-    },
-    {
-      "type": "OST",
-      "full_type": "iff_charmm.OST",
-      "element": "O",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type OST (charge not available)",
-      "ref": "",
-      "mass": 15.999
-    },
-    {
-      "type": "O*",
-      "full_type": "iff_charmm.O*",
-      "element": "O",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type O* (charge not available)",
-      "ref": "",
-      "mass": 0.0
-    },
-    {
-      "type": "HR3",
-      "full_type": "iff_charmm.HR3",
-      "element": "H",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type HR3 (charge not available)",
-      "ref": "",
-      "mass": 1.008
-    },
-    {
-      "type": "OY3",
-      "full_type": "iff_charmm.OY3",
-      "element": "O",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type OY3 (charge not available)",
-      "ref": "",
-      "mass": 15.999
-    },
-    {
-      "type": "CA++",
-      "full_type": "iff_charmm.CA++",
-      "element": "C",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type CA++ (charge not available)",
-      "ref": "",
-      "mass": 12.011
-    },
-    {
-      "type": "OY2",
-      "full_type": "iff_charmm.OY2",
-      "element": "O",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type OY2 (charge not available)",
-      "ref": "",
-      "mass": 15.999
-    },
-    {
-      "type": "PT",
-      "full_type": "iff_charmm.PT",
-      "element": "Pt",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type PT (charge not available)",
-      "ref": "",
-      "mass": 195.084
-    },
-    {
-      "type": "CT1x",
-      "full_type": "iff_charmm.CT1x",
-      "element": "C",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type CT1x (charge not available)",
-      "ref": "",
-      "mass": 0.0
-    },
-    {
-      "type": "K+",
-      "full_type": "iff_charmm.K+",
-      "element": "X",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type K+ (charge not available)",
-      "ref": "",
-      "mass": 0.0
-    },
-    {
-      "type": "CE1",
-      "full_type": "iff_charmm.CE1",
-      "element": "C",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type CE1 (charge not available)",
-      "ref": "",
-      "mass": 12.011
-    },
-    {
-      "type": "OC23",
-      "full_type": "iff_charmm.OC23",
-      "element": "O",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type OC23 (charge not available)",
-      "ref": "",
-      "mass": 15.999
-    },
-    {
-      "type": "CAP",
-      "full_type": "iff_charmm.CAP",
-      "element": "C",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type CAP (charge not available)",
-      "ref": "",
-      "mass": 12.011
-    },
-    {
-      "type": "OC1",
-      "full_type": "iff_charmm.OC1",
-      "element": "O",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type OC1 (charge not available)",
-      "ref": "",
-      "mass": 15.999
-    },
-    {
-      "type": "NS2",
-      "full_type": "iff_charmm.NS2",
-      "element": "N",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type NS2 (charge not available)",
-      "ref": "",
-      "mass": 14.007
-    },
-    {
-      "type": "CLA",
-      "full_type": "iff_charmm.CLA",
-      "element": "Cl",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type CLA (charge not available)",
-      "ref": "",
-      "mass": 35.453
-    },
-    {
-      "type": "HOL",
-      "full_type": "iff_charmm.HOL",
-      "element": "H",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type HOL (charge not available)",
-      "ref": "",
-      "mass": 1.008
-    },
-    {
-      "type": "CT1",
-      "full_type": "iff_charmm.CT1",
-      "element": "C",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type CT1 (charge not available)",
-      "ref": "",
-      "mass": 12.011
-    },
-    {
-      "type": "SOD",
-      "full_type": "iff_charmm.SOD",
-      "element": "S",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type SOD (charge not available)",
-      "ref": "",
-      "mass": 22.99
-    },
-    {
-      "type": "NPH",
-      "full_type": "iff_charmm.NPH",
-      "element": "N",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type NPH (charge not available)",
-      "ref": "",
-      "mass": 14.007
-    },
-    {
-      "type": "CN",
-      "full_type": "iff_charmm.CN",
-      "element": "C",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type CN (charge not available)",
-      "ref": "",
-      "mass": 12.011
-    },
-    {
-      "type": "CTL1",
-      "full_type": "iff_charmm.CTL1",
-      "element": "C",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type CTL1 (charge not available)",
-      "ref": "",
-      "mass": 12.011
-    },
-    {
-      "type": "SS",
-      "full_type": "iff_charmm.SS",
-      "element": "S",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type SS (charge not available)",
-      "ref": "",
-      "mass": 32.065
-    },
-    {
-      "type": "CP1",
-      "full_type": "iff_charmm.CP1",
-      "element": "C",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type CP1 (charge not available)",
-      "ref": "",
-      "mass": 12.011
-    },
-    {
-      "type": "HAL3",
-      "full_type": "iff_charmm.HAL3",
-      "element": "H",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type HAL3 (charge not available)",
-      "ref": "",
-      "mass": 1.008
-    },
-    {
-      "type": "HE2",
-      "full_type": "iff_charmm.HE2",
-      "element": "H",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type HE2 (charge not available)",
-      "ref": "",
-      "mass": 0.0
-    },
-    {
-      "type": "CPT",
-      "full_type": "iff_charmm.CPT",
-      "element": "C",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type CPT (charge not available)",
-      "ref": "",
-      "mass": 12.011
-    },
-    {
-      "type": "NH3",
-      "full_type": "iff_charmm.NH3",
-      "element": "N",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type NH3 (charge not available)",
-      "ref": "",
-      "mass": 14.007
-    },
-    {
-      "type": "OCL",
-      "full_type": "iff_charmm.OCL",
-      "element": "O",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type OCL (charge not available)",
-      "ref": "",
-      "mass": 15.999
-    },
-    {
-      "type": "O2L",
-      "full_type": "iff_charmm.O2L",
-      "element": "O",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type O2L (charge not available)",
-      "ref": "",
-      "mass": 15.999
-    },
-    {
-      "type": "OC",
-      "full_type": "iff_charmm.OC",
-      "element": "O",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type OC (charge not available)",
-      "ref": "",
-      "mass": 15.999
-    },
-    {
-      "type": "OBL",
-      "full_type": "iff_charmm.OBL",
-      "element": "O",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type OBL (charge not available)",
-      "ref": "",
-      "mass": 15.999
-    },
-    {
-      "type": "MG",
-      "full_type": "iff_charmm.MG",
-      "element": "Mg",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type MG (charge not available)",
-      "ref": "",
-      "mass": 24.305
-    },
-    {
-      "type": "CT3",
-      "full_type": "iff_charmm.CT3",
-      "element": "C",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type CT3 (charge not available)",
-      "ref": "",
-      "mass": 12.011
-    },
-    {
-      "type": "OSL",
-      "full_type": "iff_charmm.OSL",
-      "element": "O",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type OSL (charge not available)",
-      "ref": "",
-      "mass": 15.999
-    },
-    {
-      "type": "NC",
-      "full_type": "iff_charmm.NC",
-      "element": "N",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type NC (charge not available)",
-      "ref": "",
-      "mass": 14.007
-    },
-    {
-      "type": "PB",
-      "full_type": "iff_charmm.PB",
-      "element": "Pb",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type PB (charge not available)",
-      "ref": "",
-      "mass": 207.2
-    },
-    {
-      "type": "OB",
-      "full_type": "iff_charmm.OB",
-      "element": "O",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type OB (charge not available)",
-      "ref": "",
-      "mass": 15.999
-    },
-    {
-      "type": "OY9",
-      "full_type": "iff_charmm.OY9",
-      "element": "O",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type OY9 (charge not available)",
-      "ref": "",
-      "mass": 15.999
-    },
-    {
-      "type": "HAL2",
-      "full_type": "iff_charmm.HAL2",
-      "element": "H",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type HAL2 (charge not available)",
-      "ref": "",
-      "mass": 1.008
-    },
-    {
-      "type": "CT2",
-      "full_type": "iff_charmm.CT2",
-      "element": "C",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type CT2 (charge not available)",
-      "ref": "",
-      "mass": 12.011
-    },
-    {
-      "type": "HA3",
-      "full_type": "iff_charmm.HA3",
-      "element": "H",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type HA3 (charge not available)",
-      "ref": "",
-      "mass": 0.0
-    },
-    {
-      "type": "HEL1",
-      "full_type": "iff_charmm.HEL1",
-      "element": "H",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type HEL1 (charge not available)",
-      "ref": "",
-      "mass": 1.008
-    },
-    {
-      "type": "OY4",
-      "full_type": "iff_charmm.OY4",
-      "element": "O",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type OY4 (charge not available)",
-      "ref": "",
-      "mass": 15.999
-    },
-    {
-      "type": "AY1",
-      "full_type": "iff_charmm.AY1",
+      "type": "AC1",
+      "full_type": "iff_charmm.AC1",
       "element": "Al",
       "charge": null,
       "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type AY1 (charge not available)",
+      "environment": "CHARMM Interface atom type AC1 (charge not available)",
       "ref": "",
       "mass": 0.0
     },
     {
-      "type": "HC",
-      "full_type": "iff_charmm.HC",
-      "element": "H",
+      "type": "AG",
+      "full_type": "iff_charmm.AG",
+      "element": "Ag",
       "charge": null,
       "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type HC (charge not available)",
+      "environment": "CHARMM Interface atom type AG (charge not available)",
       "ref": "",
-      "mass": 1.008
-    },
-    {
-      "type": "CPH1",
-      "full_type": "iff_charmm.CPH1",
-      "element": "C",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type CPH1 (charge not available)",
-      "ref": "",
-      "mass": 12.011
-    },
-    {
-      "type": "SY1",
-      "full_type": "iff_charmm.SY1",
-      "element": "Si",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type SY1 (charge not available)",
-      "ref": "",
-      "mass": 28.086
-    },
-    {
-      "type": "CU",
-      "full_type": "iff_charmm.CU",
-      "element": "Cu",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type CU (charge not available)",
-      "ref": "",
-      "mass": 63.546
-    },
-    {
-      "type": "CD",
-      "full_type": "iff_charmm.CD",
-      "element": "C",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type CD (charge not available)",
-      "ref": "",
-      "mass": 12.011
-    },
-    {
-      "type": "O",
-      "full_type": "iff_charmm.O",
-      "element": "O",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type O (charge not available)",
-      "ref": "",
-      "mass": 15.999
+      "mass": 107.868
     },
     {
       "type": "AL",
@@ -1477,144 +927,44 @@
       "mass": 26.982
     },
     {
-      "type": "HCL",
-      "full_type": "iff_charmm.HCL",
-      "element": "H",
+      "type": "AU",
+      "full_type": "iff_charmm.AU",
+      "element": "Au",
       "charge": null,
       "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type HCL (charge not available)",
+      "environment": "CHARMM Interface atom type AU (charge not available)",
       "ref": "",
-      "mass": 1.008
+      "mass": 196.967
     },
     {
-      "type": "CF1",
-      "full_type": "iff_charmm.CF1",
-      "element": "C",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type CF1 (charge not available)",
-      "ref": "",
-      "mass": 12.011
-    },
-    {
-      "type": "CL",
-      "full_type": "iff_charmm.CL",
-      "element": "C",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type CL (charge not available)",
-      "ref": "",
-      "mass": 12.011
-    },
-    {
-      "type": "AC1",
-      "full_type": "iff_charmm.AC1",
+      "type": "AY1",
+      "full_type": "iff_charmm.AY1",
       "element": "Al",
       "charge": null,
       "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type AC1 (charge not available)",
+      "environment": "CHARMM Interface atom type AY1 (charge not available)",
       "ref": "",
       "mass": 0.0
     },
     {
-      "type": "NR1",
-      "full_type": "iff_charmm.NR1",
-      "element": "N",
+      "type": "AY2",
+      "full_type": "iff_charmm.AY2",
+      "element": "Al",
       "charge": null,
       "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type NR1 (charge not available)",
-      "ref": "",
-      "mass": 14.007
-    },
-    {
-      "type": "PL",
-      "full_type": "iff_charmm.PL",
-      "element": "P",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type PL (charge not available)",
-      "ref": "",
-      "mass": 30.974
-    },
-    {
-      "type": "NH2",
-      "full_type": "iff_charmm.NH2",
-      "element": "N",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type NH2 (charge not available)",
-      "ref": "",
-      "mass": 14.007
-    },
-    {
-      "type": "HR2",
-      "full_type": "iff_charmm.HR2",
-      "element": "H",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type HR2 (charge not available)",
-      "ref": "",
-      "mass": 1.008
-    },
-    {
-      "type": "OAP1",
-      "full_type": "iff_charmm.OAP1",
-      "element": "O",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type OAP1 (charge not available)",
-      "ref": "",
-      "mass": 15.999
-    },
-    {
-      "type": "HA1",
-      "full_type": "iff_charmm.HA1",
-      "element": "H",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type HA1 (charge not available)",
+      "environment": "CHARMM Interface atom type AY2 (charge not available)",
       "ref": "",
       "mass": 0.0
     },
     {
-      "type": "F1",
-      "full_type": "iff_charmm.F1",
-      "element": "X",
+      "type": "AYT1",
+      "full_type": "iff_charmm.AYT1",
+      "element": "Al",
       "charge": null,
       "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type F1 (charge not available)",
+      "environment": "CHARMM Interface atom type AYT1 (charge not available)",
       "ref": "",
       "mass": 0.0
-    },
-    {
-      "type": "HOY",
-      "full_type": "iff_charmm.HOY",
-      "element": "H",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type HOY (charge not available)",
-      "ref": "",
-      "mass": 1.008
-    },
-    {
-      "type": "HR1",
-      "full_type": "iff_charmm.HR1",
-      "element": "H",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type HR1 (charge not available)",
-      "ref": "",
-      "mass": 1.008
-    },
-    {
-      "type": "N",
-      "full_type": "iff_charmm.N",
-      "element": "N",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type N (charge not available)",
-      "ref": "",
-      "mass": 14.007
     },
     {
       "type": "AYT2",
@@ -1627,64 +977,14 @@
       "mass": 0.0
     },
     {
-      "type": "OAP2",
-      "full_type": "iff_charmm.OAP2",
-      "element": "O",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type OAP2 (charge not available)",
-      "ref": "",
-      "mass": 15.999
-    },
-    {
-      "type": "CY",
-      "full_type": "iff_charmm.CY",
+      "type": "C",
+      "full_type": "iff_charmm.C",
       "element": "C",
       "charge": null,
       "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type CY (charge not available)",
+      "environment": "CHARMM Interface atom type C (charge not available)",
       "ref": "",
       "mass": 12.011
-    },
-    {
-      "type": "CC1A",
-      "full_type": "iff_charmm.CC1A",
-      "element": "C",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type CC1A (charge not available)",
-      "ref": "",
-      "mass": 0.0
-    },
-    {
-      "type": "OH1",
-      "full_type": "iff_charmm.OH1",
-      "element": "O",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type OH1 (charge not available)",
-      "ref": "",
-      "mass": 15.999
-    },
-    {
-      "type": "OY8",
-      "full_type": "iff_charmm.OY8",
-      "element": "O",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type OY8 (charge not available)",
-      "ref": "",
-      "mass": 15.999
-    },
-    {
-      "type": "CA+H",
-      "full_type": "iff_charmm.CA+H",
-      "element": "Ca",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type CA+H (charge not available)",
-      "ref": "",
-      "mass": 40.078
     },
     {
       "type": "C3",
@@ -1707,314 +1007,14 @@
       "mass": 12.011
     },
     {
-      "type": "SC1",
-      "full_type": "iff_charmm.SC1",
-      "element": "Si",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type SC1 (charge not available)",
-      "ref": "",
-      "mass": 28.086
-    },
-    {
-      "type": "AG",
-      "full_type": "iff_charmm.AG",
-      "element": "Ag",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type AG (charge not available)",
-      "ref": "",
-      "mass": 107.868
-    },
-    {
-      "type": "CPB",
-      "full_type": "iff_charmm.CPB",
+      "type": "CA++",
+      "full_type": "iff_charmm.CA++",
       "element": "C",
       "charge": null,
       "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type CPB (charge not available)",
+      "environment": "CHARMM Interface atom type CA++ (charge not available)",
       "ref": "",
       "mass": 12.011
-    },
-    {
-      "type": "NS1",
-      "full_type": "iff_charmm.NS1",
-      "element": "N",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type NS1 (charge not available)",
-      "ref": "",
-      "mass": 14.007
-    },
-    {
-      "type": "S",
-      "full_type": "iff_charmm.S",
-      "element": "S",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type S (charge not available)",
-      "ref": "",
-      "mass": 32.065
-    },
-    {
-      "type": "CE2",
-      "full_type": "iff_charmm.CE2",
-      "element": "C",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type CE2 (charge not available)",
-      "ref": "",
-      "mass": 12.011
-    },
-    {
-      "type": "H*",
-      "full_type": "iff_charmm.H*",
-      "element": "H",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type H* (charge not available)",
-      "ref": "",
-      "mass": 0.0
-    },
-    {
-      "type": "F2",
-      "full_type": "iff_charmm.F2",
-      "element": "X",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type F2 (charge not available)",
-      "ref": "",
-      "mass": 0.0
-    },
-    {
-      "type": "OC3",
-      "full_type": "iff_charmm.OC3",
-      "element": "O",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type OC3 (charge not available)",
-      "ref": "",
-      "mass": 15.999
-    },
-    {
-      "type": "NH3L",
-      "full_type": "iff_charmm.NH3L",
-      "element": "N",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type NH3L (charge not available)",
-      "ref": "",
-      "mass": 14.007
-    },
-    {
-      "type": "OY1",
-      "full_type": "iff_charmm.OY1",
-      "element": "O",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type OY1 (charge not available)",
-      "ref": "",
-      "mass": 15.999
-    },
-    {
-      "type": "F3",
-      "full_type": "iff_charmm.F3",
-      "element": "X",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type F3 (charge not available)",
-      "ref": "",
-      "mass": 0.0
-    },
-    {
-      "type": "CST",
-      "full_type": "iff_charmm.CST",
-      "element": "C",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type CST (charge not available)",
-      "ref": "",
-      "mass": 12.011
-    },
-    {
-      "type": "HOC",
-      "full_type": "iff_charmm.HOC",
-      "element": "H",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type HOC (charge not available)",
-      "ref": "",
-      "mass": 1.008
-    },
-    {
-      "type": "OM",
-      "full_type": "iff_charmm.OM",
-      "element": "O",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type OM (charge not available)",
-      "ref": "",
-      "mass": 15.999
-    },
-    {
-      "type": "OHL",
-      "full_type": "iff_charmm.OHL",
-      "element": "O",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type OHL (charge not available)",
-      "ref": "",
-      "mass": 15.999
-    },
-    {
-      "type": "DUM",
-      "full_type": "iff_charmm.DUM",
-      "element": "X",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type DUM (charge not available)",
-      "ref": "",
-      "mass": 0.0
-    },
-    {
-      "type": "CEL2",
-      "full_type": "iff_charmm.CEL2",
-      "element": "C",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type CEL2 (charge not available)",
-      "ref": "",
-      "mass": 12.011
-    },
-    {
-      "type": "HP",
-      "full_type": "iff_charmm.HP",
-      "element": "H",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type HP (charge not available)",
-      "ref": "",
-      "mass": 1.008
-    },
-    {
-      "type": "PAP",
-      "full_type": "iff_charmm.PAP",
-      "element": "P",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type PAP (charge not available)",
-      "ref": "",
-      "mass": 30.974
-    },
-    {
-      "type": "CC1B",
-      "full_type": "iff_charmm.CC1B",
-      "element": "C",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type CC1B (charge not available)",
-      "ref": "",
-      "mass": 0.0
-    },
-    {
-      "type": "OT",
-      "full_type": "iff_charmm.OT",
-      "element": "O",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type OT (charge not available)",
-      "ref": "",
-      "mass": 15.999
-    },
-    {
-      "type": "HT",
-      "full_type": "iff_charmm.HT",
-      "element": "H",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type HT (charge not available)",
-      "ref": "",
-      "mass": 1.008
-    },
-    {
-      "type": "HA2",
-      "full_type": "iff_charmm.HA2",
-      "element": "H",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type HA2 (charge not available)",
-      "ref": "",
-      "mass": 0.0
-    },
-    {
-      "type": "FA",
-      "full_type": "iff_charmm.FA",
-      "element": "X",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type FA (charge not available)",
-      "ref": "",
-      "mass": 0.0
-    },
-    {
-      "type": "H",
-      "full_type": "iff_charmm.H",
-      "element": "H",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type H (charge not available)",
-      "ref": "",
-      "mass": 1.008
-    },
-    {
-      "type": "HF1",
-      "full_type": "iff_charmm.HF1",
-      "element": "H",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type HF1 (charge not available)",
-      "ref": "",
-      "mass": 0.0
-    },
-    {
-      "type": "CT",
-      "full_type": "iff_charmm.CT",
-      "element": "C",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type CT (charge not available)",
-      "ref": "",
-      "mass": 12.011
-    },
-    {
-      "type": "OC24",
-      "full_type": "iff_charmm.OC24",
-      "element": "O",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type OC24 (charge not available)",
-      "ref": "",
-      "mass": 15.999
-    },
-    {
-      "type": "OC2",
-      "full_type": "iff_charmm.OC2",
-      "element": "O",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type OC2 (charge not available)",
-      "ref": "",
-      "mass": 15.999
-    },
-    {
-      "type": "NH1",
-      "full_type": "iff_charmm.NH1",
-      "element": "N",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type NH1 (charge not available)",
-      "ref": "",
-      "mass": 14.007
     },
     {
       "type": "CA+A",
@@ -2027,44 +1027,14 @@
       "mass": 40.078
     },
     {
-      "type": "NE",
-      "full_type": "iff_charmm.NE",
-      "element": "N",
+      "type": "CA+H",
+      "full_type": "iff_charmm.CA+H",
+      "element": "Ca",
       "charge": null,
       "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type NE (charge not available)",
+      "environment": "CHARMM Interface atom type CA+H (charge not available)",
       "ref": "",
-      "mass": 20.18
-    },
-    {
-      "type": "NY",
-      "full_type": "iff_charmm.NY",
-      "element": "N",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type NY (charge not available)",
-      "ref": "",
-      "mass": 14.007
-    },
-    {
-      "type": "HA",
-      "full_type": "iff_charmm.HA",
-      "element": "H",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type HA (charge not available)",
-      "ref": "",
-      "mass": 1.008
-    },
-    {
-      "type": "HS",
-      "full_type": "iff_charmm.HS",
-      "element": "H",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type HS (charge not available)",
-      "ref": "",
-      "mass": 1.008
+      "mass": 40.078
     },
     {
       "type": "CAL",
@@ -2077,134 +1047,14 @@
       "mass": 40.078
     },
     {
-      "type": "NP",
-      "full_type": "iff_charmm.NP",
-      "element": "N",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type NP (charge not available)",
-      "ref": "",
-      "mass": 14.007
-    },
-    {
-      "type": "CES",
-      "full_type": "iff_charmm.CES",
+      "type": "CAP",
+      "full_type": "iff_charmm.CAP",
       "element": "C",
       "charge": null,
       "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type CES (charge not available)",
-      "ref": "",
-      "mass": 0.0
-    },
-    {
-      "type": "CPA",
-      "full_type": "iff_charmm.CPA",
-      "element": "C",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type CPA (charge not available)",
+      "environment": "CHARMM Interface atom type CAP (charge not available)",
       "ref": "",
       "mass": 12.011
-    },
-    {
-      "type": "SM",
-      "full_type": "iff_charmm.SM",
-      "element": "S",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type SM (charge not available)",
-      "ref": "",
-      "mass": 32.065
-    },
-    {
-      "type": "NTL",
-      "full_type": "iff_charmm.NTL",
-      "element": "N",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type NTL (charge not available)",
-      "ref": "",
-      "mass": 14.007
-    },
-    {
-      "type": "OC4",
-      "full_type": "iff_charmm.OC4",
-      "element": "O",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type OC4 (charge not available)",
-      "ref": "",
-      "mass": 15.999
-    },
-    {
-      "type": "NR3",
-      "full_type": "iff_charmm.NR3",
-      "element": "N",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type NR3 (charge not available)",
-      "ref": "",
-      "mass": 14.007
-    },
-    {
-      "type": "OY5",
-      "full_type": "iff_charmm.OY5",
-      "element": "O",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type OY5 (charge not available)",
-      "ref": "",
-      "mass": 15.999
-    },
-    {
-      "type": "HF2",
-      "full_type": "iff_charmm.HF2",
-      "element": "H",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type HF2 (charge not available)",
-      "ref": "",
-      "mass": 0.0
-    },
-    {
-      "type": "FE",
-      "full_type": "iff_charmm.FE",
-      "element": "Fe",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type FE (charge not available)",
-      "ref": "",
-      "mass": 55.845
-    },
-    {
-      "type": "AYT1",
-      "full_type": "iff_charmm.AYT1",
-      "element": "Al",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type AYT1 (charge not available)",
-      "ref": "",
-      "mass": 0.0
-    },
-    {
-      "type": "CT3x",
-      "full_type": "iff_charmm.CT3x",
-      "element": "C",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type CT3x (charge not available)",
-      "ref": "",
-      "mass": 0.0
-    },
-    {
-      "type": "HOK",
-      "full_type": "iff_charmm.HOK",
-      "element": "H",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type HOK (charge not available)",
-      "ref": "",
-      "mass": 1.008
     },
     {
       "type": "CC",
@@ -2217,124 +1067,104 @@
       "mass": 12.011
     },
     {
-      "type": "PD",
-      "full_type": "iff_charmm.PD",
-      "element": "Pd",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type PD (charge not available)",
-      "ref": "",
-      "mass": 106.42
-    },
-    {
-      "type": "HEL2",
-      "full_type": "iff_charmm.HEL2",
-      "element": "H",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type HEL2 (charge not available)",
-      "ref": "",
-      "mass": 1.008
-    },
-    {
-      "type": "CP3",
-      "full_type": "iff_charmm.CP3",
+      "type": "CC1A",
+      "full_type": "iff_charmm.CC1A",
       "element": "C",
       "charge": null,
       "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type CP3 (charge not available)",
-      "ref": "",
-      "mass": 12.011
-    },
-    {
-      "type": "CTL2",
-      "full_type": "iff_charmm.CTL2",
-      "element": "C",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type CTL2 (charge not available)",
-      "ref": "",
-      "mass": 12.011
-    },
-    {
-      "type": "POT",
-      "full_type": "iff_charmm.POT",
-      "element": "P",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type POT (charge not available)",
-      "ref": "",
-      "mass": 39.098
-    },
-    {
-      "type": "AU",
-      "full_type": "iff_charmm.AU",
-      "element": "Au",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type AU (charge not available)",
-      "ref": "",
-      "mass": 196.967
-    },
-    {
-      "type": "CP2",
-      "full_type": "iff_charmm.CP2",
-      "element": "C",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type CP2 (charge not available)",
-      "ref": "",
-      "mass": 12.011
-    },
-    {
-      "type": "ZN",
-      "full_type": "iff_charmm.ZN",
-      "element": "Zn",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type ZN (charge not available)",
-      "ref": "",
-      "mass": 65.38
-    },
-    {
-      "type": "OY6",
-      "full_type": "iff_charmm.OY6",
-      "element": "O",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type OY6 (charge not available)",
-      "ref": "",
-      "mass": 15.999
-    },
-    {
-      "type": "CTL3",
-      "full_type": "iff_charmm.CTL3",
-      "element": "C",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type CTL3 (charge not available)",
-      "ref": "",
-      "mass": 12.011
-    },
-    {
-      "type": "AY2",
-      "full_type": "iff_charmm.AY2",
-      "element": "Al",
-      "charge": null,
-      "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type AY2 (charge not available)",
+      "environment": "CHARMM Interface atom type CC1A (charge not available)",
       "ref": "",
       "mass": 0.0
     },
     {
-      "type": "COA",
-      "full_type": "iff_charmm.COA",
+      "type": "CC1B",
+      "full_type": "iff_charmm.CC1B",
       "element": "C",
       "charge": null,
       "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type COA (charge not available)",
+      "environment": "CHARMM Interface atom type CC1B (charge not available)",
       "ref": "",
       "mass": 0.0
+    },
+    {
+      "type": "CC2",
+      "full_type": "iff_charmm.CC2",
+      "element": "C",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type CC2 (charge not available)",
+      "ref": "",
+      "mass": 0.0
+    },
+    {
+      "type": "CD",
+      "full_type": "iff_charmm.CD",
+      "element": "C",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type CD (charge not available)",
+      "ref": "",
+      "mass": 12.011
+    },
+    {
+      "type": "CE1",
+      "full_type": "iff_charmm.CE1",
+      "element": "C",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type CE1 (charge not available)",
+      "ref": "",
+      "mass": 12.011
+    },
+    {
+      "type": "CE2",
+      "full_type": "iff_charmm.CE2",
+      "element": "C",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type CE2 (charge not available)",
+      "ref": "",
+      "mass": 12.011
+    },
+    {
+      "type": "CEL1",
+      "full_type": "iff_charmm.CEL1",
+      "element": "C",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type CEL1 (charge not available)",
+      "ref": "",
+      "mass": 12.011
+    },
+    {
+      "type": "CEL2",
+      "full_type": "iff_charmm.CEL2",
+      "element": "C",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type CEL2 (charge not available)",
+      "ref": "",
+      "mass": 12.011
+    },
+    {
+      "type": "CES",
+      "full_type": "iff_charmm.CES",
+      "element": "C",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type CES (charge not available)",
+      "ref": "",
+      "mass": 0.0
+    },
+    {
+      "type": "CF1",
+      "full_type": "iff_charmm.CF1",
+      "element": "C",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type CF1 (charge not available)",
+      "ref": "",
+      "mass": 12.011
     },
     {
       "type": "CF2",
@@ -2357,74 +1187,124 @@
       "mass": 12.011
     },
     {
-      "type": "CTL5",
-      "full_type": "iff_charmm.CTL5",
+      "type": "CL",
+      "full_type": "iff_charmm.CL",
       "element": "C",
       "charge": null,
       "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type CTL5 (charge not available)",
+      "environment": "CHARMM Interface atom type CL (charge not available)",
       "ref": "",
       "mass": 12.011
     },
     {
-      "type": "SY2",
-      "full_type": "iff_charmm.SY2",
-      "element": "Si",
+      "type": "CLA",
+      "full_type": "iff_charmm.CLA",
+      "element": "Cl",
       "charge": null,
       "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type SY2 (charge not available)",
+      "environment": "CHARMM Interface atom type CLA (charge not available)",
       "ref": "",
-      "mass": 28.086
+      "mass": 35.453
     },
     {
-      "type": "CC2",
-      "full_type": "iff_charmm.CC2",
+      "type": "CLAL",
+      "full_type": "iff_charmm.CLAL",
       "element": "C",
       "charge": null,
       "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type CC2 (charge not available)",
+      "environment": "CHARMM Interface atom type CLAL (charge not available)",
       "ref": "",
       "mass": 0.0
     },
     {
-      "type": "OY7",
-      "full_type": "iff_charmm.OY7",
-      "element": "O",
+      "type": "CM",
+      "full_type": "iff_charmm.CM",
+      "element": "C",
       "charge": null,
       "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type OY7 (charge not available)",
+      "environment": "CHARMM Interface atom type CM (charge not available)",
       "ref": "",
-      "mass": 15.999
+      "mass": 12.011
     },
     {
-      "type": "HE",
-      "full_type": "iff_charmm.HE",
-      "element": "H",
+      "type": "CN",
+      "full_type": "iff_charmm.CN",
+      "element": "C",
       "charge": null,
       "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type HE (charge not available)",
+      "environment": "CHARMM Interface atom type CN (charge not available)",
       "ref": "",
-      "mass": 4.003
+      "mass": 12.011
     },
     {
-      "type": "SL",
-      "full_type": "iff_charmm.SL",
-      "element": "S",
+      "type": "COA",
+      "full_type": "iff_charmm.COA",
+      "element": "C",
       "charge": null,
       "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type SL (charge not available)",
+      "environment": "CHARMM Interface atom type COA (charge not available)",
       "ref": "",
-      "mass": 32.065
+      "mass": 0.0
     },
     {
-      "type": "SC4",
-      "full_type": "iff_charmm.SC4",
-      "element": "Si",
+      "type": "CP1",
+      "full_type": "iff_charmm.CP1",
+      "element": "C",
       "charge": null,
       "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type SC4 (charge not available)",
+      "environment": "CHARMM Interface atom type CP1 (charge not available)",
       "ref": "",
-      "mass": 28.086
+      "mass": 12.011
+    },
+    {
+      "type": "CP2",
+      "full_type": "iff_charmm.CP2",
+      "element": "C",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type CP2 (charge not available)",
+      "ref": "",
+      "mass": 12.011
+    },
+    {
+      "type": "CP3",
+      "full_type": "iff_charmm.CP3",
+      "element": "C",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type CP3 (charge not available)",
+      "ref": "",
+      "mass": 12.011
+    },
+    {
+      "type": "CPA",
+      "full_type": "iff_charmm.CPA",
+      "element": "C",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type CPA (charge not available)",
+      "ref": "",
+      "mass": 12.011
+    },
+    {
+      "type": "CPB",
+      "full_type": "iff_charmm.CPB",
+      "element": "C",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type CPB (charge not available)",
+      "ref": "",
+      "mass": 12.011
+    },
+    {
+      "type": "CPH1",
+      "full_type": "iff_charmm.CPH1",
+      "element": "C",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type CPH1 (charge not available)",
+      "ref": "",
+      "mass": 12.011
     },
     {
       "type": "CPH2",
@@ -2433,6 +1313,86 @@
       "charge": null,
       "model": "iff_charmm",
       "environment": "CHARMM Interface atom type CPH2 (charge not available)",
+      "ref": "",
+      "mass": 12.011
+    },
+    {
+      "type": "CPM",
+      "full_type": "iff_charmm.CPM",
+      "element": "C",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type CPM (charge not available)",
+      "ref": "",
+      "mass": 12.011
+    },
+    {
+      "type": "CPT",
+      "full_type": "iff_charmm.CPT",
+      "element": "C",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type CPT (charge not available)",
+      "ref": "",
+      "mass": 12.011
+    },
+    {
+      "type": "CS",
+      "full_type": "iff_charmm.CS",
+      "element": "C",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type CS (charge not available)",
+      "ref": "",
+      "mass": 12.011
+    },
+    {
+      "type": "CST",
+      "full_type": "iff_charmm.CST",
+      "element": "C",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type CST (charge not available)",
+      "ref": "",
+      "mass": 12.011
+    },
+    {
+      "type": "CT",
+      "full_type": "iff_charmm.CT",
+      "element": "C",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type CT (charge not available)",
+      "ref": "",
+      "mass": 12.011
+    },
+    {
+      "type": "CT1",
+      "full_type": "iff_charmm.CT1",
+      "element": "C",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type CT1 (charge not available)",
+      "ref": "",
+      "mass": 12.011
+    },
+    {
+      "type": "CT1x",
+      "full_type": "iff_charmm.CT1x",
+      "element": "C",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type CT1x (charge not available)",
+      "ref": "",
+      "mass": 0.0
+    },
+    {
+      "type": "CT2",
+      "full_type": "iff_charmm.CT2",
+      "element": "C",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type CT2 (charge not available)",
       "ref": "",
       "mass": 12.011
     },
@@ -2447,6 +1407,376 @@
       "mass": 0.0
     },
     {
+      "type": "CT3",
+      "full_type": "iff_charmm.CT3",
+      "element": "C",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type CT3 (charge not available)",
+      "ref": "",
+      "mass": 12.011
+    },
+    {
+      "type": "CT3x",
+      "full_type": "iff_charmm.CT3x",
+      "element": "C",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type CT3x (charge not available)",
+      "ref": "",
+      "mass": 0.0
+    },
+    {
+      "type": "CTL1",
+      "full_type": "iff_charmm.CTL1",
+      "element": "C",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type CTL1 (charge not available)",
+      "ref": "",
+      "mass": 12.011
+    },
+    {
+      "type": "CTL2",
+      "full_type": "iff_charmm.CTL2",
+      "element": "C",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type CTL2 (charge not available)",
+      "ref": "",
+      "mass": 12.011
+    },
+    {
+      "type": "CTL3",
+      "full_type": "iff_charmm.CTL3",
+      "element": "C",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type CTL3 (charge not available)",
+      "ref": "",
+      "mass": 12.011
+    },
+    {
+      "type": "CTL5",
+      "full_type": "iff_charmm.CTL5",
+      "element": "C",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type CTL5 (charge not available)",
+      "ref": "",
+      "mass": 12.011
+    },
+    {
+      "type": "CU",
+      "full_type": "iff_charmm.CU",
+      "element": "Cu",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type CU (charge not available)",
+      "ref": "",
+      "mass": 63.546
+    },
+    {
+      "type": "CY",
+      "full_type": "iff_charmm.CY",
+      "element": "C",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type CY (charge not available)",
+      "ref": "",
+      "mass": 12.011
+    },
+    {
+      "type": "DUM",
+      "full_type": "iff_charmm.DUM",
+      "element": "X",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type DUM (charge not available)",
+      "ref": "",
+      "mass": 0.0
+    },
+    {
+      "type": "F1",
+      "full_type": "iff_charmm.F1",
+      "element": "X",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type F1 (charge not available)",
+      "ref": "",
+      "mass": 0.0
+    },
+    {
+      "type": "F2",
+      "full_type": "iff_charmm.F2",
+      "element": "X",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type F2 (charge not available)",
+      "ref": "",
+      "mass": 0.0
+    },
+    {
+      "type": "F3",
+      "full_type": "iff_charmm.F3",
+      "element": "X",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type F3 (charge not available)",
+      "ref": "",
+      "mass": 0.0
+    },
+    {
+      "type": "FA",
+      "full_type": "iff_charmm.FA",
+      "element": "X",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type FA (charge not available)",
+      "ref": "",
+      "mass": 0.0
+    },
+    {
+      "type": "FE",
+      "full_type": "iff_charmm.FE",
+      "element": "Fe",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type FE (charge not available)",
+      "ref": "",
+      "mass": 55.845
+    },
+    {
+      "type": "H",
+      "full_type": "iff_charmm.H",
+      "element": "H",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type H (charge not available)",
+      "ref": "",
+      "mass": 1.008
+    },
+    {
+      "type": "H*",
+      "full_type": "iff_charmm.H*",
+      "element": "H",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type H* (charge not available)",
+      "ref": "",
+      "mass": 0.0
+    },
+    {
+      "type": "HA",
+      "full_type": "iff_charmm.HA",
+      "element": "H",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type HA (charge not available)",
+      "ref": "",
+      "mass": 1.008
+    },
+    {
+      "type": "HA1",
+      "full_type": "iff_charmm.HA1",
+      "element": "H",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type HA1 (charge not available)",
+      "ref": "",
+      "mass": 0.0
+    },
+    {
+      "type": "HA2",
+      "full_type": "iff_charmm.HA2",
+      "element": "H",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type HA2 (charge not available)",
+      "ref": "",
+      "mass": 0.0
+    },
+    {
+      "type": "HA3",
+      "full_type": "iff_charmm.HA3",
+      "element": "H",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type HA3 (charge not available)",
+      "ref": "",
+      "mass": 0.0
+    },
+    {
+      "type": "HAL1",
+      "full_type": "iff_charmm.HAL1",
+      "element": "H",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type HAL1 (charge not available)",
+      "ref": "",
+      "mass": 1.008
+    },
+    {
+      "type": "HAL2",
+      "full_type": "iff_charmm.HAL2",
+      "element": "H",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type HAL2 (charge not available)",
+      "ref": "",
+      "mass": 1.008
+    },
+    {
+      "type": "HAL3",
+      "full_type": "iff_charmm.HAL3",
+      "element": "H",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type HAL3 (charge not available)",
+      "ref": "",
+      "mass": 1.008
+    },
+    {
+      "type": "HB",
+      "full_type": "iff_charmm.HB",
+      "element": "H",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type HB (charge not available)",
+      "ref": "",
+      "mass": 1.008
+    },
+    {
+      "type": "HC",
+      "full_type": "iff_charmm.HC",
+      "element": "H",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type HC (charge not available)",
+      "ref": "",
+      "mass": 1.008
+    },
+    {
+      "type": "HCL",
+      "full_type": "iff_charmm.HCL",
+      "element": "H",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type HCL (charge not available)",
+      "ref": "",
+      "mass": 1.008
+    },
+    {
+      "type": "HE",
+      "full_type": "iff_charmm.HE",
+      "element": "H",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type HE (charge not available)",
+      "ref": "",
+      "mass": 4.003
+    },
+    {
+      "type": "HE1",
+      "full_type": "iff_charmm.HE1",
+      "element": "H",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type HE1 (charge not available)",
+      "ref": "",
+      "mass": 0.0
+    },
+    {
+      "type": "HE2",
+      "full_type": "iff_charmm.HE2",
+      "element": "H",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type HE2 (charge not available)",
+      "ref": "",
+      "mass": 0.0
+    },
+    {
+      "type": "HEL1",
+      "full_type": "iff_charmm.HEL1",
+      "element": "H",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type HEL1 (charge not available)",
+      "ref": "",
+      "mass": 1.008
+    },
+    {
+      "type": "HEL2",
+      "full_type": "iff_charmm.HEL2",
+      "element": "H",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type HEL2 (charge not available)",
+      "ref": "",
+      "mass": 1.008
+    },
+    {
+      "type": "HF1",
+      "full_type": "iff_charmm.HF1",
+      "element": "H",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type HF1 (charge not available)",
+      "ref": "",
+      "mass": 0.0
+    },
+    {
+      "type": "HF2",
+      "full_type": "iff_charmm.HF2",
+      "element": "H",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type HF2 (charge not available)",
+      "ref": "",
+      "mass": 0.0
+    },
+    {
+      "type": "HL",
+      "full_type": "iff_charmm.HL",
+      "element": "H",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type HL (charge not available)",
+      "ref": "",
+      "mass": 1.008
+    },
+    {
+      "type": "HOC",
+      "full_type": "iff_charmm.HOC",
+      "element": "H",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type HOC (charge not available)",
+      "ref": "",
+      "mass": 1.008
+    },
+    {
+      "type": "HOK",
+      "full_type": "iff_charmm.HOK",
+      "element": "H",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type HOK (charge not available)",
+      "ref": "",
+      "mass": 1.008
+    },
+    {
+      "type": "HOL",
+      "full_type": "iff_charmm.HOL",
+      "element": "H",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type HOL (charge not available)",
+      "ref": "",
+      "mass": 1.008
+    },
+    {
       "type": "HOP",
       "full_type": "iff_charmm.HOP",
       "element": "H",
@@ -2457,32 +1787,122 @@
       "mass": 1.008
     },
     {
-      "type": "OCA",
-      "full_type": "iff_charmm.OCA",
-      "element": "O",
+      "type": "HOY",
+      "full_type": "iff_charmm.HOY",
+      "element": "H",
       "charge": null,
       "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type OCA (charge not available)",
+      "environment": "CHARMM Interface atom type HOY (charge not available)",
       "ref": "",
-      "mass": 15.999
+      "mass": 1.008
     },
     {
-      "type": "CM",
-      "full_type": "iff_charmm.CM",
-      "element": "C",
+      "type": "HP",
+      "full_type": "iff_charmm.HP",
+      "element": "H",
       "charge": null,
       "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type CM (charge not available)",
+      "environment": "CHARMM Interface atom type HP (charge not available)",
       "ref": "",
-      "mass": 12.011
+      "mass": 1.008
     },
     {
-      "type": "NR2",
-      "full_type": "iff_charmm.NR2",
+      "type": "HR1",
+      "full_type": "iff_charmm.HR1",
+      "element": "H",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type HR1 (charge not available)",
+      "ref": "",
+      "mass": 1.008
+    },
+    {
+      "type": "HR2",
+      "full_type": "iff_charmm.HR2",
+      "element": "H",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type HR2 (charge not available)",
+      "ref": "",
+      "mass": 1.008
+    },
+    {
+      "type": "HR3",
+      "full_type": "iff_charmm.HR3",
+      "element": "H",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type HR3 (charge not available)",
+      "ref": "",
+      "mass": 1.008
+    },
+    {
+      "type": "HS",
+      "full_type": "iff_charmm.HS",
+      "element": "H",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type HS (charge not available)",
+      "ref": "",
+      "mass": 1.008
+    },
+    {
+      "type": "HT",
+      "full_type": "iff_charmm.HT",
+      "element": "H",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type HT (charge not available)",
+      "ref": "",
+      "mass": 1.008
+    },
+    {
+      "type": "K+",
+      "full_type": "iff_charmm.K+",
+      "element": "X",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type K+ (charge not available)",
+      "ref": "",
+      "mass": 0.0
+    },
+    {
+      "type": "MG",
+      "full_type": "iff_charmm.MG",
+      "element": "Mg",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type MG (charge not available)",
+      "ref": "",
+      "mass": 24.305
+    },
+    {
+      "type": "N",
+      "full_type": "iff_charmm.N",
       "element": "N",
       "charge": null,
       "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type NR2 (charge not available)",
+      "environment": "CHARMM Interface atom type N (charge not available)",
+      "ref": "",
+      "mass": 14.007
+    },
+    {
+      "type": "NA+",
+      "full_type": "iff_charmm.NA+",
+      "element": "N",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type NA+ (charge not available)",
+      "ref": "",
+      "mass": 0.0
+    },
+    {
+      "type": "NC",
+      "full_type": "iff_charmm.NC",
+      "element": "N",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type NC (charge not available)",
       "ref": "",
       "mass": 14.007
     },
@@ -2497,24 +1917,54 @@
       "mass": 14.007
     },
     {
-      "type": "OS",
-      "full_type": "iff_charmm.OS",
-      "element": "O",
+      "type": "NE",
+      "full_type": "iff_charmm.NE",
+      "element": "N",
       "charge": null,
       "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type OS (charge not available)",
+      "environment": "CHARMM Interface atom type NE (charge not available)",
       "ref": "",
-      "mass": 15.999
+      "mass": 20.18
     },
     {
-      "type": "CEL1",
-      "full_type": "iff_charmm.CEL1",
-      "element": "C",
+      "type": "NH1",
+      "full_type": "iff_charmm.NH1",
+      "element": "N",
       "charge": null,
       "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type CEL1 (charge not available)",
+      "environment": "CHARMM Interface atom type NH1 (charge not available)",
       "ref": "",
-      "mass": 12.011
+      "mass": 14.007
+    },
+    {
+      "type": "NH2",
+      "full_type": "iff_charmm.NH2",
+      "element": "N",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type NH2 (charge not available)",
+      "ref": "",
+      "mass": 14.007
+    },
+    {
+      "type": "NH3",
+      "full_type": "iff_charmm.NH3",
+      "element": "N",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type NH3 (charge not available)",
+      "ref": "",
+      "mass": 14.007
+    },
+    {
+      "type": "NH3L",
+      "full_type": "iff_charmm.NH3L",
+      "element": "N",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type NH3L (charge not available)",
+      "ref": "",
+      "mass": 14.007
     },
     {
       "type": "NI",
@@ -2527,34 +1977,584 @@
       "mass": 58.693
     },
     {
-      "type": "HB",
-      "full_type": "iff_charmm.HB",
-      "element": "H",
+      "type": "NP",
+      "full_type": "iff_charmm.NP",
+      "element": "N",
       "charge": null,
       "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type HB (charge not available)",
+      "environment": "CHARMM Interface atom type NP (charge not available)",
       "ref": "",
-      "mass": 1.008
+      "mass": 14.007
     },
     {
-      "type": "CPM",
-      "full_type": "iff_charmm.CPM",
-      "element": "C",
+      "type": "NPH",
+      "full_type": "iff_charmm.NPH",
+      "element": "N",
       "charge": null,
       "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type CPM (charge not available)",
+      "environment": "CHARMM Interface atom type NPH (charge not available)",
       "ref": "",
-      "mass": 12.011
+      "mass": 14.007
     },
     {
-      "type": "C",
-      "full_type": "iff_charmm.C",
-      "element": "C",
+      "type": "NR1",
+      "full_type": "iff_charmm.NR1",
+      "element": "N",
       "charge": null,
       "model": "iff_charmm",
-      "environment": "CHARMM Interface atom type C (charge not available)",
+      "environment": "CHARMM Interface atom type NR1 (charge not available)",
       "ref": "",
-      "mass": 12.011
+      "mass": 14.007
+    },
+    {
+      "type": "NR2",
+      "full_type": "iff_charmm.NR2",
+      "element": "N",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type NR2 (charge not available)",
+      "ref": "",
+      "mass": 14.007
+    },
+    {
+      "type": "NR3",
+      "full_type": "iff_charmm.NR3",
+      "element": "N",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type NR3 (charge not available)",
+      "ref": "",
+      "mass": 14.007
+    },
+    {
+      "type": "NS1",
+      "full_type": "iff_charmm.NS1",
+      "element": "N",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type NS1 (charge not available)",
+      "ref": "",
+      "mass": 14.007
+    },
+    {
+      "type": "NS2",
+      "full_type": "iff_charmm.NS2",
+      "element": "N",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type NS2 (charge not available)",
+      "ref": "",
+      "mass": 14.007
+    },
+    {
+      "type": "NTL",
+      "full_type": "iff_charmm.NTL",
+      "element": "N",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type NTL (charge not available)",
+      "ref": "",
+      "mass": 14.007
+    },
+    {
+      "type": "NY",
+      "full_type": "iff_charmm.NY",
+      "element": "N",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type NY (charge not available)",
+      "ref": "",
+      "mass": 14.007
+    },
+    {
+      "type": "O",
+      "full_type": "iff_charmm.O",
+      "element": "O",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type O (charge not available)",
+      "ref": "",
+      "mass": 15.999
+    },
+    {
+      "type": "O*",
+      "full_type": "iff_charmm.O*",
+      "element": "O",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type O* (charge not available)",
+      "ref": "",
+      "mass": 0.0
+    },
+    {
+      "type": "O2L",
+      "full_type": "iff_charmm.O2L",
+      "element": "O",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type O2L (charge not available)",
+      "ref": "",
+      "mass": 15.999
+    },
+    {
+      "type": "OAP1",
+      "full_type": "iff_charmm.OAP1",
+      "element": "O",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type OAP1 (charge not available)",
+      "ref": "",
+      "mass": 15.999
+    },
+    {
+      "type": "OAP2",
+      "full_type": "iff_charmm.OAP2",
+      "element": "O",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type OAP2 (charge not available)",
+      "ref": "",
+      "mass": 15.999
+    },
+    {
+      "type": "OB",
+      "full_type": "iff_charmm.OB",
+      "element": "O",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type OB (charge not available)",
+      "ref": "",
+      "mass": 15.999
+    },
+    {
+      "type": "OBL",
+      "full_type": "iff_charmm.OBL",
+      "element": "O",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type OBL (charge not available)",
+      "ref": "",
+      "mass": 15.999
+    },
+    {
+      "type": "OC",
+      "full_type": "iff_charmm.OC",
+      "element": "O",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type OC (charge not available)",
+      "ref": "",
+      "mass": 15.999
+    },
+    {
+      "type": "OC1",
+      "full_type": "iff_charmm.OC1",
+      "element": "O",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type OC1 (charge not available)",
+      "ref": "",
+      "mass": 15.999
+    },
+    {
+      "type": "OC2",
+      "full_type": "iff_charmm.OC2",
+      "element": "O",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type OC2 (charge not available)",
+      "ref": "",
+      "mass": 15.999
+    },
+    {
+      "type": "OC23",
+      "full_type": "iff_charmm.OC23",
+      "element": "O",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type OC23 (charge not available)",
+      "ref": "",
+      "mass": 15.999
+    },
+    {
+      "type": "OC24",
+      "full_type": "iff_charmm.OC24",
+      "element": "O",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type OC24 (charge not available)",
+      "ref": "",
+      "mass": 15.999
+    },
+    {
+      "type": "OC3",
+      "full_type": "iff_charmm.OC3",
+      "element": "O",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type OC3 (charge not available)",
+      "ref": "",
+      "mass": 15.999
+    },
+    {
+      "type": "OC4",
+      "full_type": "iff_charmm.OC4",
+      "element": "O",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type OC4 (charge not available)",
+      "ref": "",
+      "mass": 15.999
+    },
+    {
+      "type": "OC5",
+      "full_type": "iff_charmm.OC5",
+      "element": "O",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type OC5 (charge not available)",
+      "ref": "",
+      "mass": 15.999
+    },
+    {
+      "type": "OCA",
+      "full_type": "iff_charmm.OCA",
+      "element": "O",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type OCA (charge not available)",
+      "ref": "",
+      "mass": 15.999
+    },
+    {
+      "type": "OCL",
+      "full_type": "iff_charmm.OCL",
+      "element": "O",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type OCL (charge not available)",
+      "ref": "",
+      "mass": 15.999
+    },
+    {
+      "type": "OH1",
+      "full_type": "iff_charmm.OH1",
+      "element": "O",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type OH1 (charge not available)",
+      "ref": "",
+      "mass": 15.999
+    },
+    {
+      "type": "OHL",
+      "full_type": "iff_charmm.OHL",
+      "element": "O",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type OHL (charge not available)",
+      "ref": "",
+      "mass": 15.999
+    },
+    {
+      "type": "OM",
+      "full_type": "iff_charmm.OM",
+      "element": "O",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type OM (charge not available)",
+      "ref": "",
+      "mass": 15.999
+    },
+    {
+      "type": "OS",
+      "full_type": "iff_charmm.OS",
+      "element": "O",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type OS (charge not available)",
+      "ref": "",
+      "mass": 15.999
+    },
+    {
+      "type": "OSL",
+      "full_type": "iff_charmm.OSL",
+      "element": "O",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type OSL (charge not available)",
+      "ref": "",
+      "mass": 15.999
+    },
+    {
+      "type": "OST",
+      "full_type": "iff_charmm.OST",
+      "element": "O",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type OST (charge not available)",
+      "ref": "",
+      "mass": 15.999
+    },
+    {
+      "type": "OT",
+      "full_type": "iff_charmm.OT",
+      "element": "O",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type OT (charge not available)",
+      "ref": "",
+      "mass": 15.999
+    },
+    {
+      "type": "OY1",
+      "full_type": "iff_charmm.OY1",
+      "element": "O",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type OY1 (charge not available)",
+      "ref": "",
+      "mass": 15.999
+    },
+    {
+      "type": "OY2",
+      "full_type": "iff_charmm.OY2",
+      "element": "O",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type OY2 (charge not available)",
+      "ref": "",
+      "mass": 15.999
+    },
+    {
+      "type": "OY3",
+      "full_type": "iff_charmm.OY3",
+      "element": "O",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type OY3 (charge not available)",
+      "ref": "",
+      "mass": 15.999
+    },
+    {
+      "type": "OY4",
+      "full_type": "iff_charmm.OY4",
+      "element": "O",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type OY4 (charge not available)",
+      "ref": "",
+      "mass": 15.999
+    },
+    {
+      "type": "OY5",
+      "full_type": "iff_charmm.OY5",
+      "element": "O",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type OY5 (charge not available)",
+      "ref": "",
+      "mass": 15.999
+    },
+    {
+      "type": "OY6",
+      "full_type": "iff_charmm.OY6",
+      "element": "O",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type OY6 (charge not available)",
+      "ref": "",
+      "mass": 15.999
+    },
+    {
+      "type": "OY7",
+      "full_type": "iff_charmm.OY7",
+      "element": "O",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type OY7 (charge not available)",
+      "ref": "",
+      "mass": 15.999
+    },
+    {
+      "type": "OY8",
+      "full_type": "iff_charmm.OY8",
+      "element": "O",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type OY8 (charge not available)",
+      "ref": "",
+      "mass": 15.999
+    },
+    {
+      "type": "OY9",
+      "full_type": "iff_charmm.OY9",
+      "element": "O",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type OY9 (charge not available)",
+      "ref": "",
+      "mass": 15.999
+    },
+    {
+      "type": "PAP",
+      "full_type": "iff_charmm.PAP",
+      "element": "P",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type PAP (charge not available)",
+      "ref": "",
+      "mass": 30.974
+    },
+    {
+      "type": "PB",
+      "full_type": "iff_charmm.PB",
+      "element": "Pb",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type PB (charge not available)",
+      "ref": "",
+      "mass": 207.2
+    },
+    {
+      "type": "PD",
+      "full_type": "iff_charmm.PD",
+      "element": "Pd",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type PD (charge not available)",
+      "ref": "",
+      "mass": 106.42
+    },
+    {
+      "type": "PL",
+      "full_type": "iff_charmm.PL",
+      "element": "P",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type PL (charge not available)",
+      "ref": "",
+      "mass": 30.974
+    },
+    {
+      "type": "POT",
+      "full_type": "iff_charmm.POT",
+      "element": "P",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type POT (charge not available)",
+      "ref": "",
+      "mass": 39.098
+    },
+    {
+      "type": "PT",
+      "full_type": "iff_charmm.PT",
+      "element": "Pt",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type PT (charge not available)",
+      "ref": "",
+      "mass": 195.084
+    },
+    {
+      "type": "S",
+      "full_type": "iff_charmm.S",
+      "element": "S",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type S (charge not available)",
+      "ref": "",
+      "mass": 32.065
+    },
+    {
+      "type": "SC1",
+      "full_type": "iff_charmm.SC1",
+      "element": "Si",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type SC1 (charge not available)",
+      "ref": "",
+      "mass": 28.086
+    },
+    {
+      "type": "SC4",
+      "full_type": "iff_charmm.SC4",
+      "element": "Si",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type SC4 (charge not available)",
+      "ref": "",
+      "mass": 28.086
+    },
+    {
+      "type": "SL",
+      "full_type": "iff_charmm.SL",
+      "element": "S",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type SL (charge not available)",
+      "ref": "",
+      "mass": 32.065
+    },
+    {
+      "type": "SM",
+      "full_type": "iff_charmm.SM",
+      "element": "S",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type SM (charge not available)",
+      "ref": "",
+      "mass": 32.065
+    },
+    {
+      "type": "SOD",
+      "full_type": "iff_charmm.SOD",
+      "element": "S",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type SOD (charge not available)",
+      "ref": "",
+      "mass": 22.99
+    },
+    {
+      "type": "SS",
+      "full_type": "iff_charmm.SS",
+      "element": "S",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type SS (charge not available)",
+      "ref": "",
+      "mass": 32.065
+    },
+    {
+      "type": "SY1",
+      "full_type": "iff_charmm.SY1",
+      "element": "Si",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type SY1 (charge not available)",
+      "ref": "",
+      "mass": 28.086
+    },
+    {
+      "type": "SY2",
+      "full_type": "iff_charmm.SY2",
+      "element": "Si",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type SY2 (charge not available)",
+      "ref": "",
+      "mass": 28.086
+    },
+    {
+      "type": "ZN",
+      "full_type": "iff_charmm.ZN",
+      "element": "Zn",
+      "charge": null,
+      "model": "iff_charmm",
+      "environment": "CHARMM Interface atom type ZN (charge not available)",
+      "ref": "",
+      "mass": 65.38
     },
     {
       "type": "ao",
