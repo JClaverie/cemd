@@ -5,3 +5,6 @@ __pycache__/
 test/*
 !test/unit/
 !test/README.md
+build/
+dist/
+*.egg-info/
