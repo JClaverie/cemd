@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import pandas as pd
 import pytest
 
 from cemd.forcefield.models import LJParams
@@ -220,3 +221,36 @@ def test_set_ff_from_database_keeps_charges_a_force_field_does_not_define():
 
     for atom_type, charge in before.items():
         assert caffeine.charges[atom_type] == pytest.approx(charge)
+
+
+def test_set_ff_from_database_applies_the_charges_a_force_field_defines():
+    # The other half of the contract checked just above: when the force
+    # field does define a per-type charge, it wins over whatever the system
+    # was carrying. Only a force field that defines none (GROMOS, the
+    # CHARMM Interface files) leaves the existing charges alone.
+    atoms = pd.DataFrame(
+        {
+            "type": ["ao", "ob"],
+            "charge": [9.99, -9.99],
+            "x": [0.0, 2.0],
+            "y": [0.0, 0.0],
+            "z": [0.0, 0.0],
+        },
+        index=[1, 2],
+    )
+    system = AtomicSystem(
+        {
+            "atoms": atoms,
+            "box": [10.0, 10.0, 10.0, 90.0, 90.0, 90.0],
+            "masses": {"ao": 26.98, "ob": 16.0},
+            "charges": {"ao": 9.99, "ob": -9.99},
+        }
+    )
+
+    system.set_ff_keys(atom={"ao": "ClayFF.ao", "ob": "ClayFF.ob"})
+    system.set_ff_from_database()
+
+    assert system.charges["ao"] == pytest.approx(1.575)
+    assert system.charges["ob"] == pytest.approx(-1.05)
+    # The per-atom column follows, so the total is the force field's.
+    assert system.total_charge == pytest.approx(1.575 - 1.05)
